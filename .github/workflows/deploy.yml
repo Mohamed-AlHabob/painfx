@@ -71,6 +71,9 @@ jobs:
           port: 22  # Adjust if using a different SSH port
           source: "./painfx_production/docker-stack.yml"
           target: "~/painfx_production"
+          overwrite: true
+          strip_components: 1
+          
 
       # Step 10: Deploy to VPS via SSH
       - name: Deploy to VPS
