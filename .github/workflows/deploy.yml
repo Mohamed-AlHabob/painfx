@@ -10,167 +10,81 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout Code
+      # Step 1: Checkout the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Clean up old Buildx instances
-      - name: Clean up Buildx Instances
-        run: |
-          docker buildx ls | grep -q "default" && docker buildx rm default || echo "No default instance to clean up"
-
-      # Step 3: Set up QEMU for multi-architecture builds
+      # Step 2: Set up QEMU for multi-architecture builds (if needed)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
-      # Step 4: Set up Docker Buildx
+      # Step 3: Set up Docker Buildx for advanced build features
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
 
-      # Step 5: Log in to Docker Hub
+      # Step 4: Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-  build-django:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx with docker-container driver
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: django-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            django-${{ runner.os }}
-
+      # Step 5: Build and Push Django Image
       - name: Build and Push Django
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/backend
           push: true
           tags: supernovasoftwareco014/painfx-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
-  build-celery:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx with docker-container driver
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: celery-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            celery-${{ runner.os }}
-
+      # Step 6: Build and Push Celery Image
       - name: Build and Push Celery
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/infrastructure/celery/celery-worker
           push: true
           tags: supernovasoftwareco014/painfx-celery:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
-  build-celery-flower:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx with docker-container driver
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: celery-flower-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            celery-flower-${{ runner.os }}
-
+      # Step 7: Build and Push Celery Flower Image
       - name: Build and Push Celery Flower
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/infrastructure/celery/celery-flower
           push: true
           tags: supernovasoftwareco014/celery-flower:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
-  build-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx with docker-container driver
-        uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: frontend-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            frontend-${{ runner.os }}
-
+      # Step 8: Build and Push Next.js Image
       - name: Build and Push Next.js
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_frontend
           push: true
           tags: supernovasoftwareco014/painfx-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
-  deploy:
-    needs: [build-django, build-celery, build-celery-flower, build-frontend]
-    runs-on: ubuntu-latest
-    steps:
+      # Step 9: Copy docker-stack.yml to VPS
       - name: Copy docker-stack.yml to VPS
-        uses: appleboy/scp-action@v0.1.8
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 22
-          source: ./painfx_production/docker-stack.yml
-          target: ~/painfx_production/
-          timeout: 120s
+          port: 22  # Adjust if using a different SSH port
+          source: "./docker-stack.yml"
+          target: "~/painfx_production"
 
+      # Step 10: Deploy to VPS via SSH
       - name: Deploy to VPS
-        uses: appleboy/ssh-action@v0.1.14
+        uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
           script: |
+            # Ensure production directory exists
+            mkdir -p ~/painfx_production
             cd ~/painfx_production
+
+            # Deploy Docker stack
             docker stack deploy -c docker-stack.yml painfx_stack
-            echo "Deployment completed successfully!"
+            echo "Deployment complete!"
