@@ -20,9 +20,6 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-        with:
-          driver: docker-container
-          buildkitd-flags: --debug
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -46,8 +43,6 @@ jobs:
           context: ./painfx_backend/backend
           push: true
           tags: supernovasoftwareco014/painfx-backend:${{ github.sha }}
-          cache-from: type=registry,ref=supernovasoftwareco014/painfx-backend:latest
-          cache-to: type=registry,ref=supernovasoftwareco014/painfx-backend:latest,mode=max
 
   build-celery:
     needs: setup
@@ -62,8 +57,6 @@ jobs:
           context: ./painfx_backend/infrastructure/celery/celery-worker
           push: true
           tags: supernovasoftwareco014/painfx-celery:${{ github.sha }}
-          cache-from: type=registry,ref=supernovasoftwareco014/painfx-celery:latest
-          cache-to: type=registry,ref=supernovasoftwareco014/painfx-celery:latest,mode=max
 
   build-celery-flower:
     needs: setup
@@ -78,8 +71,6 @@ jobs:
           context: ./painfx_backend/infrastructure/celery/celery-flower
           push: true
           tags: supernovasoftwareco014/celery-flower:${{ github.sha }}
-          cache-from: type=registry,ref=supernovasoftwareco014/celery-flower:latest
-          cache-to: type=registry,ref=supernovasoftwareco014/celery-flower:latest,mode=max
 
   build-frontend:
     needs: setup
@@ -94,8 +85,6 @@ jobs:
           context: ./painfx_frontend
           push: true
           tags: supernovasoftwareco014/painfx-frontend:${{ github.sha }}
-          cache-from: type=registry,ref=supernovasoftwareco014/painfx-frontend:latest
-          cache-to: type=registry,ref=supernovasoftwareco014/painfx-frontend:latest,mode=max
 
   deploy:
     needs: [build-django, build-celery, build-celery-flower, build-frontend]
