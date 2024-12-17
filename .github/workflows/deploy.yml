@@ -42,7 +42,7 @@ jobs:
         with:
           context: ./painfx_backend/backend
           push: true
-          tags: supernovasoftwareco014/painfx-backend:${{ github.sha }}
+          tags: supernovasoftwareco014/painfx-backend:latest
 
   build-celery:
     needs: setup
@@ -56,7 +56,7 @@ jobs:
         with:
           context: ./painfx_backend/infrastructure/celery/celery-worker
           push: true
-          tags: supernovasoftwareco014/painfx-celery:${{ github.sha }}
+          tags: supernovasoftwareco014/painfx-celery:latest
 
   build-celery-flower:
     needs: setup
@@ -70,7 +70,7 @@ jobs:
         with:
           context: ./painfx_backend/infrastructure/celery/celery-flower
           push: true
-          tags: supernovasoftwareco014/celery-flower:${{ github.sha }}
+          tags: supernovasoftwareco014/celery-flower:latest
 
   build-frontend:
     needs: setup
@@ -84,7 +84,7 @@ jobs:
         with:
           context: ./painfx_frontend
           push: true
-          tags: supernovasoftwareco014/painfx-frontend:${{ github.sha }}
+          tags: supernovasoftwareco014/painfx-frontend:latest
 
   deploy:
     needs: [build-django, build-celery, build-celery-flower, build-frontend]
