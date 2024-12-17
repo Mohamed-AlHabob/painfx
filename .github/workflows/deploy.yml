@@ -40,6 +40,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Set up Docker Buildx with docker-container driver
+        uses: docker/setup-buildx-action@v2
+        with:
+          driver: docker-container
+
       - name: Cache Docker layers
         uses: actions/cache@v3
         with:
@@ -54,8 +59,9 @@ jobs:
           context: ./painfx_backend/backend
           push: true
           tags: supernovasoftwareco014/painfx-backend:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
 
   build-celery:
     runs-on: ubuntu-latest
