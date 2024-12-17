@@ -1,19 +1,26 @@
+version: '3.8'
+
 services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:v2.9  # Updated to a stable version
     container_name: traefik
     restart: unless-stopped
     command:
-      - --api.insecure=true
+      - --api.dashboard=true  # Enable dashboard securely
       - --providers.docker=true
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}
+      - --certificatesresolvers.myresolver.acme.email=your_email@example.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      # Optional: Add authentication for the dashboard
+      #- --api.dashboard=true
+      #- --entrypoints.dashboard.address=:8080
     ports:
       - "80:80"
       - "443:443"
+      # Optional: Expose dashboard on a different port with authentication
+      #- "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-certificates:/letsencrypt
@@ -26,11 +33,15 @@ services:
           - node.role == manager
 
   postgres:
-    image: postgres:latest
+    image: postgres:13  # Specify a stable PostgreSQL version
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB_FILE: /run/secrets/postgres_db
+    secrets:
+      - postgres_user
+      - postgres_password
+      - postgres_db
     volumes:
       - postgres_data:/var/lib/postgresql/data:z
     networks:
@@ -42,7 +53,7 @@ services:
           - node.role == manager
 
   redis:
-    image: redis:latest
+    image: redis:6  # Specify a stable Redis version
     networks:
       - backend
     deploy:
@@ -53,11 +64,37 @@ services:
 
   django:
     image: supernovasoftwareco014/painfx-backend:latest
-    build:
-      context: ./django
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"  # Removed password from URL
+      REDIS_URL: "redis://redis:6379/0"
+      AUTH_COOKIE_SECURE: "True"
+      GOOGLE_AUTH_KEY: "147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com"
+      GOOGLE_AUTH_SECRET_KEY_FILE: /run/secrets/google_auth_secret_key
+      REDIRECT_URLS: "https://painfx.in/google,https://painfx.in/facebook"
+      EMAIL_HOST_USER: "supernovasoftwareco@gmail.com"
+      EMAIL_HOST_PASSWORD_FILE: /run/secrets/email_host_password
+      DOMAIN: "https://painfx.in"
+      TWILIO_ACCOUNT_SID_FILE: /run/secrets/twilio_account_sid
+      TWILIO_AUTH_TOKEN_FILE: /run/secrets/twilio_auth_token
+      STRIPE_SECRET_KEY_FILE: /run/secrets/stripe_secret_key
+      STRIPE_WEBHOOK_SECRET_FILE: /run/secrets/stripe_webhook_secret
+      GOOGLE_MAPS_API_KEY_FILE: /run/secrets/google_maps_api_key
+      DJANGO_SECRET_KEY_FILE: /run/secrets/django_secret_key
+      DJANGO_DEBUG: "False"
+      DEVELOPMENTMODE: "False"
+      CORS_ALLOWED_ORIGINS: "https://painfx.in"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,143.110.155.48"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    secrets:
+      - google_auth_secret_key
+      - email_host_password
+      - twilio_account_sid
+      - twilio_auth_token
+      - stripe_secret_key
+      - stripe_webhook_secret
+      - google_maps_api_key
+      - django_secret_key
     volumes:
       - ./staticfiles:/app/staticfiles:z
     depends_on:
@@ -82,11 +119,10 @@ services:
 
   nextjs:
     image: supernovasoftwareco014/painfx-frontend:latest
-    build:
-      context: ./nextjs
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    environment:
+      NEXT_PUBLIC_BACKEND_API_URL: "https://api.painfx.in"
+      NEXT_PUBLIC_REDIRECT_URL: "https://painfx.in/google"
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_51OF23EH6eN12iihYcTAgC2sE9gjRtqz4UXN6xkOQp9DhrhVzRbscDFUv4hSdeFoTaaaoHz5J66svxG9GzwYu1hNH002x3aWMIk"
     networks:
       - web
     labels:
@@ -102,11 +138,9 @@ services:
 
   celery:
     image: supernovasoftwareco014/painfx-celery:latest
-    build:
-      context: ./celery
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"  # Removed password
+      REDIS_URL: "redis://redis:6379/0"
     depends_on:
       - postgres
       - redis
@@ -121,11 +155,9 @@ services:
 
   celery-flower:
     image: supernovasoftwareco014/celery-flower:latest
-    build:
-      context: ./celery
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"  # Removed password
+      REDIS_URL: "redis://redis:6379/0"
     depends_on:
       - postgres
       - redis
@@ -143,15 +175,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LABEL_ENABLE=true
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true"
     networks:
       - web
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-
 
 networks:
   web:
@@ -161,5 +192,29 @@ networks:
 
 volumes:
   traefik-certificates:
-  postgres-data:
+  postgres_data:
   static-data:
+
+secrets:
+  postgres_user:
+    external: true
+  postgres_password:
+    external: true
+  postgres_db:
+    external: true
+  google_auth_secret_key:
+    external: true
+  email_host_password:
+    external: true
+  twilio_account_sid:
+    external: true
+  twilio_auth_token:
+    external: true
+  stripe_secret_key:
+    external: true
+  stripe_webhook_secret:
+    external: true
+  google_maps_api_key:
+    external: true
+  django_secret_key:
+    external: true

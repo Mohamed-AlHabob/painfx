@@ -5,22 +5,18 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Environment variables
+# Initialize environment variables
 env = environ.Env(
     DEBUG=(bool, False),
     DEVELOPMENTMODE=(bool, False)
 )
 
-# Adjust for Docker secrets or standard .env file
-docker_secret_env_file = Path("/run/secrets/env_file")
-standard_env_file = BASE_DIR / "../.env"
+# Read environment variables from .env file if present
+environ.Env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
-if docker_secret_env_file.exists():
-    # Use Docker secret if available
-    environ.Env.read_env(str(docker_secret_env_file))
-elif standard_env_file.exists():
-    # Use standard .env file if available
-    environ.Env.read_env(str(standard_env_file))
+def read_secret(file_path):
+    with open(file_path, 'r') as file:
+        return file.read().strip()
 
 # Ensure log directory exists
 log_dir = BASE_DIR / "logs"
@@ -28,14 +24,14 @@ if not log_dir.exists():
     os.makedirs(log_dir)
 
 # Secret key
-SECRET_KEY = env("DJANGO_SECRET_KEY", default=get_random_secret_key())
+SECRET_KEY = read_secret('/run/secrets/django_secret_key') if os.path.exists('/run/secrets/django_secret_key') else get_random_secret_key()
 
 # Debugging and development mode
 DEBUG = env("DJANGO_DEBUG", default=False)
 DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
 
 # Allowed hosts
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"] if DEVELOPMENTMODE else [])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list(
@@ -105,9 +101,9 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", default="POSTGRES_DB"),
-        "USER": env("POSTGRES_USER", default="POSTGRES_USER"),
-        "PASSWORD": env("POSTGRES_PASSWORD", default="POSTGRES_PASSWORD"),
+        "NAME": env("POSTGRES_DB", default="painfx_db"),
+        "USER": env("POSTGRES_USER", default="painfx_user"),
+        "PASSWORD": read_secret('/run/secrets/postgres_password'),
         "HOST": env("POSTGRES_HOST", default="localhost"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
@@ -141,24 +137,25 @@ SITE_NAME = "PainFX"
 AUTH_USER_MODEL = "authentication.User"
 
 # Stripe settings
-STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
-STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+STRIPE_SECRET_KEY = read_secret('/run/secrets/stripe_secret_key') if os.path.exists('/run/secrets/stripe_secret_key') else env("STRIPE_SECRET_KEY", default="sk_test_...")
+STRIPE_WEBHOOK_SECRET = read_secret('/run/secrets/stripe_webhook_secret') if os.path.exists('/run/secrets/stripe_webhook_secret') else env("STRIPE_WEBHOOK_SECRET", default="")
+
 
 # Google Maps API Key
-GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="")
+GOOGLE_MAPS_API_KEY = read_secret('/run/secrets/google_maps_api_key') if os.path.exists('/run/secrets/google_maps_api_key') else env("GOOGLE_MAPS_API_KEY", default="")
 
 # Twilio settings
-TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
-TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="")
-TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="")
+TWILIO_ACCOUNT_SID = read_secret('/run/secrets/twilio_account_sid') if os.path.exists('/run/secrets/twilio_account_sid') else env("TWILIO_ACCOUNT_SID", default="ACxxxx")
+TWILIO_AUTH_TOKEN = read_secret('/run/secrets/twilio_auth_token') if os.path.exists('/run/secrets/twilio_auth_token') else env("TWILIO_AUTH_TOKEN", default="47ab8efcd0a1a83629f6fa288a230a36")
+TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="+17753178557")
 
 # Email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="supernovasoftwareco@gmail.com")
+EMAIL_HOST_PASSWORD = read_secret('/run/secrets/email_host_password') if os.path.exists('/run/secrets/email_host_password') else env("EMAIL_HOST_PASSWORD", default="aodc mqwb nibd clbz")
 DEFAULT_FROM_EMAIL = SITE_NAME
 
 # Default auto field
