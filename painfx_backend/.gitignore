@@ -30,3 +30,6 @@ venv
 
 backend/media
 backend/staticfiles
+backend/logs
+staticfiles
+media

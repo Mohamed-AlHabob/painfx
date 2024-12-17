@@ -60,7 +60,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           </div>
           )}
         </div>
-        <Link href={`${pathname}/${post.id}`} className="w-full">
+        <Link href={`${pathname}/post/${post.id}`} className="w-full">
           <div className="flex flex-col gap-y-3">
             <h2 className="text-2xl">{post.title}</h2>
             {post.content}

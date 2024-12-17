@@ -1,0 +1,165 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/letsencrypt
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:z
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  redis:
+    image: redis:latest
+    networks:
+      - backend
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  django:
+    image: supernovasoftwareco014/painfx-backend:latest
+    build:
+      context: ./django
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./staticfiles:/app/staticfiles:z
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.django.rule=Host(`api.painfx.in`)"
+      - "traefik.http.routers.django.entrypoints=websecure"
+      - "traefik.http.routers.django.tls.certresolver=myresolver"
+      - "traefik.http.services.django.loadbalancer.server.port=8000"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  nextjs:
+    image: supernovasoftwareco014/painfx-frontend:latest
+    build:
+      context: ./nextjs
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextjs.rule=Host(`painfx.in`)"
+      - "traefik.http.routers.nextjs.entrypoints=websecure"
+      - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
+      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  celery:
+    image: supernovasoftwareco014/painfx-celery:latest
+    build:
+      context: ./celery
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - django
+    command: ["celery", "-A", "core", "worker", "--loglevel=info"]
+    networks:
+      - backend
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  celery-flower:
+    image: supernovasoftwareco014/celery-flower:latest
+    build:
+      context: ./celery
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - django
+    command: ["celery", "-A", "core", "flower", "--port=5555", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    networks:
+      - backend
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+    networks:
+      - web
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+
+networks:
+  web:
+    external: true
+  backend:
+    driver: overlay
+
+volumes:
+  traefik-certificates:
+  postgres-data:
+  static-data:

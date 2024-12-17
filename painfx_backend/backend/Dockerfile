@@ -21,8 +21,8 @@ ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 
 # Set Python environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install Python dependencies
 COPY requirements.txt ./

@@ -1,0 +1,116 @@
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Required to interact with Docker
+    networks:
+      - mynetwork
+
+  backend:
+    image: supernovasoftwareco014/painfx-backend:latest
+    container_name: painfx_backend
+    env_file: .env
+    networks:
+      - mynetwork
+    labels:
+      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+
+  frontend:
+    image: supernovasoftwareco014/painfx-frontend:latest
+    container_name: painfx_frontend
+    env_file:
+      - ../painfx_frontend/.env
+    networks:
+      - mynetwork
+    labels:
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+
+  celery:
+    image: supernovasoftwareco014/painfx-celery:latest
+    container_name: painfx_celery
+    env_file: .env
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    volumes:
+      - ./backend:/app:z
+    command: ["celery", "-A", "core", "worker", "--loglevel=info"]
+
+  celery-flower:
+    image: supernovasoftwareco014/painfx-celery:latest
+    container_name: painfx_celery_flower
+    env_file: .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      celery:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    volumes:
+      - ./backend:/app:z
+    command: [
+      "celery", "-A", "core", "flower",
+      "--port=5555",
+      "--loglevel=info",
+      "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"
+    ]
+
+  redis:
+    image: redis:latest
+    container_name: painfx_redis
+    networks:
+      - mynetwork
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:latest
+    container_name: painfx_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
