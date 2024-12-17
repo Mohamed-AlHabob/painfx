@@ -40,56 +40,56 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3    
 
       - name: Build and Push Django
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/backend
           push: true
-          tags: supernovasoftwareco014/painfx-backend:latest
+          tags: supernovasoftwareco014/painfx-backend:latest    
 
   build-celery:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3    
 
       - name: Build and Push Celery
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/infrastructure/celery/celery-worker
           push: true
-          tags: supernovasoftwareco014/painfx-celery:latest
+          tags: supernovasoftwareco014/painfx-celery:latest    
 
   build-celery-flower:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3    
 
       - name: Build and Push Celery Flower
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/infrastructure/celery/celery-flower
           push: true
-          tags: supernovasoftwareco014/celery-flower:latest
+          tags: supernovasoftwareco014/celery-flower:latest    
 
   build-frontend:
     needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3    
 
       - name: Build and Push Next.js
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_frontend
           push: true
-          tags: supernovasoftwareco014/painfx-frontend:latest
+          tags: supernovasoftwareco014/painfx-frontend:latest    
 
   deploy:
     needs: [build-django, build-celery, build-celery-flower, build-frontend]
@@ -103,7 +103,7 @@ jobs:
           key: ${{ needs.setup.outputs.vps_ssh_key }}
           port: 22
           source: ./painfx_production/docker-stack.yml
-          target: ~/painfx_production/docker-stack.yml
+          target: ~/painfx_production/docker-stack.yml    
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.14
