@@ -33,7 +33,7 @@ jobs:
       - name: Build and Push Django
         uses: docker/build-push-action@v4
         with:
-          context: ./django
+          context: ./painfx_backend/backend
           push: true
           tags: supernovasoftwareco014/painfx-backend:latest
 
@@ -41,7 +41,7 @@ jobs:
       - name: Build and Push Celery
         uses: docker/build-push-action@v4
         with:
-          context: ./celery
+          context: ./painfx_backend/infrastructure/celery/celery-worker
           push: true
           tags: supernovasoftwareco014/painfx-celery:latest
 
@@ -49,7 +49,7 @@ jobs:
       - name: Build and Push Celery Flower
         uses: docker/build-push-action@v4
         with:
-          context: ./celery_flower
+          context: ./painfx_backend/infrastructure/celery/celery-flower
           push: true
           tags: supernovasoftwareco014/celery-flower:latest
 
@@ -57,7 +57,7 @@ jobs:
       - name: Build and Push Next.js
         uses: docker/build-push-action@v4
         with:
-          context: ./nextjs
+          context: ./painfx_frontend
           push: true
           tags: supernovasoftwareco014/painfx-frontend:latest
 
