@@ -22,9 +22,6 @@ export async function middleware(req: NextRequest) {
 
     console.log('Cookies in middleware:', req.cookies.getAll());
 
-
-    
-
     const isPublicRoute = matchesDynamicRoute(url.pathname, PUBLIC_ROUTES);
     const isAuthRoute = matchesDynamicRoute(url.pathname, AUTH_ROUTES);
 
@@ -50,9 +47,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
     matcher: [
-      // Skip Next.js internals and all static files, unless found in search params
       '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-      // Always run for API routes
       '/(api|trpc)(.*)',
     ],
   }
