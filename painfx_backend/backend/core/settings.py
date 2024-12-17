@@ -26,12 +26,13 @@ log_dir = BASE_DIR / "logs"
 if not log_dir.exists():
     os.makedirs(log_dir)
 
-# Secret key
-SECRET_KEY = read_secret('django_secret_key') if not DEVELOPMENTMODE else get_random_secret_key()
 
 # Debugging and development mode
 DEBUG = env("DJANGO_DEBUG", default=False)
 DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
+
+# Secret key
+SECRET_KEY = read_secret('django_secret_key') if not DEVELOPMENTMODE else get_random_secret_key()
 
 # Allowed hosts
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
