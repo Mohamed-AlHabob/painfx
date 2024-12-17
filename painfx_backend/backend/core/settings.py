@@ -107,8 +107,8 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": env("POSTGRES_DB", default="painfx_db"),
         "USER": env("POSTGRES_USER", default="painfx_user"),
-        "PASSWORD": read_secret('/run/secrets/postgres_password'),
-        "HOST": env("POSTGRES_HOST", default="localhost"),
+        "PASSWORD": read_secret('/run/secrets/postgres_password',"mohamedalhabob"),
+        "HOST": env("POSTGRES_HOST", default="postgres"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
