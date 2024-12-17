@@ -14,19 +14,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Clean up old Buildx instances (Optional)
+      # Step 2: Clean up old Buildx instances
       - name: Clean up Buildx Instances
-        run: docker buildx rm default || true
+        run: |
+          docker buildx ls | grep -q "default" && docker buildx rm default || echo "No default instance to clean up"
 
       # Step 3: Set up QEMU for multi-architecture builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
-      # Step 4: Set up Docker Buildx with docker-container driver
+      # Step 4: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          driver: docker-container
 
       # Step 5: Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -41,12 +40,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: django-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            django-${{ runner.os }}
+
       - name: Build and Push Django
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/backend
           push: true
           tags: supernovasoftwareco014/painfx-backend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
   build-celery:
     runs-on: ubuntu-latest
@@ -80,12 +89,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: frontend-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            frontend-${{ runner.os }}
+
       - name: Build and Push Next.js
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_frontend
           push: true
           tags: supernovasoftwareco014/painfx-frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
   deploy:
     needs: [build-django, build-celery, build-celery-flower, build-frontend]
@@ -99,7 +118,8 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
           source: ./painfx_production/docker-stack.yml
-          target: ~/painfx_production/docker-stack.yml
+          target: ~/painfx_production/
+          timeout: 120s
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.14
@@ -111,3 +131,4 @@ jobs:
           script: |
             cd ~/painfx_production
             docker stack deploy -c docker-stack.yml painfx_stack
+            echo "Deployment completed successfully!"
