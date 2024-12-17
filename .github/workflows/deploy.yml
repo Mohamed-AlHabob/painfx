@@ -6,78 +6,114 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  setup:
     runs-on: ubuntu-latest
-
+    outputs:
+      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      vps_host: ${{ secrets.VPS_HOST }}
+      vps_user: ${{ secrets.VPS_USER }}
+      vps_ssh_key: ${{ secrets.VPS_SSH_KEY }}
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Set up QEMU for multi-architecture builds (if needed)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
-      # Step 3: Set up Docker Buildx for advanced build features
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Step 4: Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # Step 5: Build and Push Django Image
+  build-django:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Build and Push Django
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/backend
           push: true
-          tags: supernovasoftwareco014/painfx-backend:latest
+          tags: supernovasoftwareco014/painfx-backend:${{ github.sha }}
+          cache-from: type=registry,ref=supernovasoftwareco014/painfx-backend:latest
+          cache-to: type=registry,ref=supernovasoftwareco014/painfx-backend:latest,mode=max
 
-      # Step 6: Build and Push Celery Image
+  build-celery:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Build and Push Celery
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/infrastructure/celery/celery-worker
           push: true
-          tags: supernovasoftwareco014/painfx-celery:latest
+          tags: supernovasoftwareco014/painfx-celery:${{ github.sha }}
+          cache-from: type=registry,ref=supernovasoftwareco014/painfx-celery:latest
+          cache-to: type=registry,ref=supernovasoftwareco014/painfx-celery:latest,mode=max
 
-      # Step 7: Build and Push Celery Flower Image
+  build-celery-flower:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Build and Push Celery Flower
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_backend/infrastructure/celery/celery-flower
           push: true
-          tags: supernovasoftwareco014/celery-flower:latest
+          tags: supernovasoftwareco014/celery-flower:${{ github.sha }}
+          cache-from: type=registry,ref=supernovasoftwareco014/celery-flower:latest
+          cache-to: type=registry,ref=supernovasoftwareco014/celery-flower:latest,mode=max
 
-      # Step 8: Build and Push Next.js Image
+  build-frontend:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Build and Push Next.js
         uses: docker/build-push-action@v4
         with:
           context: ./painfx_frontend
           push: true
-          tags: supernovasoftwareco014/painfx-frontend:latest
+          tags: supernovasoftwareco014/painfx-frontend:${{ github.sha }}
+          cache-from: type=registry,ref=supernovasoftwareco014/painfx-frontend:latest
+          cache-to: type=registry,ref=supernovasoftwareco014/painfx-frontend:latest,mode=max
 
+  deploy:
+    needs: [build-django, build-celery, build-celery-flower, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
       - name: Copy docker-stack.yml to VPS
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.8
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          host: ${{ needs.setup.outputs.vps_host }}
+          username: ${{ needs.setup.outputs.vps_user }}
+          key: ${{ needs.setup.outputs.vps_ssh_key }}
           port: 22
           source: ./painfx_production/docker-stack.yml
           target: ~/painfx_production/docker-stack.yml
 
-      # Step 10: Deploy to VPS via SSH
       - name: Deploy to VPS
-        uses: appleboy/ssh-action@v0.1.4
+        uses: appleboy/ssh-action@v0.1.14
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          host: ${{ needs.setup.outputs.vps_host }}
+          username: ${{ needs.setup.outputs.vps_user }}
+          key: ${{ needs.setup.outputs.vps_ssh_key }}
           port: 22
           script: |
             cd ~/painfx_production

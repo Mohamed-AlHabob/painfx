@@ -1,26 +1,19 @@
-version: '3.8'
-
 services:
   traefik:
-    image: traefik:v2.9  # Updated to a stable version
+    image: traefik:v2.9
     container_name: traefik
     restart: unless-stopped
     command:
-      - --api.dashboard=true  # Enable dashboard securely
+      - --api.dashboard=true
       - --providers.docker=true
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
       - --certificatesresolvers.myresolver.acme.email=your_email@example.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-      # Optional: Add authentication for the dashboard
-      #- --api.dashboard=true
-      #- --entrypoints.dashboard.address=:8080
     ports:
       - "80:80"
       - "443:443"
-      # Optional: Expose dashboard on a different port with authentication
-      #- "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-certificates:/letsencrypt
@@ -33,7 +26,7 @@ services:
           - node.role == manager
 
   postgres:
-    image: postgres:13  # Specify a stable PostgreSQL version
+    image: postgres:13
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -53,7 +46,7 @@ services:
           - node.role == manager
 
   redis:
-    image: redis:6  # Specify a stable Redis version
+    image: redis:6
     networks:
       - backend
     deploy:
@@ -65,7 +58,7 @@ services:
   django:
     image: supernovasoftwareco014/painfx-backend:latest
     environment:
-      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"  # Removed password from URL
+      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
       REDIS_URL: "redis://redis:6379/0"
       AUTH_COOKIE_SECURE: "True"
       GOOGLE_AUTH_KEY: "147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com"
@@ -95,8 +88,6 @@ services:
       - stripe_webhook_secret
       - google_maps_api_key
       - django_secret_key
-    volumes:
-      - ./staticfiles:/app/staticfiles:z
     depends_on:
       - postgres
       - redis
@@ -139,13 +130,12 @@ services:
   celery:
     image: supernovasoftwareco014/painfx-celery:latest
     environment:
-      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"  # Removed password
+      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
       REDIS_URL: "redis://redis:6379/0"
     depends_on:
       - postgres
       - redis
       - django
-    command: ["celery", "-A", "core", "worker", "--loglevel=info"]
     networks:
       - backend
     deploy:
@@ -156,13 +146,12 @@ services:
   celery-flower:
     image: supernovasoftwareco014/celery-flower:latest
     environment:
-      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"  # Removed password
+      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
       REDIS_URL: "redis://redis:6379/0"
     depends_on:
       - postgres
       - redis
       - django
-    command: ["celery", "-A", "core", "flower", "--port=5555", "--loglevel=info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
     networks:
       - backend
     deploy:
