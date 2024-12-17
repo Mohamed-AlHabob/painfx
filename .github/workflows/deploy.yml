@@ -61,15 +61,24 @@ jobs:
           push: true
           tags: supernovasoftwareco014/painfx-frontend:latest
 
+      - name: Copy docker-stack.yml to VPS
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          source: ./painfx_production/docker-stack.yml
+          target: ~/painfx_production/docker-stack.yml
 
-      # Step 9: Deploy to VPS via SSH
+      # Step 10: Deploy to VPS via SSH
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 22  # Change if using a different SSH port
+          port: 22
           script: |
-            cd ~/painfx-production
+            cd ~/painfx_production
             docker stack deploy -c docker-stack.yml painfx_stack
