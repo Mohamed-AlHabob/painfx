@@ -109,7 +109,7 @@ DATABASES = {
         'NAME': env('POSTGRES_DB', default='painfx_db'),
         'USER': env('POSTGRES_USER', default='painfx_user'),
         'PASSWORD': env('POSTGRES_PASSWORD', default='mohamedalhabob'),
-        "HOST": env("POSTGRES_HOST", default="painfx_stack_postgres"),
+        "HOST": env("POSTGRES_HOST", default="postgres"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
