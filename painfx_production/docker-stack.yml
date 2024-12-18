@@ -69,7 +69,6 @@ services:
   django:
     image: supernovasoftwareco014/painfx-backend:latest
     environment:
-      DJANGO_SETTINGS_MODULE: painfx_production.settings
       POSTGRES_DB: painfx_db
       POSTGRES_USER: painfx_user
       POSTGRES_PASSWORD: mohamedalhabob
