@@ -35,8 +35,8 @@ DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
 SECRET_KEY = read_secret('django_secret_key') if not DEVELOPMENTMODE else get_random_secret_key()
 
 # Allowed hosts
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
-
+# ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
+ALLOWED_HOSTS = ['api.painfx.in','painfx.in' ,'localhost', '127.0.0.1']
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
