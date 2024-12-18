@@ -38,13 +38,9 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_DB_FILE: /run/secrets/postgres_db
-    secrets:
-      - postgres_user
-      - postgres_password
-      - postgres_db
+      POSTGRES_DB: painfx_db
+      POSTGRES_USER: painfx_user
+      POSTGRES_PASSWORD: mohamedalhabob
     volumes:
       - postgres_data:/var/lib/postgresql/data:z
     networks:
@@ -61,42 +57,59 @@ services:
         delay: 10s
 
   redis:
-    image: redis:6
-    command: ["sh", "-c", "redis-server --requirepass $$(cat /run/secrets/redis_password)"]
-    environment:
-      REDIS_PASSWORD_FILE: /run/secrets/redis_password
-    secrets:
-      - redis_password
+    image: redis:latest
     networks:
       - backend
+    volumes:
+      - redis_data:/data
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-
   django:
     image: supernovasoftwareco014/painfx-backend:latest
     environment:
-      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
-      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
-      AUTH_COOKIE_SECURE: "True"
-      DOMAIN: "https://painfx.in"
-      DJANGO_DEBUG: "False"
-      CORS_ALLOWED_ORIGINS: "https://painfx.in"
-      ALLOWED_HOSTS: "painfx.in,www.painfx.in,143.110.155.48"
-      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
-      CELERY_RESULT_BACKEND: "redis://:${REDIS_PASSWORD}@redis:6379/0"
-    secrets:
-      - google_auth_secret_key
-      - email_host_password
-      - twilio_account_sid
-      - twilio_auth_token
-      - stripe_secret_key
-      - stripe_webhook_secret
-      - google_maps_api_key
-      - django_secret_key
-      - postgres_db
-      - postgres_password
+    DJANGO_SETTINGS_MODULE: painfx_production.settings
+    # Database settings
+    POSTGRES_DB: painfx_db
+    POSTGRES_USER: painfx_user
+    POSTGRES_PASSWORD: mohamedalhabob
+    POSTGRES_HOST: painfx_stack_postgres
+    POSTGRES_PORT: 5432    
+
+    # Authentication settings
+    AUTH_COOKIE_SECURE: True
+    GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
+    GOOGLE_AUTH_SECRET_KEY: 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
+    REDIRECT_URLS: https://painfx.in/google,https://painfx.in/facebook    
+
+    EMAIL_HOST_USER: supernovasoftwareco@gmail.com
+    EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
+    # Traefik
+    TRAEFIK_EMAIL: supernovasoftwareco@gmail.com    
+
+    DOMAIN: https://painfx.in    
+
+    TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
+    TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
+    TWILIO_FROM_NUMBER: +17753178557    
+
+    # Stripe settings
+    STRIPE_SECRET_KEY : sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl
+    STRIPE_WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET    
+
+    # GOOGLE MAPS API KAY
+    GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY    
+    
+
+    # Django settings
+    DJANGO_SECRET_KEY: d#w0h3yroq%!zc@*kjz=kr=lmtk!6qg8he)bk!&(c*oh00xy@
+    DJANGO_DEBUG: False
+    DEVELOPMENTMODE: False
+    CORS_ALLOWED_ORIGINS: https://painfx.in,https://www.painfx.in,https://api.painfx.in
+    ALLOWED_HOSTS: painfx.in,www.painfx.in,137.184.13.226,api.painfx.in
+    CELERY_BROKER_URL: redis://redis:6379/0
+    CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       - postgres
       - redis
@@ -118,6 +131,7 @@ services:
     environment:
       NEXT_PUBLIC_BACKEND_API_URL: "https://api.painfx.in"
       NEXT_PUBLIC_REDIRECT_URL: "https://painfx.in/google"
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY : "pk_test_51OF23EH6eN12iihYcTAgC2sE9gjRtqz4UXN6xkOQp9DhrhVzRbscDFUv4hSdeFoTaaaoHz5J66svxG9GzwYu1hNH002x3aWMIk"
     networks:
       - web
     labels:
@@ -133,9 +147,6 @@ services:
         
   celery:
     image: supernovasoftwareco014/painfx-celery:latest
-    environment:
-      DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
-      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
     networks:
       - backend
     deploy:
@@ -169,29 +180,3 @@ volumes:
     driver: local
   postgres_data:
     driver: local
-
-secrets:
-  postgres_user:
-    external: true
-  postgres_password:
-    external: true
-  postgres_db:
-    external: true
-  redis_password:
-    external: true
-  google_auth_secret_key:
-    external: true
-  email_host_password:
-    external: true
-  twilio_account_sid:
-    external: true
-  twilio_auth_token:
-    external: true
-  stripe_secret_key:
-    external: true
-  stripe_webhook_secret:
-    external: true
-  google_maps_api_key:
-    external: true
-  django_secret_key:
-    external: true

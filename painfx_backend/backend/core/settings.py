@@ -2,17 +2,15 @@ from pathlib import Path
 import environ
 from django.core.management.utils import get_random_secret_key
 import os
-from django.core.exceptions import ImproperlyConfigured  # Ensure this is imported
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Initialize environment variables
 env = environ.Env(
     DEBUG=(bool, False),
     DEVELOPMENTMODE=(bool, False)
 )
 
-# Read environment variables from .env file if present
 environ.Env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
 def read_secret(secret_name, default_value=None):
@@ -25,35 +23,31 @@ def read_secret(secret_name, default_value=None):
         raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
 
 
-# Ensure log directory exists
 log_dir = BASE_DIR / "logs"
 if not log_dir.exists():
     os.makedirs(log_dir)
 
-# Debugging and development mode
 DEBUG = env("DJANGO_DEBUG", default=False)
 DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
 
+print("DEBUG:", DEBUG)
+print("DEVELOPMENTMODE:", DEVELOPMENTMODE)
+
 # Secret key
-SECRET_KEY = read_secret('django_secret_key') if not DEVELOPMENTMODE else get_random_secret_key()
+SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
+print("SECRET_KEY : ", SECRET_KEY)
 
 # Allowed hosts
-ALLOWED_HOSTS = env.list(
-    "ALLOWED_HOSTS",
-    default=["api.painfx.in", "painfx.in", "www.painfx.in", "localhost", "143.110.155.48"]
-)
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["*"] if DEVELOPMENTMODE else [])
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = env.list(
-    "CORS_ALLOWED_ORIGINS",
-    default=[
-        "https://api.painfx.in",
-        "https://painfx.in",
-        "https://www.painfx.in",
-    ],
-)
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+])
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = DEVELOPMENTMODE
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 INSTALLED_APPS = [
@@ -110,11 +104,11 @@ ASGI_APPLICATION = "core.asgi.application"
 
 # Database configuration
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": read_secret('postgres_db','your_postgres_db'),
-        "USER": read_secret('postgres_user','your_postgres_user'),
-        "PASSWORD": read_secret('postgres_password','your_postgres_password'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('POSTGRES_DB', default='your_postgres_db'),
+        'USER': env('POSTGRES_USER', default='your_postgres_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='your_postgres_password'),
         "HOST": env("POSTGRES_HOST", default="painfx_stack_postgres"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
@@ -148,54 +142,83 @@ SITE_NAME = "PainFX"
 AUTH_USER_MODEL = "authentication.User"
 
 # Stripe settings
-STRIPE_SECRET_KEY = read_secret('stripe_secret_key')
-STRIPE_WEBHOOK_SECRET = read_secret('stripe_webhook_secret')
+STRIPE_SECRET_KEY = env("DOMAIN", default="https://painfx.in")
+STRIPE_WEBHOOK_SECRET = env("DOMAIN", default="https://painfx.in")
 
 # Google Maps API Key
-GOOGLE_MAPS_API_KEY = read_secret('google_maps_api_key')
+GOOGLE_MAPS_API_KEY = env("DOMAIN", default="https://painfx.in")
 
 # Twilio settings
-TWILIO_ACCOUNT_SID = read_secret('twilio_account_sid')
-TWILIO_AUTH_TOKEN = read_secret('twilio_auth_token')
-TWILIO_FROM_NUMBER = "+17753178557"
+TWILIO_ACCOUNT_SID = env("DOMAIN", default="https://painfx.in")
+TWILIO_AUTH_TOKEN = env("DOMAIN", default="https://painfx.in")
+TWILIO_FROM_NUMBER = env("DOMAIN", default="+17753178557")
 
 # Email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="supernovasoftwareco@gmail.com")
-EMAIL_HOST_PASSWORD = read_secret('email_host_password')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER',default="supernovasoftwareco@gmail.com")
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f"{SITE_NAME} <{EMAIL_HOST_USER}>"
 
 # Default auto field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 # REST framework settings
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "apps.authentication.authentication.CustomJWTAuthentication",
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'apps.authentication.authentication.CustomJWTAuthentication',
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.UserRateThrottle",
-        "rest_framework.throttling.AnonRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "user": "1000/day",
-        "anon": "100/day",
-    },
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
 }
 
+# Djoser settings
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'ACTIVATION_URL': 'activation/{uid}/{token}',
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    'TOKEN_MODEL': None,
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS').split(','),
+}
+
+# Authentication cookies
+AUTH_COOKIE = 'access'
+AUTH_COOKIE_MAX_AGE = 60 * 60 * 24
+AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE') == 'True'
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_PATH = '/'
+AUTH_COOKIE_SAMESITE = 'None'
+
+# Social authentication settings
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('GOOGLE_AUTH_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('GOOGLE_AUTH_SECRET_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'openid'
+]
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
+
 # Celery settings
-CELERY_BROKER_URL = "redis://:${REDIS_PASSWORD}@redis:6379/0"
-CELERY_RESULT_BACKEND = "redis://:${REDIS_PASSWORD}@redis:6379/0"
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "UTC"
+CELERY_BROKER_URL = env('CELERY_BROKER_URL',default='redis://redis:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND',default='redis://redis:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Logging settings
