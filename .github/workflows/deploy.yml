@@ -84,10 +84,6 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: 22
           script: |
-            # Ensure production directory exists
-            mkdir -p ~/painfx_production
-            cd ~/painfx_production
-
             # Deploy Docker stack
             docker stack deploy -c docker-stack.yml painfx_stack
             echo "Deployment complete!"
