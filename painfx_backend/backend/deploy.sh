@@ -3,11 +3,12 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-echo $POSTGRES_DB
-echo $POSTGRES_USER
-echo $POSTGRES_PASSWORD
-echo $POSTGRES_HOST
-echo $POSTGRES_PORT
+echo "POSTGRES_DB : $POSTGRES_DB"
+echo "POSTGRES_USER: $POSTGRES_USER"
+echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
+echo "POSTGRES_HOST: $POSTGRES_HOST"
+echo "POSTGRES_PORT: $POSTGRES_PORT"
+
 # Function to check database readiness
 function wait_for_db() {
     echo "Waiting for PostgreSQL to be ready..."
@@ -18,7 +19,6 @@ function wait_for_db() {
     done
     echo "PostgreSQL is up - continuing"
 }
-
 
 # Wait for the database to be ready
 wait_for_db
