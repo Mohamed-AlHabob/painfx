@@ -17,7 +17,7 @@ services:
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.web.http.redirections.entryPoint.permanent=true
       # Security middleware for Traefik dashboard
-      - --entrypoints.traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USER}:${TRAEFIK_PASSWORD_HASH}
+      - --entrypoints.traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik_users
     ports:
       - "80:80"
       - "443:443"
@@ -76,7 +76,7 @@ services:
 
   redis:
     image: redis:6
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ["redis-server", "--requirepass", "$(cat /run/secrets/redis_password)"]
     environment:
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
     secrets:
@@ -101,7 +101,7 @@ services:
       DOMAIN: "https://painfx.in"
       DJANGO_DEBUG: "False"
       CORS_ALLOWED_ORIGINS: "https://painfx.in"
-      ALLOWED_HOSTS: "painfx.in,www.painfx.in,143.110.155.48"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,api.painfx.in,137.184.13.226"
       CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://:${REDIS_PASSWORD}@redis:6379/0"
     secrets:
@@ -113,6 +113,7 @@ services:
       - stripe_webhook_secret
       - google_maps_api_key
       - django_secret_key
+      - redis_password
     depends_on:
       - postgres
       - redis
@@ -238,6 +239,8 @@ secrets:
   postgres_db:
     external: true
   redis_password:
+    external: true
+  traefik_users:
     external: true
   google_auth_secret_key:
     external: true
