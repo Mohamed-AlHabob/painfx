@@ -24,6 +24,7 @@ def read_secret(secret_name, default_value=None):
             return default_value
         raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
 
+
 # Ensure log directory exists
 log_dir = BASE_DIR / "logs"
 if not log_dir.exists():
@@ -114,7 +115,7 @@ DATABASES = {
         "NAME": read_secret('postgres_db'),
         "USER": read_secret('postgres_user'),
         "PASSWORD": read_secret('postgres_password'),
-        "HOST": env("POSTGRES_HOST", default="postgres"),
+        "HOST": env("POSTGRES_HOST", default="painfx_stack_postgres"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
