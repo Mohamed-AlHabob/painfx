@@ -14,12 +14,9 @@ services:
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.web.http.redirections.entryPoint.permanent=true
-      # Security middleware for Traefik dashboard
-      - --entrypoints.traefik.http.middlewares.auth.basicauth.usersfile=/run/secrets/traefik_users
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080" # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-certificates:/letsencrypt
@@ -36,14 +33,11 @@ services:
           memory: "128M"
       restart_policy:
         condition: on-failure
-    secrets:
-      - traefik_users
     labels:
       - "traefik.http.routers.traefik.rule=Host(`traefik.painfx.in`)"
       - "traefik.http.routers.traefik.entrypoints=traefik,websecure"
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=auth@docker"
 
   postgres:
     image: postgres:15
@@ -113,6 +107,8 @@ services:
       - stripe_webhook_secret
       - google_maps_api_key
       - django_secret_key
+      - postgres_db
+      - postgres_password
     depends_on:
       - postgres
       - redis
@@ -239,6 +235,4 @@ secrets:
   google_maps_api_key:
     external: true
   django_secret_key:
-    external: true
-  traefik_users:
     external: true
