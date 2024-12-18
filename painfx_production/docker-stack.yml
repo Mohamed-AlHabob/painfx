@@ -72,7 +72,7 @@ services:
       POSTGRES_DB: painfx_db
       POSTGRES_USER: painfx_user
       POSTGRES_PASSWORD: mohamedalhabob
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: localhost
       POSTGRES_PORT: "5432"    
       AUTH_COOKIE_SECURE: "True"
       GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
