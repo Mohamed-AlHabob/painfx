@@ -3,15 +3,22 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+echo $POSTGRES_DB
+echo $POSTGRES_USER
+echo $POSTGRES_PASSWORD
+echo $POSTGRES_HOST
+echo $POSTGRES_PORT
 # Function to check database readiness
 function wait_for_db() {
     echo "Waiting for PostgreSQL to be ready..."
-    while ! pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" > /dev/null 2>&1; do
+    export PGPASSWORD="$POSTGRES_PASSWORD"
+    while ! pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DB" > /dev/null 2>&1; do
         echo "PostgreSQL is unavailable - sleeping"
         sleep 2
     done
     echo "PostgreSQL is up - continuing"
 }
+
 
 # Wait for the database to be ready
 wait_for_db
