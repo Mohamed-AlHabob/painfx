@@ -1,20 +1,27 @@
+version: '3.8'
+
 services:
   traefik:
     image: traefik:v2.9
     command:
       - --api.dashboard=true
+      - --api.insecure=false
       - --providers.docker=true
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+      - --entrypoints.traefik.address=:8080
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
       - --certificatesresolvers.myresolver.acme.email=supernovasoftwareco@gmail.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.web.http.redirections.entryPoint.permanent=true
+      # Security middleware for Traefik dashboard
+      - --entrypoints.traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USER}:${TRAEFIK_PASSWORD_HASH}
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080" # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-certificates:/letsencrypt
@@ -25,9 +32,21 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik.painfx.in`)"
+      - "traefik.http.routers.traefik.entrypoints=traefik,websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=auth"
 
   postgres:
-    image: postgres:13
+    image: postgres:15
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -45,26 +64,46 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s
 
   redis:
     image: redis:6
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    environment:
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    secrets:
+      - redis_password
     networks:
       - backend
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "1G"
+      restart_policy:
+        condition: on-failure
 
   django:
     image: supernovasoftwareco014/painfx-backend:latest
     environment:
       DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
-      REDIS_URL: "redis://redis:6379/0"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       AUTH_COOKIE_SECURE: "True"
       DOMAIN: "https://painfx.in"
       DJANGO_DEBUG: "False"
       CORS_ALLOWED_ORIGINS: "https://painfx.in"
       ALLOWED_HOSTS: "painfx.in,www.painfx.in,143.110.155.48"
-      CELERY_BROKER_URL: "redis://redis:6379/0"
-      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://:${REDIS_PASSWORD}@redis:6379/0"
     secrets:
       - google_auth_secret_key
       - email_host_password
@@ -88,11 +127,23 @@ services:
       - "traefik.http.services.django.loadbalancer.server.port=8000"
     deploy:
       replicas: 3
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "512M"
       restart_policy:
         condition: on-failure
       update_config:
         parallelism: 2
         delay: 10s
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
 
   nextjs:
     image: supernovasoftwareco014/painfx-frontend:latest
@@ -109,20 +160,44 @@ services:
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
     deploy:
       replicas: 2
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
       restart_policy:
         condition: on-failure
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
 
   celery:
     image: supernovasoftwareco014/painfx-celery:latest
     environment:
       DATABASE_URL: "postgres://painfx_user@postgres:5432/painfx_db"
-      REDIS_URL: "redis://redis:6379/0"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
     networks:
       - backend
     deploy:
       replicas: 2
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.5"
+          memory: "512M"
       restart_policy:
         condition: on-failure
+      healthcheck:
+        test: ["CMD", "celery", "status"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
 
   watchtower:
     image: containrrr/watchtower:latest
@@ -131,10 +206,15 @@ services:
     environment:
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_POLL_INTERVAL: "86400" # Check for updates once a day
     networks:
       - web
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: "100M"
       restart_policy:
         condition: on-failure
 
@@ -146,7 +226,9 @@ networks:
 
 volumes:
   traefik-certificates:
+    driver: local
   postgres_data:
+    driver: local
 
 secrets:
   postgres_user:
@@ -154,6 +236,8 @@ secrets:
   postgres_password:
     external: true
   postgres_db:
+    external: true
+  redis_password:
     external: true
   google_auth_secret_key:
     external: true
