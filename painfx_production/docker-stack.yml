@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   traefik:
     image: traefik:v2.9
@@ -34,16 +32,18 @@ services:
           - node.role == manager
       resources:
         limits:
-          cpus: "0.5"
-          memory: "512M"
+          cpus: "0.2"
+          memory: "128M"
       restart_policy:
         condition: on-failure
+    secrets:
+      - traefik_users
     labels:
       - "traefik.http.routers.traefik.rule=Host(`traefik.painfx.in`)"
       - "traefik.http.routers.traefik.entrypoints=traefik,websecure"
       - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.routers.traefik.middlewares=auth@docker"
 
   postgres:
     image: postgres:15
@@ -66,8 +66,8 @@ services:
           - node.role == manager
       resources:
         limits:
-          cpus: "1.0"
-          memory: "2G"
+          cpus: "0.3"
+          memory: "256M"
       restart_policy:
         condition: on-failure
       update_config:
@@ -87,8 +87,8 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: "0.5"
-          memory: "1G"
+          cpus: "0.1"
+          memory: "128M"
       restart_policy:
         condition: on-failure
 
@@ -101,7 +101,7 @@ services:
       DOMAIN: "https://painfx.in"
       DJANGO_DEBUG: "False"
       CORS_ALLOWED_ORIGINS: "https://painfx.in"
-      ALLOWED_HOSTS: "painfx.in,www.painfx.in,api.painfx.in,137.184.13.226"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,143.110.155.48"
       CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD}@redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://:${REDIS_PASSWORD}@redis:6379/0"
     secrets:
@@ -113,7 +113,6 @@ services:
       - stripe_webhook_secret
       - google_maps_api_key
       - django_secret_key
-      - redis_password
     depends_on:
       - postgres
       - redis
@@ -127,24 +126,19 @@ services:
       - "traefik.http.routers.django.tls.certresolver=myresolver"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
     deploy:
-      replicas: 3
+      replicas: 1
       resources:
         limits:
-          cpus: "1.0"
-          memory: "1G"
+          cpus: "0.3"
+          memory: "256M"
         reservations:
-          cpus: "0.5"
-          memory: "512M"
+          cpus: "0.1"
+          memory: "128M"
       restart_policy:
         condition: on-failure
       update_config:
-        parallelism: 2
+        parallelism: 1
         delay: 10s
-      healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-        interval: 30s
-        timeout: 10s
-        retries: 3
 
   nextjs:
     image: supernovasoftwareco014/painfx-frontend:latest
@@ -160,22 +154,17 @@ services:
       - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
     deploy:
-      replicas: 2
+      replicas: 1
       resources:
         limits:
-          cpus: "0.5"
-          memory: "512M"
+          cpus: "0.1"
+          memory: "128M"
         reservations:
-          cpus: "0.25"
-          memory: "256M"
+          cpus: "0.05"
+          memory: "64M"
       restart_policy:
         condition: on-failure
-      healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-        interval: 30s
-        timeout: 10s
-        retries: 3
-
+        
   celery:
     image: supernovasoftwareco014/painfx-celery:latest
     environment:
@@ -184,21 +173,16 @@ services:
     networks:
       - backend
     deploy:
-      replicas: 2
+      replicas: 1
       resources:
         limits:
-          cpus: "1.0"
-          memory: "1G"
+          cpus: "0.3"
+          memory: "256M"
         reservations:
-          cpus: "0.5"
-          memory: "512M"
+          cpus: "0.1"
+          memory: "128M"
       restart_policy:
         condition: on-failure
-      healthcheck:
-        test: ["CMD", "celery", "status"]
-        interval: 30s
-        timeout: 10s
-        retries: 3
 
   watchtower:
     image: containrrr/watchtower:latest
@@ -214,8 +198,8 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: "0.2"
-          memory: "100M"
+          cpus: "0.05"
+          memory: "50M"
       restart_policy:
         condition: on-failure
 
@@ -240,8 +224,6 @@ secrets:
     external: true
   redis_password:
     external: true
-  traefik_users:
-    external: true
   google_auth_secret_key:
     external: true
   email_host_password:
@@ -257,4 +239,6 @@ secrets:
   google_maps_api_key:
     external: true
   django_secret_key:
+    external: true
+  traefik_users:
     external: true
