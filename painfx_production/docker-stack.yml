@@ -38,9 +38,11 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_DB: painfx_db
-      POSTGRES_USER: painfx_user
-      POSTGRES_PASSWORD: mohamedalhabob
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres.mskrfnaqykfsjmfvlcpy
+      POSTGRES_PASSWORD: Wr1Q6FHgD46Dd6D3
+      POSTGRES_HOST: aws-0-us-east-1.pooler.supabase.com
+      POSTGRES_PORT: "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data:z
     ports:
