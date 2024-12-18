@@ -19,32 +19,35 @@ def read_secret(secret_name, default_value=None):
         with open(f"/run/secrets/{secret_name}") as secret_file:
             return secret_file.read().strip()
     except FileNotFoundError:
-        return default_value
+        if default_value is not None:
+            return default_value
+        raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
 
 # Ensure log directory exists
 log_dir = BASE_DIR / "logs"
 if not log_dir.exists():
     os.makedirs(log_dir)
 
-
 # Debugging and development mode
-DEBUG = env("DJANGO_DEBUG", default=True)
-DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=True)
+DEBUG = env("DJANGO_DEBUG", default=False)
+DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
 
 # Secret key
 SECRET_KEY = read_secret('django_secret_key') if not DEVELOPMENTMODE else get_random_secret_key()
 
 # Allowed hosts
-# ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
-ALLOWED_HOSTS = ['api.painfx.in','painfx.in','www.painfx.in' ,'localhost', '137.184.13.226']
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=["api.painfx.in", "painfx.in", "www.painfx.in", "localhost", "137.184.13.226"]
+)
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
     default=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
         "https://api.painfx.in",
         "https://painfx.in",
+        "https://www.painfx.in",
     ],
 )
 CORS_ALLOW_CREDENTIALS = True
@@ -107,10 +110,10 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", default="painfx_db"),
-        "USER": env("POSTGRES_USER", default="painfx_user"),
-        "PASSWORD": read_secret('/run/secrets/postgres_password',"mohamedalhabob"),
-        "HOST": env("POSTGRES_HOST", default="painfx_stack_postgres"),
+        "NAME": read_secret('postgres_db'),
+        "USER": read_secret('postgres_user'),
+        "PASSWORD": read_secret('postgres_password'),
+        "HOST": env("POSTGRES_HOST", default="postgres"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
@@ -136,23 +139,22 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Domain and site settings
-DOMAIN = env("DOMAIN", default="localhost:3000")
+DOMAIN = env("DOMAIN", default="https://painfx.in")
 SITE_NAME = "PainFX"
 
 # Custom user model
 AUTH_USER_MODEL = "authentication.User"
 
 # Stripe settings
-STRIPE_SECRET_KEY = read_secret('stripe_secret_key') or env("STRIPE_SECRET_KEY", default="sk_test_...")
-STRIPE_WEBHOOK_SECRET = read_secret('stripe_webhook_secret') or env("STRIPE_WEBHOOK_SECRET", default="")
-
+STRIPE_SECRET_KEY = read_secret('stripe_secret_key')
+STRIPE_WEBHOOK_SECRET = read_secret('stripe_webhook_secret')
 
 # Google Maps API Key
-GOOGLE_MAPS_API_KEY = read_secret('/run/secrets/google_maps_api_key') if os.path.exists('/run/secrets/google_maps_api_key') else env("GOOGLE_MAPS_API_KEY", default="")
+GOOGLE_MAPS_API_KEY = read_secret('google_maps_api_key')
 
 # Twilio settings
-TWILIO_ACCOUNT_SID = read_secret('twilio_account_sid') or env("TWILIO_ACCOUNT_SID", default="ACxxxx")
-TWILIO_AUTH_TOKEN = read_secret('twilio_auth_token') or env("TWILIO_AUTH_TOKEN", default="default_token")
+TWILIO_ACCOUNT_SID = read_secret('twilio_account_sid')
+TWILIO_AUTH_TOKEN = read_secret('twilio_auth_token')
 TWILIO_FROM_NUMBER = "+17753178557"
 
 # Email settings
@@ -161,8 +163,8 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="supernovasoftwareco@gmail.com")
-EMAIL_HOST_PASSWORD = read_secret('email_host_password') or env("EMAIL_HOST_PASSWORD", default="fallback_password")
-DEFAULT_FROM_EMAIL = SITE_NAME
+EMAIL_HOST_PASSWORD = read_secret('email_host_password')
+DEFAULT_FROM_EMAIL = f"{SITE_NAME} <{EMAIL_HOST_USER}>"
 
 # Default auto field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -175,16 +177,24 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.AnonRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "user": "1000/day",
+        "anon": "100/day",
+    },
 }
 
 # Celery settings
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://:yourredispassword@redis:6379/0")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://:yourredispassword@redis:6379/0")
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
-broker_connection_retry_on_startup = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 # Logging settings
 LOGGING = {
@@ -193,8 +203,10 @@ LOGGING = {
     "handlers": {
         "console": {"class": "logging.StreamHandler"},
         "file": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": log_dir / "django.log",
+            "maxBytes": 1024*1024*5,  # 5MB
+            "backupCount": 5,
             "formatter": "verbose",
         },
     },
@@ -226,3 +238,20 @@ if not DEVELOPMENTMODE:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
+
+    # Additional security settings
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    CSRF_TRUSTED_ORIGINS = ['https://painfx.in', 'https://www.painfx.in', 'https://api.painfx.in']
+    
+    # Content Security Policy (CSP)
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = ("'self'", 'https://trustedscripts.example.com')
+    CSP_STYLE_SRC = ("'self'", 'https://trustedstyles.example.com')
+    CSP_IMG_SRC = ("'self'", 'data:')
+    CSP_CONNECT_SRC = ("'self'", 'https://api.painfx.in')
+    CSP_FONT_SRC = ("'self'",)
+    CSP_OBJECT_SRC = ("'none'",)
+    CSP_BASE_URI = ("'self'",)
+    CSP_FORM_ACTION = ("'self'",)
+    CSP_FRAME_ANCESTORS = ("'none'",)
