@@ -7,10 +7,10 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# Install Python dependencies
+COPY ./requirements.txt ./
+RUN pip install --upgrade pip
+RUN pip install --default-timeout=1000 -r requirements.txt
 
 # Copy project
 COPY . .
