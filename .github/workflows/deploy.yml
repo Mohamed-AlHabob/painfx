@@ -89,5 +89,10 @@ jobs:
             docker pull supernovasoftwareco014/painfx-backend:latest
             docker pull supernovasoftwareco014/painfx-celery:latest
             docker pull supernovasoftwareco014/painfx-frontend:latest
+            docker pull containrrr/watchtower:latest
+            docker pull postgres:latest
+            docker pull traefik:v2.9
+            docker network create --driver overlay web
+            docker network create --driver overlay backend
             docker stack deploy -c docker-stack.yml painfx_stack
             echo "Deployment complete!"
