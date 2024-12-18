@@ -5,8 +5,8 @@ export default async function continueWithSocialAuth(
   redirect: string
 ) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000';
-    const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'https://api.painfx.in';
+    const redirectUri = process.env.NEXT_PUBLIC_REDIRECT_URL || 'https://painfx.in';
 
     if (!backendUrl || !redirectUri) {
       throw new Error('Missing necessary environment variables');
