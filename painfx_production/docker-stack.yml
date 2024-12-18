@@ -36,13 +36,15 @@ services:
       - "traefik.http.routers.traefik.service=api@internal"
 
   postgres:
-    image: postgres:15
+    image: postgres:latest
     environment:
       POSTGRES_DB: painfx_db
       POSTGRES_USER: painfx_user
       POSTGRES_PASSWORD: mohamedalhabob
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data:z
+    ports:
+      - "5432:5432"
     networks:
       - backend
     deploy:
@@ -72,7 +74,7 @@ services:
       POSTGRES_DB: painfx_db
       POSTGRES_USER: painfx_user
       POSTGRES_PASSWORD: mohamedalhabob
-      POSTGRES_HOST: localhost
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"    
       AUTH_COOKIE_SECURE: "True"
       GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
