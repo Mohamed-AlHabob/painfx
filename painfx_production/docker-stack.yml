@@ -27,10 +27,6 @@ services:
       placement:
         constraints:
           - node.role == manager
-      resources:
-        limits:
-          cpus: "0.2"
-          memory: "128M"
       restart_policy:
         condition: on-failure
     labels:
@@ -58,10 +54,6 @@ services:
       placement:
         constraints:
           - node.role == manager
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: "256M"
       restart_policy:
         condition: on-failure
       update_config:
@@ -79,10 +71,6 @@ services:
       - backend
     deploy:
       replicas: 1
-      resources:
-        limits:
-          cpus: "0.1"
-          memory: "128M"
       restart_policy:
         condition: on-failure
 
@@ -123,19 +111,8 @@ services:
       - "traefik.http.services.django.loadbalancer.server.port=8000"
     deploy:
       replicas: 1
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: "256M"
-        reservations:
-          cpus: "0.1"
-          memory: "128M"
       restart_policy:
         condition: on-failure
-      update_config:
-        parallelism: 1
-        delay: 10s
-
   nextjs:
     image: supernovasoftwareco014/painfx-frontend:latest
     environment:
@@ -151,13 +128,6 @@ services:
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
     deploy:
       replicas: 1
-      resources:
-        limits:
-          cpus: "0.1"
-          memory: "128M"
-        reservations:
-          cpus: "0.05"
-          memory: "64M"
       restart_policy:
         condition: on-failure
         
@@ -170,13 +140,6 @@ services:
       - backend
     deploy:
       replicas: 1
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: "256M"
-        reservations:
-          cpus: "0.1"
-          memory: "128M"
       restart_policy:
         condition: on-failure
 
@@ -192,10 +155,6 @@ services:
       - web
     deploy:
       replicas: 1
-      resources:
-        limits:
-          cpus: "0.05"
-          memory: "50M"
       restart_policy:
         condition: on-failure
 
