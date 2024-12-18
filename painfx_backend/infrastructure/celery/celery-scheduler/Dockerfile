@@ -7,6 +7,9 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
+# Install PostgreSQL client
+RUN apt-get update && apt-get install -y postgresql-client
+
 # Install Python dependencies
 COPY ./requirements.txt ./
 RUN pip install --upgrade pip
