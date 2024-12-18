@@ -2,6 +2,7 @@ from pathlib import Path
 import environ
 from django.core.management.utils import get_random_secret_key
 import os
+from django.core.exceptions import ImproperlyConfigured  # Ensure this is imported
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,7 +39,7 @@ SECRET_KEY = read_secret('django_secret_key') if not DEVELOPMENTMODE else get_ra
 # Allowed hosts
 ALLOWED_HOSTS = env.list(
     "ALLOWED_HOSTS",
-    default=["api.painfx.in", "painfx.in", "www.painfx.in", "localhost", "137.184.13.226"]
+    default=["api.painfx.in", "painfx.in", "www.painfx.in", "localhost", "143.110.155.48"]
 )
 
 # CORS settings
@@ -188,8 +189,8 @@ REST_FRAMEWORK = {
 }
 
 # Celery settings
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://:yourredispassword@redis:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://:yourredispassword@redis:6379/0")
+CELERY_BROKER_URL = "redis://:${REDIS_PASSWORD}@redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://:${REDIS_PASSWORD}@redis:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
