@@ -86,5 +86,8 @@ jobs:
           script: |
             cd ~/painfx_production/painfx_production
             # Deploy Docker stack
+            docker pull supernovasoftwareco014/painfx-backend:latest
+            docker pull supernovasoftwareco014/painfx-celery:latest
+            docker pull supernovasoftwareco014/painfx-frontend:latest
             docker stack deploy -c docker-stack.yml painfx_stack
             echo "Deployment complete!"
