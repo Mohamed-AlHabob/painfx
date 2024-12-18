@@ -13,14 +13,14 @@ env = environ.Env(
 )
 
 
-def read_secret(secret_name, default_value=None):
-    try:
-        with open(f"/run/secrets/{secret_name}") as secret_file:
-            return secret_file.read().strip()
-    except FileNotFoundError:
-        if default_value is not None:
-            return default_value
-        raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
+# def read_secret(secret_name, default_value=None):
+#     try:
+#         with open(f"/run/secrets/{secret_name}") as secret_file:
+#             return secret_file.read().strip()
+#     except FileNotFoundError:
+#         if default_value is not None:
+#             return default_value
+#         raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
 
 
 log_dir = BASE_DIR / "logs"
