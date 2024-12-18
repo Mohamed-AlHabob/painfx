@@ -69,47 +69,33 @@ services:
   django:
     image: supernovasoftwareco014/painfx-backend:latest
     environment:
-    DJANGO_SETTINGS_MODULE: painfx_production.settings
-    # Database settings
-    POSTGRES_DB: painfx_db
-    POSTGRES_USER: painfx_user
-    POSTGRES_PASSWORD: mohamedalhabob
-    POSTGRES_HOST: painfx_stack_postgres
-    POSTGRES_PORT: 5432    
-
-    # Authentication settings
-    AUTH_COOKIE_SECURE: True
-    GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
-    GOOGLE_AUTH_SECRET_KEY: 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
-    REDIRECT_URLS: https://painfx.in/google,https://painfx.in/facebook    
-
-    EMAIL_HOST_USER: supernovasoftwareco@gmail.com
-    EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
-    # Traefik
-    TRAEFIK_EMAIL: supernovasoftwareco@gmail.com    
-
-    DOMAIN: https://painfx.in    
-
-    TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
-    TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
-    TWILIO_FROM_NUMBER: +17753178557    
-
-    # Stripe settings
-    STRIPE_SECRET_KEY : sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl
-    STRIPE_WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET    
-
-    # GOOGLE MAPS API KAY
-    GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY    
-    
-
-    # Django settings
-    DJANGO_SECRET_KEY: d#w0h3yroq%!zc@*kjz=kr=lmtk!6qg8he)bk!&(c*oh00xy@
-    DJANGO_DEBUG: False
-    DEVELOPMENTMODE: False
-    CORS_ALLOWED_ORIGINS: https://painfx.in,https://www.painfx.in,https://api.painfx.in
-    ALLOWED_HOSTS: painfx.in,www.painfx.in,137.184.13.226,api.painfx.in
-    CELERY_BROKER_URL: redis://redis:6379/0
-    CELERY_RESULT_BACKEND: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: painfx_production.settings
+      POSTGRES_DB: painfx_db
+      POSTGRES_USER: painfx_user
+      POSTGRES_PASSWORD: mohamedalhabob
+      POSTGRES_HOST: painfx_stack_postgres
+      POSTGRES_PORT: "5432"    
+      AUTH_COOKIE_SECURE: "True"
+      GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
+      GOOGLE_AUTH_SECRET_KEY: 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
+      REDIRECT_URLS: "https://painfx.in/google,https://painfx.in/facebook"
+      EMAIL_HOST_USER: supernovasoftwareco@gmail.com
+      EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
+      TRAEFIK_EMAIL: supernovasoftwareco@gmail.com
+      DOMAIN: "https://painfx.in"
+      TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
+      TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
+      TWILIO_FROM_NUMBER: "+17753178557"    
+      STRIPE_SECRET_KEY: sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl
+      STRIPE_WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET    
+      GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY
+      DJANGO_SECRET_KEY: d#w0h3yroq%!zc@*kjz=kr=lmtk!6qg8he)bk!&(c*oh00xy@
+      DJANGO_DEBUG: "False"
+      DEVELOPMENTMODE: "False"
+      CORS_ALLOWED_ORIGINS: "https://painfx.in,https://www.painfx.in,https://api.painfx.in"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,137.184.13.226,api.painfx.in"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       - postgres
       - redis
@@ -126,6 +112,7 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
+
   nextjs:
     image: supernovasoftwareco014/painfx-frontend:latest
     environment:
@@ -179,4 +166,6 @@ volumes:
   traefik-certificates:
     driver: local
   postgres_data:
+    driver: local
+  redis_data:
     driver: local

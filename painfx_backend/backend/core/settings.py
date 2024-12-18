@@ -4,6 +4,7 @@ from django.core.management.utils import get_random_secret_key
 import os
 from django.core.exceptions import ImproperlyConfigured
 
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
@@ -11,7 +12,6 @@ env = environ.Env(
     DEVELOPMENTMODE=(bool, False)
 )
 
-environ.Env.read_env(env_file=os.path.join(BASE_DIR, '.env'))
 
 def read_secret(secret_name, default_value=None):
     try:
@@ -42,8 +42,8 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["*"] if DEVELOPMENTMODE else 
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
+    "https://painfx.in",
+    "https://api.painfx.in"
 ])
 CORS_ALLOW_CREDENTIALS = True
 
@@ -106,9 +106,9 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='your_postgres_db'),
-        'USER': env('POSTGRES_USER', default='your_postgres_user'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='your_postgres_password'),
+        'NAME': env('POSTGRES_DB', default='painfx_db'),
+        'USER': env('POSTGRES_USER', default='painfx_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='mohamedalhabob'),
         "HOST": env("POSTGRES_HOST", default="painfx_stack_postgres"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
@@ -142,16 +142,16 @@ SITE_NAME = "PainFX"
 AUTH_USER_MODEL = "authentication.User"
 
 # Stripe settings
-STRIPE_SECRET_KEY = env("DOMAIN", default="https://painfx.in")
-STRIPE_WEBHOOK_SECRET = env("DOMAIN", default="https://painfx.in")
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="https://painfx.in")
 
 # Google Maps API Key
-GOOGLE_MAPS_API_KEY = env("DOMAIN", default="https://painfx.in")
+GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="https://painfx.in")
 
 # Twilio settings
-TWILIO_ACCOUNT_SID = env("DOMAIN", default="https://painfx.in")
-TWILIO_AUTH_TOKEN = env("DOMAIN", default="https://painfx.in")
-TWILIO_FROM_NUMBER = env("DOMAIN", default="+17753178557")
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="ACcb51bc274429a7aaee176fe26ba642e8")
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="47ab8efcd0a1a83629f6fa288a230a36")
+TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="+17753178557")
 
 # Email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
