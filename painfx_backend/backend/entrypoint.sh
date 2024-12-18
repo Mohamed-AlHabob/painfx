@@ -6,7 +6,7 @@ set -e
 # Run database migrations
 echo "Running migrations..."
 python manage.py makemigrations
-python manage.py migrate --fake
+python manage.py migrate
 
 # Collect static files
 echo "Collecting static files..."
