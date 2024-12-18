@@ -76,7 +76,7 @@ services:
 
   redis:
     image: redis:6
-    command: ["redis-server", "--requirepass", "$(cat /run/secrets/redis_password)"]
+    command: ["sh", "-c", "redis-server --requirepass $$(cat /run/secrets/redis_password)"]
     environment:
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
     secrets:
