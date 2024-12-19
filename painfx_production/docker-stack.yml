@@ -83,7 +83,7 @@ services:
       EMAIL_HOST_USER: supernovasoftwareco@gmail.com
       EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
       TRAEFIK_EMAIL: supernovasoftwareco@gmail.com
-      DOMAIN: "https://painfx.in"
+      DOMAIN: "painfx.in"
       TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
       TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
       TWILIO_FROM_NUMBER: "+17753178557"    
