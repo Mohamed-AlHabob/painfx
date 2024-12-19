@@ -85,6 +85,11 @@ jobs:
           port: 22
           script: |
             cd ~/painfx_production/painfx_production
+            # Clear the VPS For New Stack
+            docker stack rm painfx_stack
+            docker image prune -a
+            docker volume prune
+            
             # Deploy Docker stack
             docker pull supernovasoftwareco014/painfx-backend:latest
             docker pull supernovasoftwareco014/painfx-celery:latest
