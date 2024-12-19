@@ -1,47 +1,133 @@
 services:
   traefik:
-    image: traefik:v2.10
-    container_name: traefik
+    image: traefik:v2.9
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
+      - --api.dashboard=true
+      - --api.insecure=false
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.traefik.address=:8080
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=supernovasoftwareco@gmail.com
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entryPoint.permanent=true
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"  # Required to interact with Docker
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/letsencrypt
     networks:
       - mynetwork
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik.painfx.in`)"
+      - "traefik.http.routers.traefik.entrypoints=traefik,websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
 
-  backend:
-    image: supernovasoftwareco014/painfx-backend:latest
+  django:
+    build:
+      context: ./backend
     container_name: painfx_backend
-    env_file: .env
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: painfxuser
+      POSTGRES_PASSWORD: mohamedalhabob
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432" 
+      AUTH_COOKIE_SECURE: "True"
+      GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
+      GOOGLE_AUTH_SECRET_KEY: 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
+      REDIRECT_URLS: "https://painfx.in/google,https://painfx.in/facebook"
+      EMAIL_HOST_USER: supernovasoftwareco@gmail.com
+      EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
+      TRAEFIK_EMAIL: supernovasoftwareco@gmail.com
+      DOMAIN: "painfx.in"
+      TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
+      TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
+      TWILIO_FROM_NUMBER: "+17753178557"    
+      STRIPE_SECRET_KEY: sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl
+      STRIPE_WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET    
+      GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY
+      DJANGO_SECRET_KEY: d#w0h3yroq%!zc@*kjz=kr=lmtk!6qg8he)bk!&(c*oh00xy@
+      DJANGO_DEBUG: "False"
+      DEVELOPMENTMODE: "False"
+      CORS_ALLOWED_ORIGINS: "https://painfx.in,https://www.painfx.in,https://api.painfx.in"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,137.184.13.226,api.painfx.in"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
     networks:
       - mynetwork
     labels:
-      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.django.rule=Host(`api.painfx.in`)"
+      - "traefik.http.routers.django.entrypoints=websecure"
+      - "traefik.http.routers.django.tls.certresolver=myresolver"
+      - "traefik.http.services.django.loadbalancer.server.port=8000"
 
-  frontend:
-    image: supernovasoftwareco014/painfx-frontend:latest
+  nextjs:
+    build:
+      context: ../painfx_production
     container_name: painfx_frontend
-    env_file:
-      - ../painfx_frontend/.env
+    environment:
+      NEXT_PUBLIC_BACKEND_API_URL: "https://api.painfx.in"
+      NEXT_PUBLIC_REDIRECT_URL: "https://painfx.in/google"
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY : "pk_test_51OF23EH6eN12iihYcTAgC2sE9gjRtqz4UXN6xkOQp9DhrhVzRbscDFUv4hSdeFoTaaaoHz5J66svxG9GzwYu1hNH002x3aWMIk"
     networks:
       - mynetwork
     labels:
-      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextjs.rule=Host(`painfx.in`)"
+      - "traefik.http.routers.nextjs.entrypoints=websecure"
+      - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
+      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
 
 
   celery:
-    image: supernovasoftwareco014/painfx-celery:latest
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/celery/celery-worker/Dockerfile
     container_name: painfx_celery
-    env_file: .env
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: painfxuser
+      POSTGRES_PASSWORD: mohamedalhabob
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432" 
+      AUTH_COOKIE_SECURE: "True"
+      GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
+      GOOGLE_AUTH_SECRET_KEY: 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
+      REDIRECT_URLS: "https://painfx.in/google,https://painfx.in/facebook"
+      EMAIL_HOST_USER: supernovasoftwareco@gmail.com
+      EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
+      TRAEFIK_EMAIL: supernovasoftwareco@gmail.com
+      DOMAIN: "painfx.in"
+      TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
+      TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
+      TWILIO_FROM_NUMBER: "+17753178557"    
+      STRIPE_SECRET_KEY: sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl
+      STRIPE_WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET    
+      GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY
+      DJANGO_SECRET_KEY: d#w0h3yroq%!zc@*kjz=kr=lmtk!6qg8he)bk!&(c*oh00xy@
+      DJANGO_DEBUG: "False"
+      DEVELOPMENTMODE: "False"
+      CORS_ALLOWED_ORIGINS: "https://painfx.in,https://www.painfx.in,https://api.painfx.in"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,137.184.13.226,api.painfx.in"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       backend:
         condition: service_healthy
@@ -54,9 +140,37 @@ services:
     command: ["celery", "-A", "core", "worker", "--loglevel=info"]
 
   celery-flower:
-    image: supernovasoftwareco014/painfx-celery:latest
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/celery/celery-flower/Dockerfile
     container_name: painfx_celery_flower
-    env_file: .env
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: painfxuser
+      POSTGRES_PASSWORD: mohamedalhabob
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432" 
+      AUTH_COOKIE_SECURE: "True"
+      GOOGLE_AUTH_KEY: 147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com
+      GOOGLE_AUTH_SECRET_KEY: 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
+      REDIRECT_URLS: "https://painfx.in/google,https://painfx.in/facebook"
+      EMAIL_HOST_USER: supernovasoftwareco@gmail.com
+      EMAIL_HOST_PASSWORD: aodc mqwb nibd clbz
+      TRAEFIK_EMAIL: supernovasoftwareco@gmail.com
+      DOMAIN: "painfx.in"
+      TWILIO_ACCOUNT_SID: ACcb51bc274429a7aaee176fe26ba642e8
+      TWILIO_AUTH_TOKEN: 47ab8efcd0a1a83629f6fa288a230a36
+      TWILIO_FROM_NUMBER: "+17753178557"    
+      STRIPE_SECRET_KEY: sk_test_51OF23EH6eN12iihY2CtKekiFQFshNhzeIGGI9ram7CypnCL89dnBpGap6DFkZDiX9h9W9KPuu72o2ITJUFv7sCvd00ZN5Z32Hl
+      STRIPE_WEBHOOK_SECRET: STRIPE_WEBHOOK_SECRET    
+      GOOGLE_MAPS_API_KEY: GOOGLE_MAPS_API_KEY
+      DJANGO_SECRET_KEY: d#w0h3yroq%!zc@*kjz=kr=lmtk!6qg8he)bk!&(c*oh00xy@
+      DJANGO_DEBUG: "False"
+      DEVELOPMENTMODE: "False"
+      CORS_ALLOWED_ORIGINS: "https://painfx.in,https://www.painfx.in,https://api.painfx.in"
+      ALLOWED_HOSTS: "painfx.in,www.painfx.in,137.184.13.226,api.painfx.in"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     ports:
       - "5555:5555"
     depends_on:
