@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   traefik:
     image: traefik:v2.9
@@ -41,7 +39,6 @@ services:
   django:
     build:
       context: ./backend
-      dockerfile: Dockerfile
     container_name: painfx_backend
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
