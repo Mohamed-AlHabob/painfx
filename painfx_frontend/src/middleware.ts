@@ -10,7 +10,8 @@ function matchesDynamicRoute(path: string, routes: string[]): boolean {
         if (routeParts.length !== pathParts.length) return false;
 
         return routeParts.every((part, index) => {
-            return part.startsWith('[') || part === pathParts[index];
+            // Dynamic segments start with [ and end with ]
+            return part.startsWith('[') && part.endsWith(']') || part === pathParts[index];
         });
     });
 }
@@ -25,15 +26,18 @@ export async function middleware(req: NextRequest) {
     const isPublicRoute = matchesDynamicRoute(url.pathname, PUBLIC_ROUTES);
     const isAuthRoute = matchesDynamicRoute(url.pathname, AUTH_ROUTES);
 
+    // Handle routes that require authentication
     if (isAuthRoute) {
         if (isLoggedIn) {
+            // Redirect logged-in users away from auth routes
             return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, url.origin));
         }
         return NextResponse.next();
     }
 
+    // Redirect non-logged-in users trying to access private routes
     if (!isLoggedIn && !isPublicRoute) {
-        const callbackUrl = `${url.pathname}${url.search || ''}`.replace('//', '/');
+        const callbackUrl = `${url.pathname}${url.search}`.replace(/\/+/g, '/'); // Normalize slashes
         const fallbackRoute = '/';
         const validCallbackUrl = callbackUrl.startsWith('/') ? callbackUrl : fallbackRoute;
 
@@ -42,12 +46,18 @@ export async function middleware(req: NextRequest) {
         );
     }
 
+    // Allow access to public or private routes if logged in
     return NextResponse.next();
 }
 
 export const config = {
     matcher: [
-      '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-      '/(api|trpc)(.*)',
+        /*
+          Match all routes except:
+          - Static assets (_next, .html, .css, .js, images, fonts, etc.)
+          - API routes (handled separately)
+        */
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(html|css|js|json|jpg|jpeg|png|gif|svg|webp|ttf|woff|woff2|eot)).*)',
+        '/(api|trpc)(.*)', // API and tRPC routes
     ],
-  }
+};
