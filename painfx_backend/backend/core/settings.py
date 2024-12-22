@@ -219,8 +219,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
 
 # Celery settings
-CELERY_BROKER_URL = env('CELERY_BROKER_URL',default='redis://redis:6379/0')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND',default='redis://redis:6379/0')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL',default='redis://red-ctk0mhbtq21c73e5i4gg:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND',default='redis://red-ctk0mhbtq21c73e5i4gg:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
