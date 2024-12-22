@@ -30,6 +30,7 @@ print("SECRET_KEY : ", SECRET_KEY)
 # Allowed hosts
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
     "painfx.in",
+    "www.painfx.in",
     "painfx.onrender.com",
     "127.0.0.1",
     "localhost",
@@ -39,6 +40,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://painfx.in",
+    "https://www.painfx.in",
     "https://painfx.onrender.com",
     "https://api.painfx.in"
 ])
