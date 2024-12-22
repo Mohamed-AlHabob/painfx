@@ -28,7 +28,14 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
 print("SECRET_KEY : ", SECRET_KEY)
 
 # Allowed hosts
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["*"] if DEVELOPMENTMODE else [])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
+    "painfx.in",
+    "painfx.onrender.com",
+    "127.0.0.1",
+    "localhost",
+    "api.painfx.in"
+    "
+])
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
