@@ -111,10 +111,10 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='painfx_db'),
-        'USER': env('POSTGRES_USER', default='painfx_user'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='mohamedalhabob'),
-        "HOST": env("POSTGRES_HOST", default="postgres"),
+        'NAME': env('POSTGRES_DB', default='painfx_postgres'),
+        'USER': env('POSTGRES_USER', default='painfx_postgres_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='Oxingvgcbxyp79ZFJRUVWq2h9Z1Na8D5'),
+        "HOST": env("POSTGRES_HOST", default="dpg-ctjvvtlumphs73fdeed0-a"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
