@@ -13,16 +13,6 @@ env = environ.Env(
 )
 
 
-# def read_secret(secret_name, default_value=None):
-#     try:
-#         with open(f"/run/secrets/{secret_name}") as secret_file:
-#             return secret_file.read().strip()
-#     except FileNotFoundError:
-#         if default_value is not None:
-#             return default_value
-#         raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
-
-
 log_dir = BASE_DIR / "logs"
 if not log_dir.exists():
     os.makedirs(log_dir)
@@ -75,9 +65,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "whitenoise.runserver_nostatic", 
-    "django.contrib.staticfiles",
+    "corsheaders.middleware.CorsMiddleware",  # Enables CORS headers
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Proper Whitenoise middleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
