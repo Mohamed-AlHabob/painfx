@@ -197,7 +197,7 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
-    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS').split(','),
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS',default="https://painfx.in/google,https://painfx.in/facebook" ).split(','),
 }
 
 # Authentication cookies
@@ -209,8 +209,8 @@ AUTH_COOKIE_PATH = '/'
 AUTH_COOKIE_SAMESITE = 'None'
 
 # Social authentication settings
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('GOOGLE_AUTH_KEY')
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('GOOGLE_AUTH_SECRET_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('GOOGLE_AUTH_KEY',default="147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('GOOGLE_AUTH_SECRET_KEY',default="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")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
