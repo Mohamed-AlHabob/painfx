@@ -34,7 +34,7 @@ CMD sh -c "\
     python manage.py shell -c \"\
 from apps.authentication.models import User; \
 User.objects.filter(email='admin@painfx.in').exists() or \
-User.objects.create_superuser(email='admin@example.com',password='admin')\" && \
+User.objects.create_superuser(email='admin@painfx.in',password='admin')\" && \
     echo 'Starting Gunicorn server...' && \
     exec gunicorn --log-level debug core.wsgi:application --bind 0.0.0.0:8000 \
 "
