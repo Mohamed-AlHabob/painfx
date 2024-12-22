@@ -13,12 +13,15 @@ env = environ.Env(
 )
 
 
+# Logging Directory
 log_dir = BASE_DIR / "logs"
-if not log_dir.exists():
-    os.makedirs(log_dir)
+try:
+    log_dir.mkdir(parents=True, exist_ok=True)
+except OSError as e:
+    raise ImproperlyConfigured(f"Unable to create log directory: {e}")
 
-DEBUG = env("DJANGO_DEBUG", default=False)
-DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
+DEBUG = env("DJANGO_DEBUG", default=True)
+DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=True)
 
 print("DEBUG:", DEBUG)
 print("DEVELOPMENTMODE:", DEVELOPMENTMODE)
