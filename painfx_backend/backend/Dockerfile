@@ -32,9 +32,9 @@ CMD sh -c "\
     python manage.py collectstatic --noinput && \
     echo 'Creating superuser...' && \
     python manage.py shell -c \"\
-from django.contrib.auth.models import User; \
-User.objects.filter(email='admin@example.com').exists() or \
-User.objects.create_superuser('admin', 'admin@example.com', 'admin')\" && \
+from apps.authentication.models import User; \
+User.objects.filter(email='admin@painfx.in').exists() or \
+User.objects.create_superuser(email='admin@example.com',password='admin')\" && \
     echo 'Starting Gunicorn server...' && \
     exec gunicorn --log-level debug core.wsgi:application --bind 0.0.0.0:8000 \
 "
