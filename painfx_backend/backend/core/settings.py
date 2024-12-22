@@ -33,6 +33,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["*"] if DEVELOPMENTMODE else 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://painfx.in",
+    "https://painfx.onrender.com",
     "https://api.painfx.in"
 ])
 CORS_ALLOW_CREDENTIALS = True
