@@ -199,6 +199,10 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS',default="https://painfx.in/google,https://painfx.in/facebook" ).split(','),
+    'SERIALIZERS': {
+        'current_user': 'apps.authentication.serializers.UserSerializer',
+        'user': 'apps.authentication.serializers.UserSerializer',
+    },
 }
 
 # Authentication cookies
