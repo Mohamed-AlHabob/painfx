@@ -1,50 +1,40 @@
-# backend/booking_app/tasks.py
-
 from celery import shared_task
 from apps.booking_app.models import Notification, Payment
 from django.core.mail import send_mail
 from twilio.rest import Client
 from django.conf import settings
 from django.utils.timezone import now
+import logging
 
 # Twilio Configuration
-TWILIO_ACCOUNT_SID = settings.TWILIO_ACCOUNT_SID
-TWILIO_AUTH_TOKEN = settings.TWILIO_AUTH_TOKEN
-TWILIO_FROM_NUMBER = settings.TWILIO_FROM_NUMBER
-
-twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, max_retries=3)
 def send_sms_notification(self, user_id, message):
-    from .models import User
-    import logging
-    logger = logging.getLogger(__name__)
+    from apps.authentication.models import User
     try:
         user = User.objects.get(id=user_id)
         phone_number = user.profile.phone_number
-        print("phone_number : ",phone_number)
         if not phone_number:
             logger.warning(f"User {user_id} does not have a valid phone number.")
             return
 
         twilio_client.messages.create(
             body=message,
-            from_=TWILIO_FROM_NUMBER,
+            from_=settings.TWILIO_FROM_NUMBER,
             to=phone_number
         )
         logger.info(f"SMS sent to {phone_number} for User {user_id}.")
     except User.DoesNotExist:
         logger.error(f"User with ID {user_id} does not exist.")
     except Exception as e:
-        logger.error(f"Error sending SMS to User {user_id}: {str(e)}")
+        logger.error(f"Error sending SMS to User {user_id}: {e}")
         self.retry(exc=e, countdown=60)
-
 
 
 @shared_task(bind=True, max_retries=3)
 def process_payment_webhook(self, event_data):
-    import logging
-    logger = logging.getLogger(__name__)
     try:
         payment_intent = event_data['data']['object']
         payment_id = payment_intent.get('id')
@@ -61,17 +51,20 @@ def process_payment_webhook(self, event_data):
     except Payment.DoesNotExist:
         logger.error(f"Payment with intent ID {payment_id} not found.")
     except Exception as e:
-        logger.error(f"Error processing payment webhook: {str(e)}")
+        logger.error(f"Error processing payment webhook: {e}")
         self.retry(exc=e, countdown=60)
 
 
 @shared_task
 def send_email_notification(user_email, subject, message):
-    print("user_email : ",user_email)
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user_email],
-        fail_silently=False,
-    )
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user_email],
+            fail_silently=False,
+        )
+        logger.info(f"Email sent to {user_email}.")
+    except Exception as e:
+        logger.error(f"Error sending email to {user_email}: {e}")
