@@ -38,22 +38,22 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
 print("SECRET_KEY : ", SECRET_KEY)
 
 # Allowed hosts
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["*"] if DEVELOPMENTMODE else [])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["localhost"] if DEVELOPMENTMODE else [])
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://painfx.in",
+    "http://localhost",
     "https://api.painfx.in"
 ])
 CORS_ALLOW_CREDENTIALS = True
 
-if DEVELOPMENTMODE:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 # Application definition
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -76,8 +76,6 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    "whitenoise.runserver_nostatic", 
-    "django.contrib.staticfiles",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -197,7 +195,7 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
-    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS',default=["https://painfx.in/google,https://painfx.in/facebook"]).split(','),
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS',default="https://painfx.in/google").split(','),
     
     'SERIALIZERS': {
         'current_user': 'apps.authentication.serializers.UserSerializer',

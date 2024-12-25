@@ -171,7 +171,7 @@ class EventScheduleSerializer(serializers.ModelSerializer):
 class AdvertisingCampaignSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvertisingCampaign
-        fields = ['id', 'clinic', 'campaign_name', 'start_date', 'end_date', 'budget', 'status']
+        fields = ['id', 'clinic','iamge','goto', 'campaign_name', 'start_date', 'end_date', 'budget', 'status']
 
     def validate(self, attrs):
         if attrs['start_date'] > attrs['end_date']:

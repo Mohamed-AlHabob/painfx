@@ -382,10 +382,12 @@ class EventSchedule(BaseModel):
 class AdvertisingCampaign(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE)
     campaign_name = models.CharField(max_length=255)
+    iamge = models.ImageField(upload_to='campaign_images/', blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
     budget = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(max_length=10, choices=CampaignStatus.choices)
+    goto = models.URLField(blank=True, null=True)
 
     def clean(self):
         if self.start_date > self.end_date:

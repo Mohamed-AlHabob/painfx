@@ -31,5 +31,5 @@ CMD sh -c "\
     echo 'Collecting static files...' && \
     python manage.py collectstatic --noinput && \
     echo 'Starting Gunicorn server...' && \
-    exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers=3 \
+    exec gunicorn core.wsgi:application --bind=0.0.0.0:8000 --workers=3 \
 "

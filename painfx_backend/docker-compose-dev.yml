@@ -1,41 +1,4 @@
 services:
-  traefik:
-    image: traefik:v2.9
-    command:
-      - --api.dashboard=true
-      - --api.insecure=false
-      - --providers.docker=true
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.traefik.address=:8080
-      - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}
-      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-      - --entrypoints.web.http.redirections.entryPoint.to=websecure
-      - --entrypoints.web.http.redirections.entryPoint.scheme=https
-      - --entrypoints.web.http.redirections.entryPoint.permanent=true
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"  # Traefik Dashboard
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-certificates:/letsencrypt
-    networks:
-      - mynetwork
-    deploy:
-      replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
-      restart_policy:
-        condition: on-failure
-    labels:
-      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
-      - "traefik.http.routers.traefik.entrypoints=traefik,websecure"
-      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
-      - "traefik.http.routers.traefik.service=api@internal"
-
   django:
     build:
       context: ./backend
@@ -72,12 +35,6 @@ services:
       - redis
     networks:
       - mynetwork
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.django.rule=Host(`api.${DOMAIN}`)"
-      - "traefik.http.routers.django.entrypoints=websecure"
-      - "traefik.http.routers.django.tls.certresolver=myresolver"
-      - "traefik.http.services.django.loadbalancer.server.port=8000"
     volumes:
       - staticfiles:/app/staticfiles
 
@@ -92,12 +49,6 @@ services:
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_51OF23EH6eN12iihYcTAgC2sE9gjRtqz4UXN6xkOQp9DhrhVzRbscDFUv4hSdeFoTaaaoHz5J66svxG9GzwYu1hNH002x3aWMIk"
     networks:
       - mynetwork
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.nextjs.entrypoints=websecure"
-      - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
-      - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
 
   celery:
     build:
@@ -232,4 +183,3 @@ volumes:
   postgres_data:
   redis_data:
   staticfiles:
-  traefik-certificates:
