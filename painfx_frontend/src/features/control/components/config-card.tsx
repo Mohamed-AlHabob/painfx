@@ -1,8 +1,9 @@
+"use client"
+
 import { Settings } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-
 
 interface ConfigCardProps {
   title: string
@@ -12,7 +13,7 @@ interface ConfigCardProps {
     title: string
     description: string
     enabled?: boolean
-    pro?: boolean
+    premium?: boolean
     options?: React.ReactNode
   }[]
 }
@@ -31,9 +32,9 @@ export function ConfigCard({ title, description, children, features }: ConfigCar
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
                 <span className="font-medium">{feature.title}</span>
-                {feature.pro && (
+                {feature.premium && (
                   <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-500">
-                    Pro
+                    Premium
                   </span>
                 )}
               </div>
