@@ -157,7 +157,7 @@ GOOGLE_MAPS_API_KEY = env("GOOGLE_MAPS_API_KEY", default="https://painfx.in")
 
 # Twilio settings
 TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="ACcb51bc274429a7aaee176fe26ba642e8")
-TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="47ab8efcd0a1a83629f6fa288a230a36")
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="1beee8ee15574630611803899b734e4f")
 TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="+17753178557")
 
 # Email settings
