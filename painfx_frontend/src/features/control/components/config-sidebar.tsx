@@ -1,48 +1,47 @@
 "use client"
 
-import { AtSign, KeyRound, Wallet, Shield, ShieldAlert, Boxes, FileKey, Scale, Settings, Users, LayoutDashboard, UserCircle, Mail } from 'lucide-react'
+import { Building, Users, Calendar, FileText, Settings, CreditCard, Activity, Stethoscope, Briefcase, Shield, Mail, Bell } from 'lucide-react'
 import Link from 'next/link'
 
 import { cn } from '@/lib/utils'
 
 const categories = [
   {
-    title: "User & Authentication",
+    title: "Clinic Management",
     items: [
-      { icon: AtSign, label: "Email, phone, username", href: "/configure", active: true },
-      { icon: KeyRound, label: "SSO connections", href: "/configure/sso" },
-      { icon: Wallet, label: "Web3", href: "/configure/web3" },
-      { icon: Shield, label: "Multi-factor", href: "/configure/mfa" },
-      { icon: ShieldAlert, label: "Restrictions", href: "/configure/restrictions" },
-      { icon: Shield, label: "Attack protection", href: "/configure/protection" },
+      { icon: Building, label: "Clinic Information", href: "/configure", active: true },
+      { icon: Users, label: "Staff Management", href: "/configure/staff" },
+      { icon: Calendar, label: "Appointment Settings", href: "/configure/appointments" },
+      { icon: FileText, label: "Medical Records", href: "/configure/records" },
+      { icon: Settings, label: "Services & Procedures", href: "/configure/services" },
     ],
   },
   {
-    title: "Session management",
+    title: "Financial Management",
     items: [
-      { icon: Boxes, label: "Sessions", href: "/configure/sessions" },
-      { icon: FileKey, label: "JWT templates", href: "/configure/jwt" },
+      { icon: CreditCard, label: "Billing & Invoicing", href: "/configure/billing" },
+      { icon: Activity, label: "Financial Reports", href: "/configure/reports" },
     ],
   },
   {
-    title: "Compliance",
+    title: "Expansion & Development",
     items: [
-      { icon: Scale, label: "Legal", href: "/configure/legal" },
+      { icon: Stethoscope, label: "Equipment Management", href: "/configure/equipment" },
+      { icon: Briefcase, label: "Partnerships", href: "/configure/partnerships" },
     ],
   },
   {
-    title: "Organization management",
+    title: "Compliance & Security",
     items: [
-      { icon: Settings, label: "Settings", href: "/configure/org-settings" },
-      { icon: Users, label: "Roles and Permissions", href: "/configure/roles" },
+      { icon: Shield, label: "Data Protection", href: "/configure/data-protection" },
+      { icon: FileText, label: "Regulatory Compliance", href: "/configure/compliance" },
     ],
   },
   {
-    title: "Customization",
+    title: "Communication",
     items: [
-      { icon: LayoutDashboard, label: "Account Portal", href: "/configure/portal" },
-      { icon: UserCircle, label: "Avatars", href: "/configure/avatars" },
-      { icon: Mail, label: "Emails", href: "/configure/emails" },
+      { icon: Mail, label: "Patient Communications", href: "/configure/communications" },
+      { icon: Bell, label: "Notifications", href: "/configure/notifications" },
     ],
   },
 ]
