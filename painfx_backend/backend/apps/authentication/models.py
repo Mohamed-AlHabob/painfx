@@ -1,9 +1,9 @@
-import uuid
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from django.db.models import Q
+from django.core.validators import EmailValidator
 from django.core.validators import RegexValidator
-from apps.general import GeolocationService
+from apps.booking_app.models import BaseModel
+
 # User Management and Authentication
 class UserManager(BaseUserManager):
     def get_queryset(self):
@@ -29,15 +29,12 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class User(AbstractBaseUser):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True, max_length=255)
-    first_name = models.CharField(max_length=30, blank=True, null=True)
-    last_name = models.CharField(max_length=30, blank=True, null=True)
+class User(AbstractBaseUser, PermissionsMixin, BaseModel):
+    email = models.EmailField(unique=True, max_length=255, validators=[EmailValidator()])
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    is_deleted = models.BooleanField(default=False)
     role = models.CharField(
         max_length=10,
         choices=[("patient", "Patient"), ("doctor", "Doctor"), ("clinic", "Clinic")],
@@ -52,86 +49,88 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['role']),
+        ]
         constraints = [
             models.UniqueConstraint(
-                fields=["email"],
-                condition=Q(is_deleted=False),
-                name="unique_active_email",
+                fields=['email'],
+                condition=models.Q(is_deleted=False),
+                name='unique_active_email',
             )
         ]
 
-    def delete(self, *args, **kwargs):
-        self.is_deleted = True
-        self.save()
-
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}" if self.first_name and self.last_name else self.email
+        return f"{self.first_name} {self.last_name}".strip() or self.email
 
     def __str__(self):
         return self.get_full_name()
 
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser
-
-    def has_module_perms(self, app_label):
-        return self.is_superuser
-
-class UserProfile(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class UserProfile(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True, default="avatars/default.png")
-    bio = models.TextField(blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
+    bio = models.TextField(blank=True)
+    address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     phone_number = models.CharField(
         max_length=15,
         blank=True,
-        null=True,
         validators=[RegexValidator(regex=r"^\+?1?\d{9,15}$", message="Phone number must be in the format: '+999999999'.")],
     )
-    html_content = models.TextField(blank=True, null=True)
+    html_content = models.TextField(blank=True)
     json_content = models.JSONField(blank=True, null=True)
-    gander = models.CharField(max_length=10, choices=[("male", "Male"), ("female", "Female"), ("other", "Other")], blank=True, null=True)
-    # geolocation = models.CharField(max_length=255, blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=[("male", "Male"), ("female", "Female"), ("other", "Other")], blank=True)
 
-    # def save(self, *args, **kwargs):
-    #     if self.address and not self.geolocation:
-    #         self.geolocation = GeolocationService.fetch_coordinates(self.address)
-    #     super().save(*args, **kwargs)
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['phone_number']),
+        ]
 
     def __str__(self):
         return f"Profile of {self.user.get_full_name()}"
 
-class Specialization(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Specialization(BaseModel):
     name = models.CharField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+        ]
 
     def __str__(self):
         return self.name
 
-class Patient(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    medical_history = models.TextField(blank=True, null=True)
+class Patient(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient_profile')
+    medical_history = models.TextField(blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+        ]
 
     def __str__(self):
         return f"Patient: {self.user.get_full_name()}"
 
-class Doctor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+class Doctor(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor_profile')
     specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True)
-    license_number = models.CharField(max_length=255, blank=True, null=True)
-    license_expiry_date = models.DateField(blank=True, null=True)
+    license_number = models.CharField(max_length=255, blank=True)
+    license_expiry_date = models.DateField(null=True, blank=True)
     license_image = models.ImageField(upload_to="license_images/", blank=True, null=True)
     active = models.BooleanField(default=False)
     privacy = models.BooleanField(default=False)
     reservation_open = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['specialization']),
+            models.Index(fields=['active', 'reservation_open']),
+        ]
 
     def __str__(self):
         return f"Dr. {self.user.get_full_name()}"

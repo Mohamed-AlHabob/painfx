@@ -7,11 +7,20 @@ from apps.authentication.models import Specialization, User, Doctor, Patient
 # Abstract Base Model
 class BaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         abstract = True
+
+    def soft_delete(self):
+        self.is_deleted = True
+        self.save()
+
+    def restore(self):
+        self.is_deleted = False
+        self.save()
 
 # Enum Choices
 class ReservationStatus(models.TextChoices):
@@ -19,10 +28,6 @@ class ReservationStatus(models.TextChoices):
     APPROVED = 'approved', 'Approved'
     REJECTED = 'rejected', 'Rejected'
     CANCELLED = 'cancelled', 'Cancelled'
-
-# class PostType(models.TextChoices):
-#     TEXT = 'text', 'Text'
-#     VIDEO = 'video', 'Video'
 
 class SubscriptionStatus(models.TextChoices):
     ACTIVE = 'active', 'Active'
@@ -58,38 +63,46 @@ class Tag(models.Model):
 # Clinics, Branches, and their Doctors
 # ---------------------------------------------
 class Clinic(BaseModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, db_index=True)
     address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    tags = models.ManyToManyField(Tag, related_name="clinics", blank=True)
     specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True)
-    license_number = models.CharField(max_length=255, blank=True, null=True)
-    license_expiry_date = models.DateField(blank=True, null=True)
+    license_number = models.CharField(max_length=255, blank=True)
+    license_expiry_date = models.DateField(null=True, blank=True)
     license_image = models.ImageField(upload_to='license_images/', blank=True, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_clinics')
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True)
     icon = models.ImageField(upload_to='clinic_icons/', blank=True, null=True)
     privacy = models.BooleanField(default=False)
-    reservation_open = models.BooleanField(default=True)
-    active = models.BooleanField(default=False)
+    reservation_open = models.BooleanField(default=True, db_index=True)
+    active = models.BooleanField(default=False, db_index=True)
     doctors = models.ManyToManyField(Doctor, through='ClinicDoctor', related_name='clinics')
-    # geolocation = models.JSONField(blank=True, null=True)
 
     class Meta:
         indexes = [
             models.Index(fields=['owner']),
             models.Index(fields=['reservation_open', 'active']),
+            models.Index(fields=['name', 'address']),
         ]
-        verbose_name = "Clinic"
-        verbose_name_plural = "Clinics"
+        constraints = [
+            models.CheckConstraint(
+                check=Q(latitude__gte=-90) & Q(latitude__lte=90),
+                name='valid_latitude'
+            ),
+            models.CheckConstraint(
+                check=Q(longitude__gte=-180) & Q(longitude__lte=180),
+                name='valid_longitude'
+            ),
+        ]
 
-    # def save(self, *args, **kwargs):
-    #     if self.address and not self.geolocation:
-    #         self.geolocation = GeolocationService.fetch_coordinates(self.address)
-    #     super().save(*args, **kwargs)
     def __str__(self):
         return f"Clinic: {self.name} ({self.owner})"
+
+    @classmethod
+    def get_active_clinics(cls):
+        return cls.objects.filter(active=True, is_deleted=False).select_related('owner', 'specialization')
+
 
 
 class ClinicDoctor(BaseModel):
@@ -99,54 +112,89 @@ class ClinicDoctor(BaseModel):
 
     class Meta:
         unique_together = ('clinic', 'doctor')
-        verbose_name = "Clinic-Doctor Relationship"
-        verbose_name_plural = "Clinic-Doctor Relationships"
+        indexes = [
+            models.Index(fields=['clinic', 'doctor']),
+        ]
 
     def __str__(self):
         return f"{self.doctor} at {self.clinic}"
+
+class ClinicSettings(BaseModel):
+    clinic = models.OneToOneField(Clinic, on_delete=models.CASCADE, related_name='settings')
+    allow_online_bookings = models.BooleanField(default=True)
+    notification_email = models.EmailField(blank=True, null=True)
+    default_appointment_duration = models.PositiveIntegerField(default=30, validators=[MinValueValidator(1)])
+    cancellation_policy = models.TextField(blank=True, null=True)
+    working_hours = models.JSONField(default=dict)
+    holiday_dates = models.JSONField(default=list)
+
+    class Meta:
+        verbose_name = "Clinic Settings"
+        verbose_name_plural = "Clinic Settings"
+
+    def __str__(self):
+        return f"Settings for {self.clinic}"
+
+    @classmethod
+    def get_clinic_settings(cls, clinic):
+        return cls.objects.select_related('clinic').get(clinic=clinic)
     
+
+class BannedPatient(BaseModel):
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='banned_patients')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='banned_from')
+    reason = models.TextField()
+    banned_until = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        unique_together = ('clinic', 'patient')
+        indexes = [
+            models.Index(fields=['clinic', 'patient', 'banned_until']),
+        ]
+        verbose_name = "Banned Patient"
+        verbose_name_plural = "Banned Patients"
+
+    def clean(self):
+        if self.banned_until and self.banned_until < self.created_at:
+            raise ValidationError("Ban end date cannot be earlier than the ban start date.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.patient} banned from {self.clinic}"
 # ---------------------------------------------
 # Branches for Clinics
 # ---------------------------------------------
-class Branch(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Branch(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='branches')
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255, blank=True)
     geolocation = models.JSONField(blank=True, null=True)
     active = models.BooleanField(default=False)
     reservation_open = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    # Uncomment if you'd like automatic geolocation fetch:
-    # def save(self, *args, **kwargs):
-    #     if self.address and not self.geolocation:
-    #         self.geolocation = GeolocationService.fetch_coordinates(self.address)
-    #     super().save(*args, **kwargs)
 
     class Meta:
         indexes = [
             models.Index(fields=['clinic']),
             models.Index(fields=['reservation_open', 'active']),
         ]
-        verbose_name = "Branch"
-        verbose_name_plural = "Branches"
 
     def __str__(self):
         return f"Branch: {self.name} of {self.clinic.name}"
 
 
-class BranchDoctor(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class BranchDoctor(BaseModel):
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='branch_doctors')
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='branches_assigned')
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('branch', 'doctor')
-        verbose_name = "Branch-Doctor Relationship"
-        verbose_name_plural = "Branch-Doctor Relationships"
+        indexes = [
+            models.Index(fields=['branch', 'doctor']),
+        ]
 
     def __str__(self):
         return f"{self.doctor} at {self.branch}"
@@ -155,38 +203,51 @@ class BranchDoctor(models.Model):
 # Reservations
 # ---------------------------------------------
 class Reservation(BaseModel):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations',null=True, blank=True)
-    status = models.CharField(max_length=10, choices=ReservationStatus.choices, default=ReservationStatus.PENDING)
-    reason_for_cancellation = models.TextField(blank=True, null=True)
-    reservation_date = models.DateField()
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations')
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
+    status = models.CharField(max_length=10, choices=ReservationStatus.choices, default=ReservationStatus.PENDING, db_index=True)
+    reason_for_cancellation = models.TextField(blank=True)
+    reservation_date = models.DateField(db_index=True)
     reservation_time = models.TimeField()
 
     class Meta:
         indexes = [
-            models.Index(fields=['patient'], name='idx_reservations_patient_id'),
-            models.Index(fields=['clinic'], name='idx_reservations_clinic_id'),
-            models.Index(fields=['doctor'], name='idx_reservations_doctor_id'),
+            models.Index(fields=['patient']),
+            models.Index(fields=['clinic']),
+            models.Index(fields=['doctor']),
+            models.Index(fields=['reservation_date', 'reservation_time']),
         ]
-        verbose_name = "Reservation"
-        verbose_name_plural = "Reservations"
+        constraints = [
+            models.CheckConstraint(
+                check=Q(status__in=ReservationStatus.values),
+                name='valid_reservation_status'
+            )
+        ]
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         if not self.clinic and not self.doctor:
             raise ValidationError('A reservation must be linked to either a clinic or a doctor.')
-
         if self.clinic and not self.clinic.reservation_open:
             raise ValidationError('Reservations are currently closed for the selected clinic.')
-
         if not self.clinic and self.doctor and not self.doctor.reservation_open:
             raise ValidationError('Reservations are currently closed for the selected doctor.')
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        clinic_info = f" at {self.clinic}" if self.clinic else ""
-        return f"Reservation by {self.patient or self.doctor} {clinic_info} on {self.reservation_date}"
+        return f"Reservation by {self.patient} at {self.clinic or self.doctor} on {self.reservation_date}"
+
+    @classmethod
+    def get_upcoming_reservations(cls, clinic_or_doctor):
+        from django.utils import timezone
+        return cls.objects.filter(
+            Q(clinic=clinic_or_doctor) | Q(doctor=clinic_or_doctor),
+            reservation_date__gte=timezone.now().date(),
+            status=ReservationStatus.APPROVED
+        ).select_related('patient', 'doctor', 'clinic')
 
 
 
@@ -208,21 +269,32 @@ class Review(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews')
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reviews')
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    review_text = models.TextField(blank=True, null=True)
+    review_text = models.TextField(blank=True)
 
     class Meta:
         unique_together = ('clinic', 'patient')
-        verbose_name = "Review"
-        verbose_name_plural = "Reviews"
+        indexes = [
+            models.Index(fields=['clinic', 'rating']),
+        ]
 
     def clean(self):
         if not Reservation.objects.filter(
-            patient=self.patient, clinic=self.clinic, status=ReservationStatus.APPROVED
+            patient=self.patient,
+            clinic=self.clinic,
+            status=ReservationStatus.APPROVED
         ).exists():
             raise ValidationError('Patient must have an approved reservation to leave a review.')
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Review by {self.patient} for {self.clinic} - {self.rating} Stars"
+
+    @classmethod
+    def get_clinic_average_rating(cls, clinic):
+        return cls.objects.filter(clinic=clinic).aggregate(models.Avg('rating'))['rating__avg']
 
 # ---------------------------------------------
 # Posts, Videos, Comments, and Likes

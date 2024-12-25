@@ -1,7 +1,5 @@
 from rest_framework import viewsets, permissions, serializers
 from django.views.decorators.csrf import csrf_exempt
-# from django.contrib.gis.geos import Point
-# from django.contrib.gis.db.models.functions import Distance
 from django.http import JsonResponse
 from django.conf import settings
 import stripe
@@ -93,9 +91,6 @@ class DoctorViewSet(viewsets.ModelViewSet):
     serializer_class = DoctorSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = GlPagination
-
-    # def get_queryset(self):
-    #     return Doctor.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
