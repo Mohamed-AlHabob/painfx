@@ -13,7 +13,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
-COPY requirements.txt .
+COPY ./requirements.txt ./
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
@@ -21,15 +21,20 @@ RUN pip install --upgrade pip && \
 COPY . .
 
 # Expose the application port (adjust if necessary)
-
 EXPOSE 8000
 
+# Command to run migrations, create superuser, and start the server
 CMD sh -c "\
     echo 'Running migrations...' && \
     python manage.py makemigrations && \
     python manage.py migrate && \
     echo 'Collecting static files...' && \
     python manage.py collectstatic --noinput && \
+    echo 'Creating superuser...' && \
+    python manage.py shell -c \"\
+from apps.authentication.models import User; \
+User.objects.filter(email='admin@painfx.in').exists() or \
+User.objects.create_superuser(email='admin@painfx.in',password='admin')\" && \
     echo 'Starting Gunicorn server...' && \
-    exec gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers=3 \
+    exec gunicorn --log-level debug core.wsgi:application --bind 0.0.0.0:8000 \
 "

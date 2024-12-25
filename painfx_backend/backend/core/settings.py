@@ -13,22 +13,15 @@ env = environ.Env(
 )
 
 
-# def read_secret(secret_name, default_value=None):
-#     try:
-#         with open(f"/run/secrets/{secret_name}") as secret_file:
-#             return secret_file.read().strip()
-#     except FileNotFoundError:
-#         if default_value is not None:
-#             return default_value
-#         raise ImproperlyConfigured(f"Secret {secret_name} not found and no default provided.")
-
-
+# Logging Directory
 log_dir = BASE_DIR / "logs"
-if not log_dir.exists():
-    os.makedirs(log_dir)
+try:
+    log_dir.mkdir(parents=True, exist_ok=True)
+except OSError as e:
+    raise ImproperlyConfigured(f"Unable to create log directory: {e}")
 
-DEBUG = env("DJANGO_DEBUG", default=False)
-DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
+DEBUG = env("DJANGO_DEBUG", default=True)
+DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=True)
 
 print("DEBUG:", DEBUG)
 print("DEVELOPMENTMODE:", DEVELOPMENTMODE)
@@ -38,11 +31,20 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
 print("SECRET_KEY : ", SECRET_KEY)
 
 # Allowed hosts
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=["*"] if DEVELOPMENTMODE else [])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
+    "painfx.in",
+    "www.painfx.in",
+    "painfx.onrender.com",
+    "127.0.0.1",
+    "localhost",
+    "api.painfx.in"
+])
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://painfx.in",
+    "https://www.painfx.in",
+    "https://painfx.onrender.com",
     "https://api.painfx.in"
 ])
 CORS_ALLOW_CREDENTIALS = True
@@ -75,9 +77,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "whitenoise.runserver_nostatic", 
-    "django.contrib.staticfiles",
+    "corsheaders.middleware.CorsMiddleware",  # Enables CORS headers
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Proper Whitenoise middleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -111,10 +112,10 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='painfx_db'),
-        'USER': env('POSTGRES_USER', default='painfx_user'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='mohamedalhabob'),
-        "HOST": env("POSTGRES_HOST", default="postgres"),
+        'NAME': env('POSTGRES_DB', default='painfx_postgres'),
+        'USER': env('POSTGRES_USER', default='painfx_postgres_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='Oxingvgcbxyp79ZFJRUVWq2h9Z1Na8D5'),
+        "HOST": env("POSTGRES_HOST", default="dpg-ctjvvtlumphs73fdeed0-a"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
@@ -141,7 +142,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Domain and site settings
-DOMAIN = env("DOMAIN", default="https://painfx.in")
+DOMAIN = env("DOMAIN", default="painfx.in")
 SITE_NAME = "PainFX"
 
 # Custom user model
@@ -165,7 +166,7 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env('EMAIL_HOST_USER',default="supernovasoftwareco@gmail.com")
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD',default="aodc mqwb nibd clbz")
 DEFAULT_FROM_EMAIL = f"{SITE_NAME} <{EMAIL_HOST_USER}>"
 
 # Default auto field
@@ -197,20 +198,24 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'TOKEN_MODEL': None,
-    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS').split(','),
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': env('REDIRECT_URLS',default="https://painfx.in/google,https://painfx.in/facebook" ).split(','),
+    'SERIALIZERS': {
+        'current_user': 'apps.authentication.serializers.UserSerializer',
+        'user': 'apps.authentication.serializers.UserSerializer',
+    },
 }
 
 # Authentication cookies
 AUTH_COOKIE = 'access'
-AUTH_COOKIE_MAX_AGE = 60 * 60 * 24
-AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE') == 'True'
+AUTH_COOKIE_MAX_AGE = 60 * 15  # 15 minutes for access tokens
+AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE', default="True") == "True"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = '/'
 AUTH_COOKIE_SAMESITE = 'None'
 
 # Social authentication settings
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('GOOGLE_AUTH_KEY')
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('GOOGLE_AUTH_SECRET_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('GOOGLE_AUTH_KEY',default="147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env('GOOGLE_AUTH_SECRET_KEY',default="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")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
@@ -219,8 +224,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
 
 # Celery settings
-CELERY_BROKER_URL = env('CELERY_BROKER_URL',default='redis://redis:6379/0')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND',default='redis://redis:6379/0')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL',default='redis://red-ctk0mhbtq21c73e5i4gg:6379/0')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND',default='redis://red-ctk0mhbtq21c73e5i4gg:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
