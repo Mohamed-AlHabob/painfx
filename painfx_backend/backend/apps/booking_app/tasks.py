@@ -22,6 +22,7 @@ def send_sms_notification(self, user_id, message):
     try:
         user = User.objects.get(id=user_id)
         phone_number = user.profile.phone_number
+        print("phone_number : ",phone_number)
         if not phone_number:
             logger.warning(f"User {user_id} does not have a valid phone number.")
             return
@@ -66,6 +67,7 @@ def process_payment_webhook(self, event_data):
 
 @shared_task
 def send_email_notification(user_email, subject, message):
+    print("user_email : ",user_email)
     send_mail(
         subject,
         message,
