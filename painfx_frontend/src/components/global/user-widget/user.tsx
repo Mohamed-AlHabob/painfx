@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logout, Settings } from "@/components/icons";
 import Link from "next/link";
-
+import { useTranslation } from 'react-i18next';
 import { DropDown } from "../drop-down";
 import { useLogoutMutation, useRetrieveUserQuery } from "@/redux/services/auth/authApiSlice";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,7 @@ export const UserDropDown = () => {
   const { data: user, isLoading,isFetching } = useRetrieveUserQuery();
   const router = useRouter();
   const [Blogout] = useLogoutMutation();
-  console.log("user : ", user)
+  const { t } = useTranslation();
 
   if (isLoading || isFetching) {
     return (
@@ -43,7 +43,7 @@ export const UserDropDown = () => {
 
   return (
     <DropDown
-      title="Account"
+      title={t('account')}
       trigger={<Avatar className={cn(
         "h-7 w-7 md:h-10 md:w-10 cursor-pointer bg-[linear-gradient(152deg,_#fff,_#B4F576_42%,_#7EF576)]",
       )}>
@@ -69,11 +69,11 @@ export const UserDropDown = () => {
         <Separator className="my-2" />
        {user?.role === "doctor"&&"clinic" ? (
           <Link href="/branch/overview/" className="flex gap-x-2 px-2">
-            <Settings /> Settings
+            <Settings /> {t('settings')}
           </Link>
         ):
         <Link href={`/proflile/${user?.id}`} className="flex gap-x-2 px-2">
-        <Settings /> proflile
+        <Settings /> {t('profile')}
       </Link>
         }
         <Separator className="my-2" />
@@ -84,15 +84,15 @@ export const UserDropDown = () => {
           onClick={handleLogout}
         >
           <Logout />
-          Sign Out
+          {t('sign_out')}
         </Button>
 
         <Separator className="my-2" />
 
         <div className="space-y-4">
-          <h3 className="text-sm text-muted-foreground">Preferences</h3>
+          <h3 className="text-sm text-muted-foreground">{t('preferences')}</h3>
           <div className="flex justify-between items-center">
-            <p>Theme</p>
+            <p>{t('theme')}</p>
             <ModeToggle />
           </div>
           <LanguageSwitcher />
