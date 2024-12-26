@@ -11,8 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/use-modal-store";
 import { useReservations } from "@/hooks/reservations";
+import { useTranslation } from "react-i18next";
 
 export function ConfirmChangeStatus() {
+  const { t } = useTranslation();
   const { isOpen, onClose, type, data } = useModal();
   const { updateReservation, isUpdating } = useReservations();
   const isModalOpen = isOpen && type === "ConfirmChangeStatus";
@@ -20,11 +22,11 @@ export function ConfirmChangeStatus() {
   const reservationId = data?.reservation?.id || "";
   const status = data?.Status || "unknown"; // Ensure correct casing
   const reservationName =
-    data?.reservation?.patient?.user?.first_name || "this reservation";
+    data?.reservation?.patient?.user?.first_name || t("this_reservation");
   const reservationDate =
-    data?.reservation?.reservation_date || "this reservation date";
+    data?.reservation?.reservation_date || t("this_reservation_date");
   const reservationTime =
-    data?.reservation?.reservation_time || "this reservation time";
+    data?.reservation?.reservation_time || t("this_reservation_time");
 
   const handleConfirm = async () => {
     if (!reservationId) {
@@ -35,7 +37,6 @@ export function ConfirmChangeStatus() {
       status: status,
       reservation_date: reservationDate,
       reservation_time: reservationTime,
-      
     };
 
     try {
@@ -51,26 +52,24 @@ export function ConfirmChangeStatus() {
       <DialogContent className="p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
-            Change Reservation Status
+            {t("change_reservation_status")}
           </DialogTitle>
           <DialogDescription className="text-center text-zinc-500">
-            Are you sure you want to change the status of <br />
+            {t("confirm_change_status")} <br />
             <span className="text-indigo-500 font-semibold">
               {reservationName}
             </span>{" "}
-            to <span className="text-indigo-500 font-semibold">{status}</span>?
+            {t("to_status")}{" "}
+            <span className="text-indigo-500 font-semibold">{status}</span>?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="px-6 py-4">
           <div className="flex items-center justify-between w-full">
             <Button disabled={isUpdating} onClick={onClose} variant="ghost">
-              Cancel
+              {t("cancel")}
             </Button>
-            <Button
-              disabled={isUpdating}
-              onClick={handleConfirm}
-            >
-              {isUpdating ? "Updating..." : "Confirm"}
+            <Button disabled={isUpdating} onClick={handleConfirm}>
+              {isUpdating ? t("updating") : t("confirm")}
             </Button>
           </div>
         </DialogFooter>
