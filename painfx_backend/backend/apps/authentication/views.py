@@ -107,8 +107,15 @@ class CustomTokenVerifyView(TokenVerifyView):
 
 class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
-        response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie('access')
-        response.delete_cookie('refresh')
-
+        response = Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
+        response.delete_cookie(
+            'access',
+            path=settings.AUTH_COOKIE_PATH,
+            samesite=settings.AUTH_COOKIE_SAMESITE
+        )
+        response.delete_cookie(
+            'refresh',
+            path=settings.AUTH_COOKIE_PATH,
+            samesite=settings.AUTH_COOKIE_SAMESITE
+        )
         return response
