@@ -127,9 +127,9 @@ class ReservationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if hasattr(user, 'clinicowner'):
             return Reservation.objects.filter(clinic__owner=user)
-        elif hasattr(user, 'doctor_profile'):
+        elif hasattr(user, 'doctor'):
             return Reservation.objects.filter(doctor__user=user)
-        elif hasattr(user, 'patient_profile'):
+        elif hasattr(user, 'patient'):
             return Reservation.objects.filter(patient__user=user)
         return Reservation.objects.none()
 
