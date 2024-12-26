@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useModal } from "@/hooks/use-modal-store";
 import { useReservations } from "@/hooks/reservations";
+import { useTranslation } from "react-i18next";
 
 export function CreateReservationDrawer() {
+  const { t } = useTranslation();
   const { isOpen, onClose, type, data } = useModal();
   const { onCreateReservation, isCreating, register, errors } = useReservations();
 
@@ -39,21 +41,19 @@ export function CreateReservationDrawer() {
         {/* Responsive Container */}
         <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           <DrawerHeader>
-            <DrawerTitle>Create Reservation</DrawerTitle>
-            <DrawerDescription>
-              Fill in the details to create a new reservation.
-            </DrawerDescription>
+            <DrawerTitle>{t("create_reservation")}</DrawerTitle>
+            <DrawerDescription>{t("fill_details")}</DrawerDescription>
           </DrawerHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Reservation Date */}
             <div className="flex flex-col">
               <Label htmlFor="reservation_date" className="mb-1">
-                Reservation Date
+                {t("reservation_date")}
               </Label>
               <Input
                 id="reservation_date"
                 type="date"
-                {...register("reservation_date", { required: "Reservation date is required" })}
+                {...register("reservation_date", { required: t("reservation_date_required") })}
                 className={`w-full ${errors.reservation_date ? "border-red-500" : ""}`}
               />
               {errors.reservation_date && (
@@ -64,12 +64,12 @@ export function CreateReservationDrawer() {
             {/* Reservation Time */}
             <div className="flex flex-col">
               <Label htmlFor="reservation_time" className="mb-1">
-                Reservation Time
+                {t("reservation_time")}
               </Label>
               <Input
                 id="reservation_time"
                 type="time"
-                {...register("reservation_time", { required: "Reservation time is required" })}
+                {...register("reservation_time", { required: t("reservation_time_required") })}
                 className={`w-full ${errors.reservation_time ? "border-red-500" : ""}`}
               />
               {errors.reservation_time && (
@@ -80,13 +80,13 @@ export function CreateReservationDrawer() {
             {/* Hidden Entity ID Fields */}
             <div className="hidden">
               <Label htmlFor={entityType} className="mb-1">
-                {DoctorId ? "Doctor ID" : "Clinic ID"}
+                {t(DoctorId ? "doctor_id" : "clinic_id")}
               </Label>
               <Input
                 id={entityType}
                 defaultValue={entityValue}
                 type="text"
-                {...register(entityType as "id", { required: `${entityType} is required` })}
+                {...register(entityType as "id", { required: `${t(entityType)} is required` })}
                 className={`w-full ${errors[entityType as keyof typeof errors] ? "border-red-500" : ""}`}
                 readOnly
               />
@@ -103,15 +103,15 @@ export function CreateReservationDrawer() {
                 {isCreating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    {t("creating")}
                   </>
                 ) : (
-                  "Create Reservation"
+                  t("create_reservation_button")
                 )}
               </Button>
               <DrawerClose asChild>
                 <Button variant="outline" className="w-full sm:w-auto flex-1" onClick={onClose}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DrawerClose>
             </DrawerFooter>
