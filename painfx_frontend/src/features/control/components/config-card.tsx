@@ -2,7 +2,7 @@ import { Settings } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-
+import { useTranslation } from "react-i18next";
 interface ConfigCardProps {
   title: string
   description: string
@@ -17,6 +17,7 @@ interface ConfigCardProps {
 }
 
 export function ConfigCard({ title, description, children, features }: ConfigCardProps) {
+  const { t } = useTranslation();
   return (
     <Card className="overflow-hidden">
       <CardHeader>
