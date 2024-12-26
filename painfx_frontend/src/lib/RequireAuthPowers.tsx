@@ -10,16 +10,25 @@ interface Props {
 }
 
 export default function RequireAuthPowers({ children }: Props) {
-	const { isLoading, isAuthenticated } = useAppSelector(state => state.auth);
-	const { data: user, isLoading: isLoadingRetrieveUser } = useRetrieveUserQuery();
+	// Extracting auth state from the Redux store
+	const { isLoading: authLoading, isAuthenticated } = useAppSelector(state => state.auth);
 
+	// Fetching user details using RTK Query
+	const { data: user, isLoading: userLoading } = useRetrieveUserQuery(undefined, {
+		skip: !isAuthenticated, // Skip fetching if not authenticated
+	});
 
-	if (user?.role == 'patient' && isAuthenticated) {
+	// Redirect unauthenticated users or users with the "patient" role
+	if (!authLoading && !isAuthenticated) {
 		redirect('/sign-in');
 	}
 
+	if (user && user.role === 'patient') {
+		redirect('/X');
+	}
 
-	if (isLoading || isLoadingRetrieveUser) {
+	// Show loading spinner while either auth or user data is loading
+	if (authLoading || userLoading) {
 		return (
 			<div className="flex justify-center items-center min-h-screen">
 				<Spinner />
@@ -27,5 +36,6 @@ export default function RequireAuthPowers({ children }: Props) {
 		);
 	}
 
+	// Render children if user is authenticated and authorized
 	return <>{children}</>;
 }
