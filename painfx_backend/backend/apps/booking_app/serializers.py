@@ -30,8 +30,7 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ['id', 'clinic', 'status', 'reason_for_cancellation', 'reservation_date','reservation_time', 'patient', 'doctor']
-        read_only_fields = ['id', 'patient']
+        fields = ['id','clinic','status','reason_for_cancellation','reservation_date','reservation_time','patient','doctor']
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -66,7 +65,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'video_file', 'video_url', 'thumbnail_url', 'content',
+            'id', 'title', 'video_file', 'video_url','thumbnail_url', 'content',
             'doctor', 'likes_count', 'comments_count',
             'created_at', 'updated_at'
         ]
