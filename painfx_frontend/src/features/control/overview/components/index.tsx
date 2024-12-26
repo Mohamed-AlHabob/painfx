@@ -87,18 +87,18 @@ export default function OverviewPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <FeatureCard
           icon={Box}
-          title="Deploy your PainFX application to production"
-          description="Get your application ready for production"
+          title="Build Your Clinic&apos;s Online Presence"
+          description="Create a professional profile for your clinic and showcase your doctors&apos; expertise to attract more patients."
         />
         <FeatureCard
           icon={LayoutTemplate}
-          title="Explore PainFX UI components"
-          description="Customize the look and feel"
+          title="Streamline Appointment Management"
+          description="Manage reservations seamlessly with our automated booking system, and ensure every patient gets the care they need."
         />
         <FeatureCard
           icon={Fingerprint}
-          title="Secure your application's backend"
-          description="Learn how to verify sessions"
+          title="Boost Your Clinic&apos;s Reputation"
+          description="Encourage patients to review and rate your clinic to build trust and improve visibility within the community."
         />
       </div>
 
