@@ -1,6 +1,15 @@
 {
-    "brand": "PainFX.",
-    "login": "Login",
-    "open_menu": "Open menu"
-  }
+  "brand": "PainFX.",
+  "login": "Login",
+  "open_menu": "Open menu"
+  "account": "Account",
+  "preferences": "Preferences",
+  "theme": "Theme",
+  "sign_out": "Sign Out",
+  "settings": "Settings",
+  "profile": "Profile",
+  "email": "Email",
+  "language": "Language",
+  "loading": "Loading...",
+}
   
