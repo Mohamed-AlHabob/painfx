@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import {
   Drawer,
   DrawerClose,
@@ -13,23 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Calendar, Clock } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 import { useModal } from "@/hooks/use-modal-store";
 import { useReservations } from "@/hooks/reservations";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function CreateReservationDrawer() {
   const { isOpen, onClose, type, data } = useModal();
-  const { onCreateReservation, isCreating } = useReservations();
-  const [formData, setFormData] = useState({
-    reservation_date: "",
-    reservation_time: "",
-  });
-  const [errors, setErrors] = useState({
-    reservation_date: "",
-    reservation_time: "",
-  });
-  const [showConfirmClose, setShowConfirmClose] = useState(false);
+  const { onCreateReservation, isCreating, register, errors } = useReservations();
 
   const isModalOpen = isOpen && type === "CreateReservation";
   const DoctorId = data?.DoctorId || "";
@@ -37,87 +27,79 @@ export function CreateReservationDrawer() {
   const entityType = DoctorId ? "doctor" : "clinic";
   const entityValue = DoctorId || ClinicId;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
-
-
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onCreateReservation();
-    onClose(); 
-  };
-
-  const handleClose = () => {
-    if (formData.reservation_date || formData.reservation_time) {
-      setShowConfirmClose(true);
-    } else {
-      onClose();
-    }
+    onClose();
   };
 
   return (
-    <Drawer open={isModalOpen} onOpenChange={handleClose}>
-      <DrawerContent className="sm:max-w-[425px] mx-auto">
-        <div className="max-h-[85vh] overflow-y-auto">
+    <Drawer open={isModalOpen} onOpenChange={onClose}>
+      <DrawerContent className="overflow-hidden">
+        {/* Responsive Container */}
+        <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           <DrawerHeader>
             <DrawerTitle>Create Reservation</DrawerTitle>
             <DrawerDescription>
               Fill in the details to create a new reservation.
             </DrawerDescription>
           </DrawerHeader>
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="reservation_date" className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2" />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Reservation Date */}
+            <div className="flex flex-col">
+              <Label htmlFor="reservation_date" className="mb-1">
                 Reservation Date
               </Label>
               <Input
                 id="reservation_date"
-                name="reservation_date"
                 type="date"
-                value={formData.reservation_date}
-                onChange={handleInputChange}
-                className={errors.reservation_date ? "border-red-500" : ""}
+                {...register("reservation_date", { required: "Reservation date is required" })}
+                className={`w-full ${errors.reservation_date ? "border-red-500" : ""}`}
               />
               {errors.reservation_date && (
-                <p className="text-red-500 text-sm">{errors.reservation_date}</p>
+                <p className="text-red-500 text-sm mt-1">{errors.reservation_date.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="reservation_time" className="flex items-center">
-                <Clock className="w-4 h-4 mr-2" />
+
+            {/* Reservation Time */}
+            <div className="flex flex-col">
+              <Label htmlFor="reservation_time" className="mb-1">
                 Reservation Time
               </Label>
               <Input
                 id="reservation_time"
-                name="reservation_time"
                 type="time"
-                value={formData.reservation_time}
-                onChange={handleInputChange}
-                className={errors.reservation_time ? "border-red-500" : ""}
+                {...register("reservation_time", { required: "Reservation time is required" })}
+                className={`w-full ${errors.reservation_time ? "border-red-500" : ""}`}
               />
               {errors.reservation_time && (
-                <p className="text-red-500 text-sm">{errors.reservation_time}</p>
+                <p className="text-red-500 text-sm mt-1">{errors.reservation_time.message}</p>
               )}
             </div>
-            <div className="space-y-2 hidden">
-              <Label htmlFor={entityType}>
+
+            {/* Hidden Entity ID Fields */}
+            <div className="hidden">
+              <Label htmlFor={entityType} className="mb-1">
                 {DoctorId ? "Doctor ID" : "Clinic ID"}
               </Label>
               <Input
                 id={entityType}
-                name={entityType}
                 defaultValue={entityValue}
                 type="text"
+                {...register(entityType as "id", { required: `${entityType} is required` })}
+                className={`w-full ${errors[entityType as keyof typeof errors] ? "border-red-500" : ""}`}
                 readOnly
               />
+              {errors[entityType as keyof typeof errors] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[entityType as keyof typeof errors]?.message}
+                </p>
+              )}
             </div>
-            <DrawerFooter>
-              <Button type="submit" className="w-full" disabled={isCreating}>
+
+            {/* Action Buttons */}
+            <DrawerFooter className="flex flex-col sm:flex-row gap-4">
+              <Button type="submit" className="w-full sm:w-auto flex-1" disabled={isCreating}>
                 {isCreating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -128,38 +110,14 @@ export function CreateReservationDrawer() {
                 )}
               </Button>
               <DrawerClose asChild>
-                <Button variant="outline" onClick={handleClose}>
+                <Button variant="outline" className="w-full sm:w-auto flex-1" onClick={onClose}>
                   Cancel
                 </Button>
               </DrawerClose>
             </DrawerFooter>
           </form>
         </div>
-        {showConfirmClose && (
-          <Alert className="mt-4 mx-4">
-            <AlertTitle>Unsaved Changes</AlertTitle>
-            <AlertDescription>
-              You have unsaved changes. Are you sure you want to close?
-            </AlertDescription>
-            <div className="mt-4 flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowConfirmClose(false)}>
-                Continue Editing
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setShowConfirmClose(false);
-                  setFormData({ reservation_date: "", reservation_time: "" });
-                  onClose();
-                }}
-              >
-                Close Without Saving
-              </Button>
-            </div>
-          </Alert>
-        )}
       </DrawerContent>
     </Drawer>
   );
 }
-
