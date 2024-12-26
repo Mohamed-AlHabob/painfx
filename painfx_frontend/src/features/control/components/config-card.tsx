@@ -32,7 +32,7 @@ export function ConfigCard({ title, description, children, features }: ConfigCar
                 <span className="font-medium">{feature.title}</span>
                 {feature.pro && (
                   <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-500">
-                    Pro
+                    {t("pro")}
                   </span>
                 )}
               </div>
@@ -45,7 +45,7 @@ export function ConfigCard({ title, description, children, features }: ConfigCar
               <Switch checked={feature.enabled} />
               <button className="text-muted-foreground hover:text-foreground">
                 <Settings className="h-4 w-4" />
-                <span className="sr-only">Settings</span>
+                <span className="sr-only">{t("settings")}</span>
               </button>
             </div>
           </div>
