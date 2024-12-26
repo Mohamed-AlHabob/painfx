@@ -10,7 +10,7 @@ import { useLogoutMutation, useRetrieveUserQuery } from "@/redux/services/auth/a
 import { useRouter } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/mode-toggle";
-import { LanguageSwitcher } from "./Switch-language";
+import  LanguageSwitcher  from "./Switch-language";
 import { cn } from "@/lib/utils";
 import PaymentButton from "../payment";
 import { logout } from "@/redux/services/auth/authSlice";
