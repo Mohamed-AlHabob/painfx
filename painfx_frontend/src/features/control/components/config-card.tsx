@@ -2,7 +2,7 @@ import { Settings } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { useTranslation } from "react-i18next";
+
 interface ConfigCardProps {
   title: string
   description: string
@@ -17,7 +17,6 @@ interface ConfigCardProps {
 }
 
 export function ConfigCard({ title, description, children, features }: ConfigCardProps) {
-  const { t } = useTranslation();
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -46,7 +45,7 @@ export function ConfigCard({ title, description, children, features }: ConfigCar
               <Switch checked={feature.enabled} />
               <button className="text-muted-foreground hover:text-foreground">
                 <Settings className="h-4 w-4" />
-                <span className="sr-only">{t("settings")}</span>
+                <span className="sr-only">settings</span>
               </button>
             </div>
           </div>
