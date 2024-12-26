@@ -20,15 +20,11 @@ try:
 except OSError as e:
     raise ImproperlyConfigured(f"Unable to create log directory: {e}")
 
-DEBUG = env("DJANGO_DEBUG", default=True)
-DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=True)
-
-print("DEBUG:", DEBUG)
-print("DEVELOPMENTMODE:", DEVELOPMENTMODE)
+DEBUG = env("DJANGO_DEBUG", default=False)
+DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
 
 # Secret key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
-print("SECRET_KEY : ", SECRET_KEY)
 
 # Allowed hosts
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
