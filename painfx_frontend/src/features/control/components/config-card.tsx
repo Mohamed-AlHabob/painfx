@@ -32,7 +32,7 @@ export function ConfigCard({ title, description, children, features }: ConfigCar
                 <span className="font-medium">{feature.title}</span>
                 {feature.pro && (
                   <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-500">
-                    {t("pro")}
+                    pro
                   </span>
                 )}
               </div>
