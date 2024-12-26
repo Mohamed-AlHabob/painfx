@@ -34,9 +34,9 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        if not hasattr(user, 'patient_profile'):
+        if not hasattr(user, 'patient'):
             raise serializers.ValidationError("Only patients can create reservations.")
-        validated_data['patient'] = user.patient_profile
+        validated_data['patient'] = user.patient
         return super().create(validated_data)
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -73,9 +73,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        if not hasattr(user, 'doctor_profile'):
+        if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
-        validated_data['doctor'] = user.doctor_profile
+        validated_data['doctor'] = user.doctor
         return super().create(validated_data)
 
 class CommentSerializer(serializers.ModelSerializer):

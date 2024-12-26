@@ -100,7 +100,7 @@ class UserProfile(BaseModel):
 
 
 class Patient(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient_profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient')
     medical_history = models.TextField(blank=True)
 
     class Meta:
@@ -123,7 +123,7 @@ class Specialization(BaseModel):
         return self.name
     
 class Doctor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor_profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor')
     specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True)
     license_number = models.CharField(max_length=255, blank=True)
     license_expiry_date = models.DateField(null=True, blank=True)

@@ -135,7 +135,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if not hasattr(user, 'patient_profile'):
+        if not hasattr(user, 'patient'):
             raise serializers.ValidationError("Only patients can create reservations.")
         serializer.save(patient=user.patient)
 
@@ -208,16 +208,9 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if not hasattr(user, 'doctor_profile'):
+        if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
         serializer.save(doctor=user.doctor)
-    
-# Video ViewSet
-# class VideoViewSet(viewsets.ModelViewSet):
-#     queryset = Video.objects.all()
-#     serializer_class = VideoSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#     pagination_class = GlPagination
 
 
 # Comment ViewSet
