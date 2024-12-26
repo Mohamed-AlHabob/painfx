@@ -34,7 +34,7 @@ print("SECRET_KEY : ", SECRET_KEY)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
     "painfx.in",
     "www.painfx.in",
-    "painfx.onrender.com",
+    "painfx-backend.onrender.com",
     "127.0.0.1",
     "localhost",
     "api.painfx.in"
@@ -44,7 +44,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://painfx.in",
     "https://www.painfx.in",
-    "https://painfx.onrender.com",
+    "https://painfx-backend.onrender.com",
     "https://api.painfx.in"
 ])
 CORS_ALLOW_CREDENTIALS = True
@@ -78,8 +78,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # Enables CORS headers
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Proper Whitenoise middleware
+    "corsheaders.middleware.CorsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -280,14 +280,14 @@ if not DEVELOPMENTMODE:
     # Additional security settings
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    CSRF_TRUSTED_ORIGINS = ['https://painfx.in', 'https://www.painfx.in', 'https://api.painfx.in']
+    CSRF_TRUSTED_ORIGINS = ['https://painfx.in', 'https://www.painfx.in', 'https://painfx-backend.onrender.com']
     
     # Content Security Policy (CSP)
     CSP_DEFAULT_SRC = ("'self'",)
     CSP_SCRIPT_SRC = ("'self'", 'https://trustedscripts.example.com')
     CSP_STYLE_SRC = ("'self'", 'https://trustedstyles.example.com')
     CSP_IMG_SRC = ("'self'", 'data:')
-    CSP_CONNECT_SRC = ("'self'", 'https://api.painfx.in')
+    CSP_CONNECT_SRC = ("'self'", 'https://painfx-backend.onrender.com')
     CSP_FONT_SRC = ("'self'",)
     CSP_OBJECT_SRC = ("'none'",)
     CSP_BASE_URI = ("'self'",)
