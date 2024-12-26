@@ -30,9 +30,8 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = ['id', 'clinic', 'status', 'reason_for_cancellation', 'reservation_date',
-                  'reservation_time', 'patient', 'doctor']
-        # read_only_fields = ['id', 'patient']
+        fields = ['id', 'clinic', 'status', 'reason_for_cancellation', 'reservation_date','reservation_time', 'patient', 'doctor']
+        read_only_fields = ['id', 'patient']
 
     def create(self, validated_data):
         user = self.context['request'].user

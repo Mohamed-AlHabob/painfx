@@ -63,6 +63,12 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip() or self.email
+    
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
 
     def __str__(self):
         return self.get_full_name()
