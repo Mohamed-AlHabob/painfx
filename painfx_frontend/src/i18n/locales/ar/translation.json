@@ -17,7 +17,7 @@
   "ban_patient": "حظر المريض",
   "delete_reservations": "حذف الحجوزات",
   "joined_in": "انضم في",
- "edit_post": "تعديل المنشور",
+  "edit_post": "تعديل المنشور",
   "update_post_details": "قم بتحديث تفاصيل المنشور أدناه.",
   "title": "العنوان",
   "content": "المحتوى",
@@ -31,14 +31,12 @@
   "change_reservation_status": "تغيير حالة الحجز",
   "confirm_change_status": "هل أنت متأكد أنك تريد تغيير حالة",
   "to_status": "إلى",
-  "cancel": "إلغاء",
-  "confirm": "تأكيد",
+  "cancel_action": "إلغاء",
+  "confirm_action": "تأكيد",
   "updating": "جاري التحديث...",
   "delete_post": "حذف المنشور",
   "confirm_delete_post": "هل أنت متأكد أنك تريد حذف",
   "this_action_cannot_be_undone": "لا يمكن التراجع عن هذا الإجراء.",
-  "cancel": "إلغاء",
-  "confirm": "تأكيد",
   "deleting": "جارٍ الحذف...",
   "create_reservation": "إنشاء حجز",
   "fill_details": "املأ التفاصيل لإنشاء حجز جديد.",
@@ -49,7 +47,5 @@
   "doctor_id": "معرّف الطبيب",
   "clinic_id": "معرّف العيادة",
   "create_reservation_button": "إنشاء الحجز",
-  "creating": "جارٍ الإنشاء...",
-  "cancel": "إلغاء",
-  }
-  
+  "creating": "جارٍ الإنشاء..."
+}
