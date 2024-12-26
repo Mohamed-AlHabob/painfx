@@ -7,7 +7,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count
-
+from django_filters.rest_framework import DjangoFilterBackend
 # Local imports
 from apps.authentication.models import Doctor, Patient
 from apps.authentication.serializers import (
@@ -103,19 +103,10 @@ class ClinicViewSet(viewsets.ModelViewSet):
     serializer_class = ClinicSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = GlPagination
-
-    # def get_queryset(self):
-    #     user = self.request.user
-        
-    #     # Check if the user has a profile and valid latitude/longitude
-    #     if hasattr(user, 'profile') and user.profile.latitude and user.profile.longitude:
-    #         user_location = Point(user.profile.longitude, user.profile.latitude, srid=4326)
-    #         return Clinic.objects.filter(active=True).annotate(
-    #             distance=Distance('location', user_location)
-    #         ).order_by('distance')
-    #     else:
-    #         # If no user location, just return active clinics ordered by name
-    #         return Clinic.objects.filter(active=True).order_by('name')
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['owner']
+    search_fields = ['name', 'address']
+    ordering_fields = ['name', 'created_at']
 
     def perform_create(self, serializer):
         # Ensure a user can own only one clinic

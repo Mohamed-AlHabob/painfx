@@ -35,7 +35,7 @@ export default function UserCard({
         <HoverCardTrigger asChild>
           <Link href={`/X/user/${id}`} aria-label={`View profile of ${name}`} className="cursor-pointer">
             <Avatar className="h-10 w-10">
-              <AvatarImage alt={name} src={avatar} />
+              <AvatarImage alt={name} src={avatar || ""} />
               <AvatarFallback>{name[0].toUpperCase()}</AvatarFallback>
             </Avatar>
           </Link>

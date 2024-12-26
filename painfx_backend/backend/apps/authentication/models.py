@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.core.validators import EmailValidator
 from django.core.validators import RegexValidator
-from apps.booking_app.models import BaseModel
+from apps.core.general import BaseModel
 
 # User Management and Authentication
 class UserManager(BaseUserManager):
@@ -92,18 +92,8 @@ class UserProfile(BaseModel):
     def __str__(self):
         return f"Profile of {self.user.get_full_name()}"
 
-class Specialization(BaseModel):
-    name = models.CharField(max_length=255, unique=True)
 
-    class Meta:
-        indexes = [
-            models.Index(fields=['name']),
-        ]
-
-    def __str__(self):
-        return self.name
-
-class Patient(BaseModel):
+class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient_profile')
     medical_history = models.TextField(blank=True)
 
@@ -115,7 +105,18 @@ class Patient(BaseModel):
     def __str__(self):
         return f"Patient: {self.user.get_full_name()}"
 
-class Doctor(BaseModel):
+class Specialization(BaseModel):
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+        ]
+
+    def __str__(self):
+        return self.name
+    
+class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor_profile')
     specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True)
     license_number = models.CharField(max_length=255, blank=True)

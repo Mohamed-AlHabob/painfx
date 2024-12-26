@@ -5,7 +5,7 @@ from apps.booking_app.models import (
     Payment, Notification, EventSchedule, AdvertisingCampaign,
     UsersAudit, Tag
 )
-from .user_serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
+from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:

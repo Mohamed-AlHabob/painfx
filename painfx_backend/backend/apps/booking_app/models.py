@@ -1,27 +1,10 @@
-import uuid
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.authentication.models import Specialization, User, Doctor, Patient
-
-# Abstract Base Model
-class BaseModel(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    is_deleted = models.BooleanField(default=False, db_index=True)
-
-    class Meta:
-        abstract = True
-
-    def soft_delete(self):
-        self.is_deleted = True
-        self.save()
-
-    def restore(self):
-        self.is_deleted = False
-        self.save()
-
+from django.db.models import Q
+from apps.core.general import BaseModel
 # Enum Choices
 class ReservationStatus(models.TextChoices):
     PENDING = 'pending', 'Pending'

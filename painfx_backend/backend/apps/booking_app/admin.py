@@ -6,10 +6,14 @@ from apps.booking_app.models import (
     Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
     Payment, Notification, EventSchedule, AdvertisingCampaign,
-    UsersAudit
+    UsersAudit, ClinicSettings, BannedPatient, Branch, BranchDoctor
 )
 admin.site.register(Clinic)
 admin.site.register(ClinicDoctor)
+admin.site.register(ClinicSettings)
+admin.site.register(BannedPatient)
+admin.site.register(Branch)
+admin.site.register(BranchDoctor)
 admin.site.register(Reservation)
 admin.site.register(Review) 
 admin.site.register(Post)
