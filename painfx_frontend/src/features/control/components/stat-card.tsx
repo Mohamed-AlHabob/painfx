@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton"
+
 interface StatCardProps {
     title: string
     value: number
@@ -14,4 +16,18 @@ interface StatCardProps {
     )
   }
   
-  
+StatCard.Skeleton = function StatCardSkeleton() {
+  return (
+    <div className="space-y-1">
+      <h3 className="text-sm font-medium text-muted-foreground">
+        <Skeleton className="h-4 w-24" />
+      </h3>
+      <p className="text-3xl font-bold">
+        <Skeleton className="h-6 w-16" />
+      </p>
+      <p className="text-xs text-muted-foreground">
+        <Skeleton className="h-3 w-20" />
+      </p>
+    </div>
+  )
+}

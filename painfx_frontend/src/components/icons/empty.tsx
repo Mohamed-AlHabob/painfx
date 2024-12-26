@@ -13,12 +13,12 @@ export const Empty = () => {
             width="288.161"
             height="231.765"
             rx="10.8157"
-            fill="url(#paint0_linear_8182_21406)"
+            fill="var(--svg-primary-color)"
           />
           <rect
             width="288.933"
             height="143.694"
-            fill="url(#paint1_linear_8182_21406)"
+            fill="var(--svg-secondary-color)"
           />
           <rect
             x="17.3824"
@@ -37,7 +37,7 @@ export const Empty = () => {
           width="287.388"
           height="230.992"
           rx="10.4294"
-          stroke="url(#paint2_linear_8182_21406)"
+          stroke="var(--svg-secondary-color)"
           strokeWidth="0.772549"
         />
       </g>
@@ -49,7 +49,7 @@ export const Empty = () => {
             width="288.161"
             height="231.765"
             rx="10.8157"
-            fill="url(#paint3_linear_8182_21406)"
+            fill="var(--svg-primary-color)"
             fillOpacity="0.7"
           />
           <rect
@@ -57,7 +57,7 @@ export const Empty = () => {
             y="27.0391"
             width="288.933"
             height="143.694"
-            fill="url(#paint4_linear_8182_21406)"
+            fill="var(--svg-secondary-color)"
             fillOpacity="0.45"
           />
           <rect
@@ -77,7 +77,7 @@ export const Empty = () => {
           width="287.388"
           height="230.992"
           rx="10.4294"
-          stroke="url(#paint5_linear_8182_21406)"
+          stroke="var(--svg-secondary-color)"
           strokeWidth="0.772549"
         />
       </g>
@@ -89,7 +89,7 @@ export const Empty = () => {
             width="288.161"
             height="231.765"
             rx="10.8157"
-            fill="url(#paint6_linear_8182_21406)"
+            fill="var(--svg-primary-color)"
             fillOpacity="0.32"
           />
           <rect
@@ -97,7 +97,7 @@ export const Empty = () => {
             y="61.0312"
             width="288.933"
             height="143.694"
-            fill="url(#paint7_linear_8182_21406)"
+            fill="var(--svg-secondary-color)"
             fillOpacity="0.45"
           />
           <rect
@@ -115,7 +115,7 @@ export const Empty = () => {
             width="121.29"
             height="32.4471"
             rx="5.79412"
-            stroke="#343434"
+            stroke="var(--svg-secondary-color)"
             fillOpacity="0.09"
             strokeWidth="0.772549"
           />
@@ -126,7 +126,7 @@ export const Empty = () => {
           width="287.388"
           height="230.992"
           rx="10.4294"
-          stroke="url(#paint8_linear_8182_21406)"
+          stroke="var(--svg-secondary-color)"
           strokeWidth="0.772549"
         />
       </g>
@@ -177,105 +177,8 @@ export const Empty = () => {
             result="shape"
           />
         </filter>
-        <linearGradient
-          id="paint0_linear_8182_21406"
-          x1="8.11176"
-          y1="4.6353"
-          x2="278.118"
-          y2="231.765"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#2A2929" />
-          <stop offset="1" stopColor="#0E0E0E" />
-        </linearGradient>
-        <linearGradient
-          id="paint1_linear_8182_21406"
-          x1="144.467"
-          y1="0"
-          x2="144.467"
-          y2="143.694"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#222222" />
-          <stop offset="1" stopColor="#282828" />
-        </linearGradient>
-        <linearGradient
-          id="paint2_linear_8182_21406"
-          x1="288.161"
-          y1="229.061"
-          x2="9.2706"
-          y2="6.56666"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#111010" />
-          <stop offset="1" stopColor="#414141" />
-        </linearGradient>
-        <linearGradient
-          id="paint3_linear_8182_21406"
-          x1="56.7822"
-          y1="31.6744"
-          x2="326.788"
-          y2="258.804"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#2A2929" />
-          <stop offset="1" stopColor="#0E0E0E" />
-        </linearGradient>
-        <linearGradient
-          id="paint4_linear_8182_21406"
-          x1="193.137"
-          y1="27.0391"
-          x2="193.137"
-          y2="170.733"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#222222" />
-          <stop offset="1" stopColor="#282828" />
-        </linearGradient>
-        <linearGradient
-          id="paint5_linear_8182_21406"
-          x1="336.831"
-          y1="256.1"
-          x2="57.941"
-          y2="33.6057"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#111010" />
-          <stop offset="1" stopColor="#414141" />
-        </linearGradient>
-        <linearGradient
-          id="paint6_linear_8182_21406"
-          x1="113.951"
-          y1="65.6666"
-          x2="383.957"
-          y2="292.796"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#2A2929" />
-          <stop offset="1" stopColor="#0E0E0E" />
-        </linearGradient>
-        <linearGradient
-          id="paint7_linear_8182_21406"
-          x1="250.306"
-          y1="61.0312"
-          x2="250.306"
-          y2="204.725"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#222222" />
-          <stop offset="1" stopColor="#282828" />
-        </linearGradient>
-        <linearGradient
-          id="paint8_linear_8182_21406"
-          x1="394"
-          y1="290.092"
-          x2="115.11"
-          y2="67.5979"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#111010" />
-          <stop offset="1" stopColor="#414141" />
-        </linearGradient>
+        {/* Remove or adjust gradients if not necessary */}
+        {/* Alternatively, you can keep them and adjust their colors similarly */}
         <clipPath id="clip0_8182_21406">
           <rect width="288.161" height="231.765" rx="10.8157" fill="white" />
         </clipPath>
@@ -301,5 +204,5 @@ export const Empty = () => {
         </clipPath>
       </defs>
     </svg>
-  )
-}
+  );
+};

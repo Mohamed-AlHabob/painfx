@@ -5,15 +5,15 @@ import { SimpleModal } from "@/components/global/simple-modal"
 import { useRetrieveUserQuery } from "@/redux/services/auth/authApiSlice"
 import { Spinner } from "@/components/spinner"
 import PostContent from "../post-content"
+import { Skeleton } from "@/components/ui/skeleton"
 
-const CreateNewPost = () => {
-  const { data: user, isLoading } = useRetrieveUserQuery();
+export const CreateNewPost = () => {
+  const { data: user, isLoading,isFetching } = useRetrieveUserQuery();
   
-  if (isLoading) return <div className="flex justify-center items-center">
-    <Spinner />
-  </div> 
-
-  
+  if (isLoading || isFetching) 
+  return (
+     <CreateNewPost.Skeleton />
+)
 
   return (
     <>
@@ -37,7 +37,7 @@ const CreateNewPost = () => {
       >
         <div className="flex gap-x-3">
           <Avatar className="cursor-pointer">
-            <AvatarImage src={user?.profile.avatar} alt="user" />
+            <AvatarImage src={user?.profile?.avatar || ""} alt="user" />
             <AvatarFallback>{user?.first_name?.charAt(0) || "S"}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
@@ -56,9 +56,20 @@ const CreateNewPost = () => {
       <span></span>
           // {/* <ReelCarousel /> */}
       }
-
     </>
   )
 }
 
-export default CreateNewPost
+
+CreateNewPost.Skeleton = function PostInfoSkeleton({ level }: { level?: number }) {
+  return (
+    <div className=" w-full pt-4 dark:border-themeGray cursor-pointer first-letter:rounded-2xl overflow-hidden">
+    <div className="flex items-center mb-3 px-4">
+      <Skeleton className="w-12 h-12 mr-4 rounded-full dark:bg-[#202020]" />
+      <div>
+        <Skeleton className="h-5 w-24 rounded-md dark:bg-[#202020] mb-1" />
+      </div>
+    </div>
+  </div>
+  )
+}

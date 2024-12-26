@@ -1,44 +1,30 @@
 'use client'
 
+import { useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { MenuIcon } from 'lucide-react'
 import { useAppSelector } from "@/redux/hooks"
 
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/spinner"
 import { ModeToggle } from "@/components/mode-toggle"
-import { Logout } from "@/components/icons"
 import GlassSheet from "@/components/global/glass-sheet"
 import { Menu } from "./menu"
+import { Logout } from "@/components/icons"
 
 export function LandingPageNavbar() {
   const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth)
+  const router = useRouter()
 
-  const renderAuthLinks = () => {
-    if (isLoading) return <Spinner size="lg" />
-    return <Link href="/X ">Dashboard</Link>
-  }
-
-  const renderGuestLinks = () => {
-    if (isLoading) {
-      return (
-        <div className="flex items-center mx-9">
-          <Spinner />
-        </div>
-      )
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push('/X')
     }
-    return (
-      <Button variant="outline" className="rounded-2xl flex items-center">
-        <Logout />
-        <span>Login</span>
-      </Button>
-    )
-  }
+  }, [isAuthenticated, isLoading, router])
 
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-sm">
       <div className="container mx-auto flex items-center justify-between px-4">
-        {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <span className="font-bold text-2xl">PainFX.</span>
         </Link>
@@ -46,9 +32,14 @@ export function LandingPageNavbar() {
           <Menu orientation="desktop" isAuthenticated={isAuthenticated} />
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/sign-in">
-            {isAuthenticated ? renderAuthLinks() : renderGuestLinks()}
-          </Link>
+          {!isAuthenticated && (
+            <Link href="/sign-in">
+              <Button variant="outline" className="rounded-2xl flex items-center">
+                <Logout />
+                <span>Login</span>
+             </Button>
+            </Link>
+          )}
           
           <div className="hidden lg:flex">
             <ModeToggle />
@@ -72,3 +63,4 @@ export function LandingPageNavbar() {
     </nav>
   )
 }
+

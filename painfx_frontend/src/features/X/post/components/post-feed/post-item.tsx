@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import Interactions from './interactions';
+import { Interactions } from './interactions';
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
@@ -13,12 +13,13 @@ import { Edit, Play, Trash } from 'lucide-react';
 import { ActionTooltip } from '@/components/global/action-tooltip';
 import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PostItemProps {
   post: Post;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post }) => {
+export const PostItem = ({ post }:PostItemProps) => {
   const pathname = usePathname()
   const { onOpen } = useModal();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -41,7 +42,11 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           name={`${post.doctor?.user.first_name} ${post.doctor?.user.last_name}`} 
           avatar={post.doctor?.user.profile?.avatar || ""} 
           id={post.doctor?.user?.id || ""} 
-          role={post.doctor?.specialization?.name || ""} 
+          role={post.doctor?.specialization?.name || ""}
+          email={post.doctor?.user.email}
+          phone_number={post.doctor?.user?.profile?.phone_number || ""}
+          address={post.doctor?.user?.profile?.address || ""}
+          joined={post.doctor?.user?.date_joined || ""}
         />
         {post.doctor?.user?.id == user?.id && (
         <div className='flex items-center gap-x-2'>
@@ -60,7 +65,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
           </div>
           )}
         </div>
-        <Link href={`${pathname}/post/${post.id}`} className="w-full">
+        <Link href={`/X/post/${post.id}`} className="w-full">
           <div className="flex flex-col gap-y-3">
             <h2 className="text-2xl">{post.title}</h2>
             {post.content}
@@ -112,15 +117,29 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
     <Separator orientation="horizontal" className="mt-3" />
   </div>
 ) : null}
-
       <Interactions 
         postId={post.id || ""} 
         initialLikeCount={post.likes_count || 0} 
-        comments_count={post.comments_count || 0} 
+        commentsCount={post.comments_count || 0} 
       />
     </Card>
   );
 };
 
-export default PostItem;
-
+PostItem.Skeleton = function ItemSkeleton({ level }: { level?: number }) {
+  return (
+    <div className=" w-full pt-4 dark:bg-[#1C1C1E] rounded-lg border dark:border-[#27272A] overflow-hidden">
+    <div className="flex items-center mb-3 px-4">
+      <Skeleton className="w-12 h-12 mr-4 rounded-full dark:bg-[#202020]" />
+      <div>
+        <Skeleton className="h-5 w-24 rounded-md dark:bg-[#202020] mb-1" />
+        <Skeleton className="h-4 w-40 rounded-md dark:bg-[#202020]" />
+      </div>
+    </div>
+    <Skeleton className="h-[280px] w-full dark:bg-[#202020]" />
+    <div className="flex items-center gap-3 border-t dark:border-[#27272A] px-6 py-2">
+      <Interactions.Skeleton />
+    </div>
+  </div>
+  )
+}

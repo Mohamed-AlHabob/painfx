@@ -110,7 +110,7 @@ export default function ClinicInfoPage({ clinicId }: ClinicInfoPageProps) {
           <div className="rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <Trophy className="h-5 w-5 text-yellow-400" />
-              <span className="font-medium">Competitions Grandmaster</span>
+              <span className="font-medium">Reservations</span>
             </div>
             <div className="flex gap-2 mb-4">
               <div className="flex items-center gap-1">
@@ -124,7 +124,7 @@ export default function ClinicInfoPage({ clinicId }: ClinicInfoPageProps) {
           <div className="rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <Database className="h-5 w-5 text-blue-400" />
-              <span className="font-medium">Datasets Contributor</span>
+              <span className="font-medium">Ratings Contributor</span>
             </div>
             <div className="flex gap-2 mb-4">
               <div className="flex items-center gap-1">
@@ -138,7 +138,7 @@ export default function ClinicInfoPage({ clinicId }: ClinicInfoPageProps) {
           <div className="rounded-lg p-4">
             <div className="flex items-center gap-2 mb-4">
               <BookOpen className="h-5 w-5 text-blue-400" />
-              <span className="font-medium">Notebooks Contributor</span>
+              <span className="font-medium">Reviews</span>
             </div>
           </div>
 

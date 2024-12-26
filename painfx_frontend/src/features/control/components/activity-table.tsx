@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Skeleton } from '@/components/ui/skeleton'
 
 const data = [
   {
@@ -89,3 +90,41 @@ export function ActivityTable() {
   )
 }
 
+ActivityTable.Skeleton = function ActivityTableSkeleton() {
+  return (
+    <div className="rounded-md border">
+      <table className="w-full">
+        <thead>
+          <tr>
+            {["Email", "Status", "Last Seen", "Session Duration", "Actions"].map((header) => (
+              <th key={header} className="px-4 py-2">
+                <Skeleton className="h-4 w-24" />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <tr key={i} className="border-t">
+              <td className="px-4 py-2">
+                <Skeleton className="h-4 w-48" />
+              </td>
+              <td className="px-4 py-2">
+                <Skeleton className="h-4 w-24" />
+              </td>
+              <td className="px-4 py-2">
+                <Skeleton className="h-4 w-20" />
+              </td>
+              <td className="px-4 py-2">
+                <Skeleton className="h-4 w-16" />
+              </td>
+              <td className="px-4 py-2">
+                <Skeleton className="h-4 w-8" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}

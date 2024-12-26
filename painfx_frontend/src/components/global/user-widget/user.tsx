@@ -13,16 +13,19 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { SwitchLanguage } from "./Switch-language";
 import { cn } from "@/lib/utils";
 import PaymentButton from "../payment";
-import { Spinner } from "@/components/spinner";
 import { logout } from "@/redux/services/auth/authSlice";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const UserDropDown = () => {
-  const { data: user, isLoading,refetch } = useRetrieveUserQuery();
+  const { data: user, isLoading,isFetching } = useRetrieveUserQuery();
   const router = useRouter();
   const [Blogout] = useLogoutMutation();
+  console.log("user : ", user)
 
-  if (isLoading) {
-    return <Spinner  />;
+  if (isLoading || isFetching) {
+    return (
+      <UserDropDown.Skeleton />
+    )
   }
 
   const handleLogout = () => {
@@ -31,7 +34,6 @@ export const UserDropDown = () => {
       .then(() => {
         logout();
         router.push("/");
-        refetch();
       })
       .catch((error) => {
         console.error("Logout failed:", error);
@@ -101,3 +103,12 @@ export const UserDropDown = () => {
     </DropDown>
   );
 };
+
+
+UserDropDown.Skeleton = function UserDropDownSkeleton() {
+  return (
+    <div className="flex items-center justify-center">
+      <Skeleton className={cn("h-10 w-10 rounded-full animate-pulse")} />
+    </div>
+  )
+}

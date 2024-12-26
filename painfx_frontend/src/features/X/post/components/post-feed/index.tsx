@@ -2,17 +2,22 @@
 import { Spinner } from '@/components/spinner';
 import { useGetPostsQuery } from '@/redux/services/booking/postApiSlice';
 import React from 'react';
-import PostItem from './post-item';
+import {PostItem} from './post-item';
 import { NoResult } from '@/components/global/no-results';
 
 const PostsList: React.FC = () => {
-  const { data: posts, error, isLoading } = useGetPostsQuery({ page: 1 });
+  const { data: posts, error, isLoading,isFetching } = useGetPostsQuery({ page: 1 });
 
-console.log(posts)
-  if (isLoading) return <Spinner />;
+  console.log("posts : ", posts)
 
+
+  if (isFetching || isLoading) {
+    return (
+        <PostItem.Skeleton />
+    )
+  }
   
-  if (!posts || error || posts.count === 0) {
+  if (!posts || error) {
     return <NoResult message={''} backTo={''}/>;
   }
 

@@ -3,12 +3,12 @@ import { ConfigCard } from '@/features/control/components/config-card'
 
 export default function ClinicConfigPage() {
   return (
-    <main className="flex-1 p-6 space-y-6">
+    <main className="flex-1 p-4 md:p-6 space-y-6 overflow-auto">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight">
           Clinic Information
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Configure your clinic's basic information and operational settings
         </p>
       </div>
@@ -28,7 +28,7 @@ export default function ClinicConfigPage() {
               description: "Manage phone numbers, email addresses, and physical address",
               enabled: true,
               options: (
-                <div className="flex gap-4 mt-2">
+                <div className="flex flex-wrap gap-2 mt-2">
                   <Badge variant="outline">Phone</Badge>
                   <Badge variant="outline">Email</Badge>
                   <Badge variant="outline">Address</Badge>
@@ -51,7 +51,6 @@ export default function ClinicConfigPage() {
               title: "Special Hours",
               description: "Configure hours for holidays or special events",
               enabled: false,
-              premium: true,
             },
           ]}
         />
@@ -81,19 +80,16 @@ export default function ClinicConfigPage() {
               title: "Multi-location Support",
               description: "Manage multiple clinic locations under one account",
               enabled: false,
-              premium: true,
             },
             {
               title: "Equipment Tracking",
               description: "Keep track of medical equipment, maintenance schedules, and procurement",
               enabled: false,
-              premium: true,
             },
             {
               title: "Partnership Management",
               description: "Manage relationships with other healthcare providers and services",
               enabled: false,
-              premium: true,
             },
           ]}
         />

@@ -12,14 +12,14 @@ export default function RequireAuth({ children }: Props) {
 	const { isLoading, isAuthenticated } = useAppSelector(state => state.auth);
 
 	if (isLoading) {
-		return (
-			<div className="flex justify-center items-center min-h-screen">
-				<Spinner />
-			</div>
-		);
+	return (
+	<div className="flex justify-center items-center min-h-screen">
+		<Spinner />
+	</div>
+	);
 	}
 
-	if (!isAuthenticated) {
+	if (!isLoading && !isAuthenticated) {
 		redirect('/sign-in');
 	}
 

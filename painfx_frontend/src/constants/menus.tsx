@@ -39,7 +39,7 @@ export const AUTH_LANDING_PAGE_MENU: MenuProps[] = [
   },
   {
     id: "3",
-    label: "Health centers",
+    label: "centers",
     icon: <Explore />,
     path: "/X/health-centers",
   },
@@ -59,7 +59,7 @@ export const AUTH_LANDING_PAGE_MENU: MenuProps[] = [
 export const LANDING_PAGE_MENU: MenuProps[] = [
   {
     id: "1",
-    label: "Health centers",
+    label: "centers",
     icon: <Home />,
     path: "/X",
     section: true,

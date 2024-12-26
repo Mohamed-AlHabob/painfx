@@ -1,9 +1,9 @@
-import GroupSideWidget from "@/components/global/group-side-widget"
 import { LeaderBoardCard } from "@/features/X/components/leaderboard"
 import MobileNav from "@/features/X/components/mobile-nav"
 import { Navbar } from "@/features/X/components/navbar"
 import Menu from "@/features/X/components/group-navbar";
 import RequireAuth from "@/lib/RequireAuth";
+import { CampaignSideWidget } from "@/components/global/campaign-side-widget";
 type Props = {
   children: React.ReactNode
 }
@@ -19,17 +19,19 @@ const XLayout = async ({ children }: Props) => {
              <LeaderBoardCard />
            </div>
            <div className="lg:col-span-2 flex flex-col gap-y-5 py-5">
-           <Menu orientation="desktop" />
+           <div className=" hidden md:inline">
+             <Menu orientation="desktop" />
+           </div>
           {children}
           </div>
           <div className="col-span-1 hidden lg:inline relative py-5">
-             <GroupSideWidget  />
+             <CampaignSideWidget  />
           </div>
           </div>
           <MobileNav />
         </div>
       </div>
-      </RequireAuth>
+       </RequireAuth>
   )
 }
 

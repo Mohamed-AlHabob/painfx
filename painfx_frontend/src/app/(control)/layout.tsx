@@ -6,14 +6,15 @@ import { ReactNode } from 'react'
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <RequireAuthPowers>
-    <div className="min-h-screen">
-      <NavBar />
-      <div className="sticky top-0 z-30 h-fit">
-      <SubNav />
+      <div className="min-h-screen font-[family-name:var(--font-geist-sans)] overflow-hidden flex flex-col"> 
+        <NavBar />
+        <div className="sticky top-0 z-30">
+          <SubNav />
+        </div>
+        <div className="flex-1 flex flex-col md:flex-row">
+          {children}
+        </div>
       </div>
-      {children}
-    </div>
     </RequireAuthPowers>
   )
 }
-

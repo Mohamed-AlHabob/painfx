@@ -1,9 +1,12 @@
 "use client"
 
-import { Building, Users, Calendar, FileText, Settings, CreditCard, Activity, Stethoscope, Briefcase, Shield, Mail, Bell } from 'lucide-react'
+import { Building, Users, Calendar, FileText, Settings, CreditCard, Activity, Stethoscope, Briefcase, Shield, Mail, Bell, Menu } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 const categories = [
   {
@@ -47,11 +50,13 @@ const categories = [
 ]
 
 export function ConfigSidebar() {
-  return (
-    <div className="w-64 border-r min-h-[calc(100vh-104px)] p-6 space-y-6">
+  const [isOpen, setIsOpen] = useState(false)
+
+  const SidebarContent = () => (
+    <div className="py-4 space-y-6">
       {categories.map((category) => (
         <div key={category.title} className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">
+          <h3 className="px-4 text-sm font-medium text-muted-foreground">
             {category.title}
           </h3>
           <div className="space-y-1">
@@ -60,9 +65,10 @@ export function ConfigSidebar() {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                  "flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
                   item.active && "bg-accent text-accent-foreground"
                 )}
+                onClick={() => setIsOpen(false)}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
@@ -72,6 +78,24 @@ export function ConfigSidebar() {
         </div>
       ))}
     </div>
+  )
+
+  return (
+    <>
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden fixed top-4 left-4 z-50">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 p-0">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+      <div className="hidden md:block w-64 border-r min-h-screen">
+        <SidebarContent />
+      </div>
+    </>
   )
 }
 

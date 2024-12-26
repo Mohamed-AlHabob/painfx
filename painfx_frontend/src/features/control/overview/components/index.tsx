@@ -1,23 +1,59 @@
 'use client';
-import { useGetClinicsQuery } from "@/redux/services/booking/ClinicApiSlice";
+import { useGetClinicsByOwnerIdQuery } from "@/redux/services/booking/ClinicApiSlice";
 import { FeatureCard } from "../../components/feature-card";
 import { Box, Fingerprint, LayoutTemplate } from "lucide-react";
 import { StatCard } from "../../components/stat-card";
 import { ActivityList } from "../../components/activity-list";
+import { useRetrieveUserQuery } from "@/redux/services/auth/authApiSlice";
+import { Skeleton } from "@/components/ui/skeleton";
+import { NoResult } from "@/components/global/no-results";
 
 export default function OverviewPage() {
-  const { data, isLoading, isError } = useGetClinicsQuery({ page: 1 });
+  const { data: user, isLoading:isLoadingUser,isFetching } = useRetrieveUserQuery();
+  const { data, isLoading, isError } = useGetClinicsByOwnerIdQuery({ ownerId: user?.id ||"" , page: 1 });
 
   console.log("Clinic Data:", data);
   const clinic = data?.results?.[0] || null;
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (isLoading || isLoadingUser || isFetching) {
+    return (
+      <>
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2">
+          <Skeleton className="h-4 w-4 rounded-full" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">
+          <Skeleton className="h-6 w-3/4" />
+        </h1>
+        <p className="text-muted-foreground">
+          <Skeleton className="h-4 w-full" />
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <FeatureCard.Skeleton key={i} />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <StatCard.Skeleton key={i} />
+        ))}
+      </div>
+      <div className="grid gap-8 md:grid-cols-2">
+        <ActivityList.Skeleton />
+        <ActivityList.Skeleton />
+      </div>
+    </>
+    )
   }
 
   if (isError || !clinic) {
-    return <div>Error loading clinic data. Please try again later.</div>;
+    return <NoResult message="No doctors found" backTo={"/X"} />;
+   
   }
+
   const totalDoctors = clinic?.doctors?.length || 0;
   const ownerName = clinic?.owner?.first_name
     ? `${clinic.owner?.first_name} ${clinic.owner.last_name}`

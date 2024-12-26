@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Toaster } from "sonner";
 import "./globals.css";
 import Provider from '@/redux/provider';
@@ -12,24 +12,64 @@ import 'leaflet/dist/leaflet.css';
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'PainFX',
-  description: 'Verify the authenticity of the videos',
-  icons: {
-    icon: [
+  metadataBase: new URL('https://painfx.com'),
+  title: {
+    default: 'PainFX | Community for Medical Professionals',
+    template: '%s | PainFX'
+  },
+  description: 'PainFX is the premier community platform for Doctors, Hospitals, and Clinics specializing in pain management and treatment.',
+  keywords: ['PainFX', 'medical community', 'doctors', 'hospitals', 'clinics', 'pain management'],
+  authors: [{ name: 'Supernova Team' }],
+  creator: 'PainFX',
+  publisher: 'Supernova Inc.',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://painfx.com',
+    siteName: 'PainFX',
+    title: 'PainFX | Community for Medical Professionals',
+    description: 'Connect with leading pain management specialists, hospitals, and clinics on PainFX.',
+    images: [
       {
-        media: "(prefers-color-scheme: light)",
-        url: "/logo.png",
-        href: "/logo.png",
-      },
-      {
-        media: "(prefers-color-scheme: dark)",
-        url: "./logo.png",
-        href: "/logo.png",
+        url: '/assets/favicon-16x16.png',
+        width: 1200,
+        height: 630,
+        alt: 'PainFX - Medical Professional Community'
       }
     ]
-  }
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@PainFX',
+    creator: '@PainFX',
+    title: 'PainFX | Community for Medical Professionals',
+    description: 'Connect with leading pain management specialists, hospitals, and clinics on PainFX.',
+    images: ['https://painfx.com/twitter-image.jpg'],
+  },
+  icons: {
+    icon: [
+      { url: '/assets/favicon.ico', sizes: '32x32' },
+      { url: '/assets/logo.svg', type: 'image/svg+xml' },
+      { url: '/assets/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/assets/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/assets/safari-pinned-tab.svg',
+      },
+    ],
+  },
+  manifest: '/site.webmanifest',
+  applicationName: 'PainFX',
+  category: 'Medical',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 }
-
 
 export default function RootLayout({
   children,
@@ -37,25 +77,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-<html lang="en" suppressHydrationWarning>
-    <body className={`${jakarta.className} bg-slate-100 dark:bg-black scrollbar-thin scrollbar-webkit`}>
-    <Provider>
-    <ThemeProvider
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${jakarta.className} bg-slate-100 dark:bg-black scrollbar-thin scrollbar-webkit`}>
+        <Provider>
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
             storageKey="qstit-theme"
           >
-          <Setup />
-          <ModalProvider />
-          <Toaster position="bottom-center" />
-          <ReactQueryProvider>
-            {children}
-          </ReactQueryProvider>
-       </ThemeProvider>
-    </Provider>
-    </body>
-</html>
+            <Setup />
+            <ModalProvider />
+            <Toaster position="bottom-center" />
+            <ReactQueryProvider>
+              {children}
+            </ReactQueryProvider>
+          </ThemeProvider>
+        </Provider>
+      </body>
+    </html>
   );
 }
+

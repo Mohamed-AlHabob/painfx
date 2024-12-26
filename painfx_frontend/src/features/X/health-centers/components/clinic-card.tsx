@@ -98,8 +98,8 @@ export default function KaggleTimelineEnhanced() {
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="flex-1">
-                  <h1 className="text-xl font-bold">LLMs - You Can&apos;t Please Them All</h1>
-                  <p className="text-sm text-gray-500">Are LLM-judges robust to adversarial inputs?</p>
+                  <h1 className="text-xl font-bold">{clinic.name}</h1>
+                  <p className="text-sm text-gray-500">{clinic.address}</p>
                 </div>
               </div>
               <motion.div

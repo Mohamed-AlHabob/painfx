@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Play } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { Post } from '@/schemas/Social/post';
-import Interactions from '@/features/X/post/components/post-feed/interactions';
+import {Interactions} from '@/features/X/post/components/post-feed/interactions';
 
 
 interface ReelItemProps {
@@ -107,7 +107,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
                 </span>
               </div>
               <div className="flex space-x-2">
-                <Interactions postId={reel.id || ""} initialLikeCount={reel.likes_count || 0} comments_count={reel.comments_count || 0} />
+                <Interactions postId={reel.id || ""} initialLikeCount={reel.likes_count || 0} commentsCount={reel.comments_count || 0} />
               </div>
             </div>
             <p className="mt-2">{reel.title}</p>

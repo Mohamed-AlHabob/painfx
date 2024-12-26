@@ -43,6 +43,8 @@ html {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --svg-primary-color: #e0dbdb; /* Light theme primary */
+    --svg-secondary-color: #c7c7c7; /* Light theme secondary */
   }
 
   .dark {
@@ -78,6 +80,8 @@ html {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --svg-primary-color: #504f4f; /* Dark theme primary */
+    --svg-secondary-color: #201f1f; /* Dark theme secondary */
   }
 }
 

@@ -53,7 +53,22 @@ export const clinicApiSlice = apiSlice.injectEndpoints({
         method: 'DELETE',
       }),
     }),
-  }),  overrideExisting: false,
+  getClinicsByOwnerId: builder.query<ClinicListResponse, { ownerId: String; page?: number }>({
+    query: ({ ownerId, page = 1 }) => `clinics/?owner=${ownerId}&page=${page}`,
+    transformResponse: (response: ClinicListResponse) => {
+      clinicSchema.parse(response);
+      return response;
+    },
+    providesTags: (result, error, { ownerId }) =>
+      result
+        ? [
+            ...result.results.map(({ id }) => ({ type: 'Clinics' as const, id })),
+            { type: 'Clinics', id: 'LIST' },
+          ]
+        : [{ type: 'Clinics', id: 'LIST' }],
+  }), 
+}),
+   overrideExisting: false,
 });
 
 export const {
@@ -62,4 +77,5 @@ export const {
   useCreateClinicMutation,
   useUpdateClinicMutation,
   useDeleteClinicMutation,
+  useGetClinicsByOwnerIdQuery,
 } = clinicApiSlice;
