@@ -11,10 +11,12 @@ import { ModeToggle } from "@/components/mode-toggle"
 import GlassSheet from "@/components/global/glass-sheet"
 import { Menu } from "./menu"
 import { Logout } from "@/components/icons"
+import { useTranslation } from "react-i18next"
 
 export function LandingPageNavbar() {
   const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth)
   const router = useRouter()
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
@@ -26,7 +28,7 @@ export function LandingPageNavbar() {
     <nav className="sticky top-0 z-50 w-full backdrop-blur-sm">
       <div className="container mx-auto flex items-center justify-between px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <span className="font-bold text-2xl">PainFX.</span>
+          <span className="font-bold text-2xl">{t('brand')}</span>
         </Link>
         <div className="hidden lg:flex flex-1 justify-center">
           <Menu orientation="desktop" isAuthenticated={isAuthenticated} />
@@ -36,7 +38,7 @@ export function LandingPageNavbar() {
             <Link href="/sign-in">
               <Button variant="outline" className="rounded-2xl flex items-center">
                 <Logout />
-                <span>Login</span>
+                <span>{t('login')}</span>
              </Button>
             </Link>
           )}
@@ -51,7 +53,7 @@ export function LandingPageNavbar() {
               trigger={
                 <Button variant="ghost" size="icon" className="hover:bg-transparent">
                   <MenuIcon className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{t('open_menu')}</span>
                 </Button>
               }
             >
@@ -63,4 +65,3 @@ export function LandingPageNavbar() {
     </nav>
   )
 }
-

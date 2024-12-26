@@ -2,6 +2,7 @@ import { Logo, LogoDark } from "@/components/icons/logo";
 import Image from "next/image";
 
 export default function Home() {
+  
   return (
     <>
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
@@ -9,7 +10,7 @@ export default function Home() {
         <LogoDark className="hidden dark:block" width={250} height={250} aria-hidden="true" />
         <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2">
-            Get started by sign up{" "}
+            Get started by sign up{" "} 
             <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
               PainFx 💉
             </code>
