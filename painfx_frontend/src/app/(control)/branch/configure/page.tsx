@@ -9,18 +9,18 @@ export default function ClinicConfigPage() {
           Clinic Information
         </h1>
         <p className="text-sm md:text-base text-muted-foreground">
-          Configure your clinic's basic information and operational settings
+          Configure your clinic&apos;s basic information and operational settings
         </p>
       </div>
 
       <div className="space-y-6">
         <ConfigCard
           title="Basic Information"
-          description="Manage your clinic's core details"
+          description="Manage your clinic&apos;s core details"
           features={[
             {
               title: "Clinic Name",
-              description: "Your clinic's official name as it appears to patients and partners",
+              description: "Your clinic&apos;s official name as it appears to patients and partners",
               enabled: true,
             },
             {
@@ -40,7 +40,7 @@ export default function ClinicConfigPage() {
 
         <ConfigCard
           title="Operational Hours"
-          description="Set your clinic's regular operating hours and special schedules"
+          description="Set your clinic&apos;s regular operating hours and special schedules"
           features={[
             {
               title: "Regular Hours",
@@ -97,4 +97,3 @@ export default function ClinicConfigPage() {
     </main>
   )
 }
-
