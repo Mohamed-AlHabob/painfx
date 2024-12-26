@@ -4,14 +4,11 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from apps.authentication.models import User, UserProfile, Patient,Doctor
 from apps.booking_app.models import Clinic, ClinicDoctor
-# Signal to automatically create UserProfile and Patient instances
+
 @receiver(post_save, sender=User)
 def create_user_related_models(sender, instance, created, **kwargs):
     if created:
-        # Create UserProfile for every new user
         UserProfile.objects.create(user=instance)
-        
-        # Create Patient if the user's role is 'patient'
         if instance.role == 'patient':
             Patient.objects.create(user=instance)
 
@@ -42,6 +39,4 @@ def create_clinic_for_new_doctor(sender, instance, created, **kwargs):
                     joined_at=timezone.now()
                 )
         except Exception as e:
-            # Handle exceptions (e.g., log the error)
-            # You might want to raise the exception or pass
             pass

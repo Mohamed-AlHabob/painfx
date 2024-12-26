@@ -127,15 +127,15 @@ class ReservationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if hasattr(user, 'clinicowner'):
             return Reservation.objects.filter(clinic__owner=user)
-        elif hasattr(user, 'doctor'):
+        elif hasattr(user, 'doctor_profile'):
             return Reservation.objects.filter(doctor__user=user)
-        elif hasattr(user, 'patient'):
+        elif hasattr(user, 'patient_profile'):
             return Reservation.objects.filter(patient__user=user)
         return Reservation.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user
-        if not hasattr(user, 'patient'):
+        if not hasattr(user, 'patient_profile'):
             raise serializers.ValidationError("Only patients can create reservations.")
         serializer.save(patient=user.patient)
 
@@ -208,7 +208,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if not hasattr(user, 'doctor'):
+        if not hasattr(user, 'doctor_profile'):
             raise serializers.ValidationError("Only doctors can create posts.")
         serializer.save(doctor=user.doctor)
     
