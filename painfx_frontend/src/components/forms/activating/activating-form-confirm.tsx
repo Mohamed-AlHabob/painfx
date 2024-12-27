@@ -35,12 +35,6 @@ const ActivitingConfirmForm = ({ uid, token }: ActivitingProps) => {
 
   return (
     <div className='sm:mx-auto sm:w-full sm:max-w-sm'>
-      <h1
-        className='mt-10 text-center text-2xl font-bold leading-9 tracking-tight'
-        aria-live='polite'
-      >
-        {isLoading ? 'Activating your account...' : 'Redirecting to sign-in...'}
-      </h1>
       {isLoading && (
         <div className="flex justify-center mt-4">
           <Spinner/>
