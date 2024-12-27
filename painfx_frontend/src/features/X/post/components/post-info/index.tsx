@@ -7,6 +7,7 @@ import Image from "next/image"
 import { useGetPostQuery } from "@/redux/services/booking/postApiSlice"
 import { useState } from "react"
 import { Play } from "lucide-react"
+import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import ReactPlayer from 'react-player';
@@ -16,8 +17,13 @@ type PostInfoProps = {
 
 export const PostInfo = ({ id }: PostInfoProps) => {
   const { data:post,error,isLoading,isFetching } = useGetPostQuery(id)
+    const { onOpen } = useModal();
   const [isPlaying, setIsPlaying] = useState(false);
 
+  const onAction = (e: React.MouseEvent, action: ModalType) => {
+    e.stopPropagation();
+    onOpen(action, { Post: post });
+  };
   const handlePlayClick = () => {
     setIsPlaying(true);
   };
@@ -57,6 +63,22 @@ export const PostInfo = ({ id }: PostInfoProps) => {
           address={post?.doctor?.user?.profile?.address || ""}
           joined={post?.doctor?.user?.date_joined || ""}
         />
+          {post.doctor?.user?.id == user?.id && (
+            <div className='flex items-center gap-x-2'>
+              <ActionTooltip label="Edit">
+                <Edit
+                  onClick={(e) => onAction(e, "editPost")}
+                  className="w-4 h-4 text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300 transition"
+                />
+              </ActionTooltip>
+              <ActionTooltip label="Delete">
+                <Trash
+                  onClick={(e) => onAction(e, "deletePost")}
+                  className="w-4 h-4 text-zinc-500 hover:text-zinc-600 dark:text-zinc-400 dark:hover:text-zinc-300 transition"
+                />
+              </ActionTooltip>
+            </div>
+          )}
       <div className="flex flex-col gap-y-3">
         <h2 className="text-2xl font-bold">{post.title}</h2>
         {post.content}
