@@ -23,53 +23,53 @@ export const metadata: Metadata = {
   authors: [{ name: 'Supernova Team' }],
   creator: 'PainFX',
   publisher: 'Supernova Inc.',
-  // openGraph: {
-  //   type: 'website',
-  //   locale: 'en_US',
-  //   url: 'https://painfx.com',
-  //   siteName: 'PainFX',
-  //   title: 'PainFX | Community for Medical Professionals',
-  //   description: 'Connect with leading pain management specialists, hospitals, and clinics on PainFX.',
-  //   images: [
-  //     {
-  //       url: '/assets/favicon-16x16.png',
-  //       width: 1200,
-  //       height: 630,
-  //       alt: 'PainFX - Medical Professional Community'
-  //     }
-  //   ]
-  // },
-  // twitter: {
-  //   card: 'summary_large_image',
-  //   site: '@PainFX',
-  //   creator: '@PainFX',
-  //   title: 'PainFX | Community for Medical Professionals',
-  //   description: 'Connect with leading pain management specialists, hospitals, and clinics on PainFX.',
-  //   images: ['https://painfx.com/twitter-image.jpg'],
-  // },
-  // icons: {
-  //   icon: [
-  //     { url: '/assets/favicon.ico', sizes: '32x32' },
-  //     { url: '/assets/logo.svg', type: 'image/svg+xml' },
-  //     { url: '/assets/apple-icon.png', sizes: '180x180', type: 'image/png' },
-  //   ],
-  //   apple: [
-  //     { url: '/assets/apple-icon.png', sizes: '180x180', type: 'image/png' },
-  //   ],
-  //   other: [
-  //     {
-  //       rel: 'mask-icon',
-  //       url: '/assets/safari-pinned-tab.svg',
-  //     },
-  //   ],
-  // },
-  // manifest: '/site.webmanifest',
-  // applicationName: 'PainFX',
-  // category: 'Medical',
-  // themeColor: [
-  //   { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-  //   { media: '(prefers-color-scheme: dark)', color: '#000000' },
-  // ],
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://painfx.com',
+    siteName: 'PainFX',
+    title: 'PainFX | Community for Medical Professionals',
+    description: 'Connect with leading pain management specialists, hospitals, and clinics on PainFX.',
+    images: [
+      {
+        url: '/assets/favicon-16x16.png',
+        width: 1200,
+        height: 630,
+        alt: 'PainFX - Medical Professional Community'
+      }
+    ]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@PainFX',
+    creator: '@PainFX',
+    title: 'PainFX | Community for Medical Professionals',
+    description: 'Connect with leading pain management specialists, hospitals, and clinics on PainFX.',
+    images: ['https://painfx.com/twitter-image.jpg'],
+  },
+  icons: {
+    icon: [
+      { url: '/assets/favicon.ico', sizes: '32x32' },
+      { url: '/assets/logo.svg', type: 'image/svg+xml' },
+      { url: '/assets/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/assets/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/assets/safari-pinned-tab.svg',
+      },
+    ],
+  },
+  manifest: '/site.webmanifest',
+  applicationName: 'PainFX',
+  category: 'Medical',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 }
 
 export default function RootLayout({
@@ -91,7 +91,7 @@ export default function RootLayout({
           >
             <Setup />
             <ModalProvider />
-            <Toaster position="bottom-center" />
+            <Toaster richColors position="bottom-right" />
             <ReactQueryProvider>
               {children}
             </ReactQueryProvider>
