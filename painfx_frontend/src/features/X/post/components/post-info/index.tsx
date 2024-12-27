@@ -87,11 +87,6 @@ export const PostInfo = ({ id }: PostInfoProps) => {
           <Separator orientation="horizontal" className="mt-3" />
         </div>
       )}
-          </div>
-          <Separator orientation="horizontal" className="mt-3" />
-        </div>
-      )}
-
       <Interactions 
         postId={post.id || ""} 
         initialLikeCount={post.likes_count || 0} 
