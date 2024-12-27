@@ -26,7 +26,7 @@ export const PostInfo = ({ id }: PostInfoProps) => {
     <PostInfo.Skeleton />
   }
 
-  if (!post || error) {
+  if (error) {
     return <NoResult message={'No results found'} backTo={'/post'} linkName={"back"}/>;
   }
 
