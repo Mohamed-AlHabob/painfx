@@ -38,7 +38,7 @@ export const PostInfo = ({ id }: PostInfoProps) => {
     return <NoResult message={'No results found'} backTo={'/post'} linkName={"back"}/>;
   }
   const renderVideo = () => {
-    const videoSource = post.video_file || post.video_url;
+    const videoSource = post?.video_file || post?.video_url;
     if (!videoSource) return null;
 
     return (
