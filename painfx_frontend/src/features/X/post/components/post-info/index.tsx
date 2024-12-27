@@ -9,7 +9,7 @@ import { useState } from "react"
 import { Play } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-
+import ReactPlayer from 'react-player';
 type PostInfoProps = {
   id: string
 }
@@ -25,29 +25,44 @@ export const PostInfo = ({ id }: PostInfoProps) => {
   if (isFetching || isLoading) {
     <PostInfo.Skeleton />
   }
-
   if (error) {
     return <NoResult message={'No results found'} backTo={'/post'} linkName={"back"}/>;
   }
+  const renderVideo = () => {
+    const videoSource = post.video_file || post.video_url;
+    if (!videoSource) return null;
+
+    return (
+      <ReactPlayer
+        url={videoSource}
+        playing={isPlaying}
+        controls
+        width="100%"
+        height="100%"
+        className="rounded"
+      />
+    );
+  };
+
 
   return (
     <div className="flex flex-col gap-y-5">
         <UserCard 
-          name={`${post.doctor?.user.first_name} ${post.doctor?.user.last_name}`} 
-          avatar={post.doctor?.user.profile?.avatar || ""} 
-          id={post.doctor?.user?.id || ""} 
-          role={post.doctor?.specialization?.name || ""} 
-          email={post.doctor?.user.email}
-          phone_number={post.doctor?.user?.profile?.phone_number || ""}
-          address={post.doctor?.user?.profile?.address || ""}
-          joined={post.doctor?.user?.date_joined || ""}
+          name={`${post?.doctor?.user?.first_name || ""} ${post?.doctor?.user.last_name || ""}`} 
+          avatar={post?.doctor?.user.profile?.avatar || ""} 
+          id={post?.doctor?.user?.id || ""} 
+          role={post?.doctor?.specialization?.name || ""} 
+          email={post?.doctor?.user.email}
+          phone_number={post?.doctor?.user?.profile?.phone_number || ""}
+          address={post?.doctor?.user?.profile?.address || ""}
+          joined={post?.doctor?.user?.date_joined || ""}
         />
       <div className="flex flex-col gap-y-3">
         <h2 className="text-2xl font-bold">{post.title}</h2>
         {post.content}
       </div>
 
-      {post.video_file === null && post.video_url && (
+      {(post.video_file !== null || post.video_url) && (
         <div className="mb-4 px-3">
           <div className="relative aspect-video">
             {!isPlaying && post.thumbnail_url && (
@@ -67,14 +82,11 @@ export const PostInfo = ({ id }: PostInfoProps) => {
                 </button>
               </div>
             )}
-            {(isPlaying || !post.thumbnail_url) && (
-              <video 
-                controls 
-                src={post.video_file || ""} 
-                className="w-full h-full rounded" 
-                autoPlay={isPlaying}
-              />
-            )}
+            {(isPlaying || !post.thumbnail_url) && renderVideo()}
+          </div>
+          <Separator orientation="horizontal" className="mt-3" />
+        </div>
+      )}
           </div>
           <Separator orientation="horizontal" className="mt-3" />
         </div>
