@@ -6,7 +6,8 @@ import {Interactions} from "../post-feed/interactions"
 import Image from "next/image"
 import { useGetPostQuery } from "@/redux/services/booking/postApiSlice"
 import { useState } from "react"
-import { Play } from "lucide-react"
+import { Edit, Play, Trash } from 'lucide-react';
+import { ActionTooltip } from '@/components/global/action-tooltip';
 import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
