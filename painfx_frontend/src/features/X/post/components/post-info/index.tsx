@@ -10,6 +10,7 @@ import { Play } from "lucide-react"
 import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice';
 import ReactPlayer from 'react-player';
 type PostInfoProps = {
   id: string
@@ -17,7 +18,8 @@ type PostInfoProps = {
 
 export const PostInfo = ({ id }: PostInfoProps) => {
   const { data:post,error,isLoading,isFetching } = useGetPostQuery(id)
-    const { onOpen } = useModal();
+  const { data: user } = useRetrieveUserQuery();
+  const { onOpen } = useModal();
   const [isPlaying, setIsPlaying] = useState(false);
 
   const onAction = (e: React.MouseEvent, action: ModalType) => {
@@ -63,7 +65,7 @@ export const PostInfo = ({ id }: PostInfoProps) => {
           address={post?.doctor?.user?.profile?.address || ""}
           joined={post?.doctor?.user?.date_joined || ""}
         />
-          {post.doctor?.user?.id == user?.id && (
+          {post?.doctor?.user?.id == user?.id && (
             <div className='flex items-center gap-x-2'>
               <ActionTooltip label="Edit">
                 <Edit
@@ -84,13 +86,13 @@ export const PostInfo = ({ id }: PostInfoProps) => {
         {post.content}
       </div>
 
-      {(post.video_file !== null || post.video_url) && (
+      {(post?.video_file !== null || post?.video_url) && (
         <div className="mb-4 px-3">
           <div className="relative aspect-video">
-            {!isPlaying && post.thumbnail_url && (
+            {!isPlaying && post?.thumbnail_url && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Image 
-                  src={post.thumbnail_url} 
+                  src={post?.thumbnail_url} 
                   alt="Thumbnail" 
                   layout="fill" 
                   objectFit="cover" 
@@ -104,15 +106,15 @@ export const PostInfo = ({ id }: PostInfoProps) => {
                 </button>
               </div>
             )}
-            {(isPlaying || !post.thumbnail_url) && renderVideo()}
+            {(isPlaying || !post?.thumbnail_url) && renderVideo()}
           </div>
           <Separator orientation="horizontal" className="mt-3" />
         </div>
       )}
       <Interactions 
-        postId={post.id || ""} 
-        initialLikeCount={post.likes_count || 0} 
-        commentsCount={post.comments_count || 0} 
+        postId={post?.id || ""} 
+        initialLikeCount={post?.likes_count || 0} 
+        commentsCount={post?.comments_count || 0} 
       />
     </div>
   )
