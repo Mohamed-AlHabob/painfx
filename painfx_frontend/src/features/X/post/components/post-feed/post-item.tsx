@@ -14,6 +14,7 @@ import { ActionTooltip } from '@/components/global/action-tooltip';
 import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice';
 import { Skeleton } from '@/components/ui/skeleton';
+import ReactPlayer from 'react-player';
 
 interface PostItemProps {
   post: Post;
@@ -28,46 +29,27 @@ export const PostItem = ({ post }: PostItemProps) => {
   const handlePlayClick = () => {
     setIsPlaying(true);
   };
-  
+
   const onAction = (e: React.MouseEvent, action: ModalType) => {
     e.stopPropagation();
     onOpen(action, { Post: post });
-  }
-
-  const isYouTubeUrl = (url: string): boolean => {
-    return url.includes('youtube.com') || url.includes('youtu.be');
-  }
-
-  const getYouTubeEmbedUrl = (url: string): string => {
-    const videoId = url.split('v=')[1] || url.split('/').pop();
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
+  };
 
   const renderVideo = () => {
-    if (!post.video_file && !post.video_url) return null;
-
     const videoSource = post.video_file || post.video_url;
     if (!videoSource) return null;
 
-    if (isYouTubeUrl(videoSource)) {
-      return (
-        <iframe
-          src={getYouTubeEmbedUrl(videoSource)}
-          className="w-full h-full rounded"
-          allowFullScreen
-        />
-      );
-    }
-
     return (
-      <video 
-        controls 
-        src={videoSource} 
-        className="w-full h-full rounded" 
-        autoPlay={isPlaying}
+      <ReactPlayer
+        url={videoSource}
+        playing={isPlaying}
+        controls
+        width="100%"
+        height="100%"
+        className="rounded"
       />
     );
-  }
+  };
 
   return (
     <Card className="dark:border-themeGray group dark:bg-[#1A1A1D] first-letter:rounded-2xl overflow-hidden mb-5">
@@ -160,4 +142,3 @@ PostItem.Skeleton = function ItemSkeleton({ level }: { level?: number }) {
     </div>
   )
 }
-
