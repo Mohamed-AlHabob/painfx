@@ -48,10 +48,10 @@ export const postApiSlice = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Post', id: 'LIST' }],
     }),
-    getPost: builder.query<PostListResponse, string>({
+    getPost: builder.query<Post, string>({
       query: (id) => `posts/${id}/`,
       transformResponse: (response: Post) => {
-        postListResponseSchema.parse(response);
+        postSchema.parse(response);
         return response;
       },
       providesTags: (result, error, id) => [{ type: 'Post', id }],
