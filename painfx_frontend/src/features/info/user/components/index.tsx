@@ -14,6 +14,8 @@ import { Avatar,  AvatarImage } from "@radix-ui/react-avatar";
 import { useGetDoctorByIdQuery } from "@/redux/services/booking/DoctorApiSlice";
 import { Doctor } from "@/schemas";
 import { useModal } from "@/hooks/use-modal-store";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Trophy, User, Clock, Briefcase } from "lucide-react";
 
 type DoctorInfoPageProps = {
   userId?: string;
@@ -27,7 +29,7 @@ export default function DoctorInfoPage({ userId }: DoctorInfoPageProps) {
 
   // Handle loading and error states
   if (isLoading) {
-    return <div className="text-center mt-8">Loading doctor information...</div>;
+    return <DoctorInfoPage.DoctorInfoSkeleton />;
   }
 
   if (isError) {
@@ -210,3 +212,68 @@ export default function DoctorInfoPage({ userId }: DoctorInfoPageProps) {
     </div>
   );
 }
+
+DoctorInfoPage.Skeleton = function DoctorInfoSkeleton() {
+  return (
+    <div className="relative">
+      {/* Header Skeleton */}
+      <div className="relative overflow-hidden rounded-lg p-8">
+        <div className="relative flex flex-col items-center sm:items-start sm:flex-row gap-6">
+          {/* Avatar Skeleton */}
+          <div className="relative">
+            <Skeleton className="h-32 w-32 rounded-full" />
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-yellow-400/90 px-3 py-0.5 rounded-full">
+              <Trophy className="h-3 w-3" />
+              <Skeleton className="w-24 h-3" />
+            </div>
+          </div>
+          {/* Doctor Details Skeleton */}
+          <div className="flex-1 text-center sm:text-left">
+            <Skeleton className="h-4 w-40 mb-2" />
+            <Skeleton className="h-6 w-60 mb-2" />
+            <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
+              <User className="h-4 w-4" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
+              <Clock className="h-4 w-4" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
+              <Briefcase className="h-4 w-4" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Navigation Skeleton */}
+      <nav className="mt-6 border-b border-gray-800">
+        <div className="flex gap-6 text-sm">
+          {[...Array(3)].map((_, index) => (
+            <Skeleton key={index} className="h-4 w-24" />
+          ))}
+        </div>
+      </nav>
+      {/* Achievements Section Skeleton */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className="h-6 w-48" />
+          <div className="flex gap-2">
+            {[...Array(3)].map((_, index) => (
+              <Skeleton key={index} className="h-8 w-24" />
+            ))}
+          </div>
+        </div>
+        {/* Cards Grid Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="rounded-lg p-4">
+              <Skeleton className="h-5 w-32 mb-4" />
+              <Skeleton className="h-3 w-16 mb-4" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
