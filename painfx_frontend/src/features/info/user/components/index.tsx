@@ -15,7 +15,6 @@ import { useGetDoctorByIdQuery } from "@/redux/services/booking/DoctorApiSlice";
 import { Doctor } from "@/schemas";
 import { useModal } from "@/hooks/use-modal-store";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, User, Clock, Briefcase } from "lucide-react";
 
 type DoctorInfoPageProps = {
   userId?: string;
