@@ -28,7 +28,7 @@ export default function DoctorInfoPage({ userId }: DoctorInfoPageProps) {
 
   // Handle loading and error states
   if (isLoading) {
-    return <DoctorInfoPage.DoctorInfoSkeleton />;
+    return <DoctorInfoPage.Skeleton />;
   }
 
   if (isError) {
