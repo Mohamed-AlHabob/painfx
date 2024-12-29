@@ -17,6 +17,7 @@ export const userProfileSchema = z.object({
   email: z.string().email('Invalid email address'),
   first_name: z.string().nullable().optional(),
   last_name: z.string().nullable().optional(),
+  role: z.string().nullable().optional(),
   profile: ProfileSchema.optional(),
   date_joined: z.string().datetime().nullable().optional(),
   last_login: z.string().datetime().nullable().optional(),

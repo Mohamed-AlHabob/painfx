@@ -9,7 +9,7 @@ const MobileNav = async () => {
 
 
   return (
-    <div className="bg-[#1A1A1D] w-screen py-3 px-11 fixed bottom-0 z-50 md:hidden justify-between items-center flex">
+    <div className="dark:bg-[#1A1A1D] w-screen py-3 px-11 fixed bottom-0 z-50 md:hidden justify-between items-center flex">
       <Link href={`/X`}>
         <Home className="h-7 w-7" />
       </Link>

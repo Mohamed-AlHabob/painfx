@@ -1,4 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
+import { UserProfile } from "@/schemas";
 
 
 interface User {
@@ -51,7 +52,7 @@ interface ResetPasswordConfirmArgs {
 
 const authApiSlice = apiSlice.injectEndpoints({
   endpoints: builder => ({
-    retrieveUser: builder.query<User, void>({
+    retrieveUser: builder.query<UserProfile, void>({
       query: () => '/users/me/',
     }),
     socialAuthenticate: builder.mutation<CreateUserResponse, SocialAuthArgs>({

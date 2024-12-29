@@ -1,4 +1,4 @@
-import ClinicInfoPage from "@/features/info/clinic/components";
+import ClinicInfoPage from "@/features/X/info/clinic/components";
 
 const UserProfilePage = async ({ params }: {params: Promise<{ clinicId: string }> }) => {
   const clinicId = (await params).clinicId

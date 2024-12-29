@@ -28,9 +28,8 @@ export default function LanguageSwitcher() {
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm">Language</span>
+    <div className="space-y-2 border border-input bg-background shadow-sm max-x-500 rounded-xl flex items-center">
+      <div className=" flex justify-between space-x-2">
         <Select defaultValue={currentLang} onValueChange={handleLanguageChange}>
           <SelectTrigger className="w-24 h-8">
             <SelectValue placeholder="Select language" />

@@ -47,7 +47,7 @@ export const UserDropDown = () => {
       trigger={<Avatar className={cn(
         "h-7 w-7 md:h-10 md:w-10 cursor-pointer bg-[linear-gradient(152deg,_#fff,_#B4F576_42%,_#7EF576)]",
       )}>
-        <AvatarImage src={user?.profile?.avatar} />
+        <AvatarImage src={user?.profile?.avatar ||""} />
         <AvatarFallback className={cn("h-7 w-7 md:h-10 md:w-10 cursor-pointer bg-[linear-gradient(152deg,_#fff,_#B4F576_42%,_#7EF576)]")}>
             {user?.first_name?.[0] || "S"}
         </AvatarFallback>
@@ -58,7 +58,7 @@ export const UserDropDown = () => {
               <p className="text-sm text-muted-foreground">{user?.email}</p>
               <div className="flex items-center gap-2">
               <Avatar className={cn("h-7 w-7 md:h-10 md:w-10 cursor-pointer bg-[linear-gradient(152deg,_#fff,_#B4F576_42%,_#7EF576)]")}>
-                <AvatarImage src={user?.profile?.avatar} />
+                <AvatarImage src={user?.profile?.avatar||""} />
                 <AvatarFallback className={cn("h-7 w-7 md:h-10 md:w-10 cursor-pointer bg-[linear-gradient(152deg,_#fff,_#B4F576_42%,_#7EF576)]")}>
                   {user?.first_name?.[0]}
                 </AvatarFallback>
@@ -72,10 +72,11 @@ export const UserDropDown = () => {
             <Settings /> {t('settings')}
           </Link>
         ):
-        <Link href={`/proflile/${user?.id}`} className="flex gap-x-2 px-2">
-        <Settings /> {t('profile')}
-      </Link>
+          <></>
         }
+        <Link href={`/X/proflile/${user?.id}`} className="flex gap-x-2 px-2">
+          <Settings /> {t('profile')}
+        </Link>
         <Separator className="my-2" />
 
         <Button
@@ -95,7 +96,11 @@ export const UserDropDown = () => {
             <p>{t('theme')}</p>
             <ModeToggle />
           </div>
-          <LanguageSwitcher />
+          <div className="flex justify-between items-center">
+            <p>{t('language')}</p>
+            <LanguageSwitcher />
+          </div>
+          
         </div>
         <Separator className="my-2" />
         <PaymentButton/>
