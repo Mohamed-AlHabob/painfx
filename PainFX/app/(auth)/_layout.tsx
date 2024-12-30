@@ -14,13 +14,8 @@ const AuthLayout = ({ children }: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <TouchableOpacity onPress={() => navigation.navigate('index')}>
           <Text style={styles.title}>PainFX.</Text>
-        </TouchableOpacity>
-        <BackdropGradient
-          style={styles.backdrop}
-          containerStyle={styles.backdropContainer}
-        >
+        <BackdropGradient style={styles.backdrop} containerStyle={styles.backdropContainer}>
           <GlassCard style={styles.card}>
             <Slot />
           </GlassCard>

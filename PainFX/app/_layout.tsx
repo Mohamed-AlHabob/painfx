@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React from 'react';
 import Provider from '@/redux/provider';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
 SplashScreen.preventAutoHideAsync();
@@ -30,7 +31,9 @@ export default function RootLayout() {
   return (
     <Provider >
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      {/* <SafeAreaProvider> */}
       <Slot />
+      {/* </SafeAreaProvider> */}
     </ThemeProvider>
     </Provider>
   );
