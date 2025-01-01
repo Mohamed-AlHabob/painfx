@@ -3,9 +3,10 @@ from .views import (
     CustomProviderAuthView,
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
+    CustomTokenVerifyView,
     LogoutView
 )
-from rest_framework_simplejwt.views import TokenVerifyView
+
 urlpatterns = [
     re_path(
         r'^o/(?P<provider>\S+)/$',
@@ -14,6 +15,6 @@ urlpatterns = [
     ),
     path('jwt/create/', CustomTokenObtainPairView.as_view()),
     path('jwt/refresh/', CustomTokenRefreshView.as_view()),
-     path('jwt/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('jwt/verify/', CustomTokenVerifyView.as_view()),
     path('logout/', LogoutView.as_view()),
 ]
