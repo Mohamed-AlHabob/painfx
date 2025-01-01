@@ -32,7 +32,7 @@ export default function useLogin() {
           loading: "Logging in...",
           success: () => {
             dispatch(setAuth());
-            router.push('/dashboard');
+            router.push('/X');
             return "Logged in successfully!";
           },
           error: (error) => {
