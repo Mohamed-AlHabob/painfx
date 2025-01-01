@@ -1,39 +1,59 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { useAppContext } from '@/hooks/useAppContext';
 
-type ButtonProps = {
-  children: React.ReactNode;
+
+interface ButtonProps {
   onPress: () => void;
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline';
+  loading?: boolean;
   disabled?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
-};
+  className?: string;
+}
 
-export const Button: React.FC<ButtonProps> = ({ children, onPress, disabled, style, textStyle }) => {
+export function Button({ 
+  onPress, 
+  children, 
+  variant = 'primary',
+  loading = false,
+  disabled = false,
+  className = ''
+}: ButtonProps) {
+  const { isDarkMode } = useAppContext();
+
+  const getVariantStyles = () => {
+    switch(variant) {
+      case 'primary':
+        return `${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'} ${disabled ? 'opacity-50' : ''}`;
+      case 'secondary':
+        return `${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} ${disabled ? 'opacity-50' : ''}`;
+      case 'outline':
+        return `border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} ${disabled ? 'opacity-50' : ''}`;
+      default:
+        return '';
+    }
+  };
+
   return (
     <TouchableOpacity
-      style={[styles.button, disabled && styles.disabled, style]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || loading}
+      className={`p-3 rounded-full items-center justify-center flex-row ${getVariantStyles()} ${className}`}
     >
-      <Text style={[styles.text, textStyle]}>{children}</Text>
+      {loading ? (
+        <ActivityIndicator color={variant === 'outline' ? (isDarkMode ? '#fff' : '#000') : '#fff'} />
+      ) : (
+        <Text 
+          className={`font-medium ${
+            variant === 'outline' 
+              ? (isDarkMode ? 'text-white' : 'text-black')
+              : 'text-white'
+          }`}
+        >
+          {children}
+        </Text>
+      )}
     </TouchableOpacity>
   );
-};
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: '#0066cc',
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    color: 'white',
-    fontSize: 16,
-  },
-});
+}
 

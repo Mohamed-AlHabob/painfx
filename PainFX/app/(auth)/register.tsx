@@ -1,140 +1,62 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, router } from 'expo-router';
-
-import { colors, fontSizes, spacing, borderRadius } from '../../config/theme';
-import { AppDispatch, RootState } from '@/redux/store';
+import { View, Text } from 'react-native';
+import { SocialButton } from '@/components/ui/social-button';
+import { Button } from '@/components/ui/Button';
+import { Container } from '@/components/ui/container';
+import { TextInput } from '@/components/ui/text-input';
 
 
-export default function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const dispatch = useDispatch<AppDispatch>();
-  const { isLoading } = useSelector((state: RootState) => state.auth);
-
-  // const handleRegister = async () => {
-  //   const result = await dispatch(registerUser({ email, password, name }));
-  //   if (registerUser.fulfilled.match(result)) {
-  //     router.replace('/');
-  //   }
-  // };
-
+export default function Register() {
   return (
-    <View style={styles.container}>
-      <Image
-        source={{ uri: '/linkedin-logo.png' }}
-        style={styles.logo}
-      />
-      <Text style={styles.title}>Join LinkedIn</Text>
-      <Text style={styles.subtitle}>Make the most of your professional life</Text>
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Full name"
-        value={name}
-        onChangeText={setName}
-      />
+    <Container className="flex-1 bg-[#0A0A0A]">
+      <View className="flex-1 justify-center p-4 w-full max-w-sm mx-auto">
+        <View className="items-center mb-8">
+          <Text className="text-white text-3xl font-bold">PainFX.</Text>
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Password (6+ characters)"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      {/* {error && <Text style={styles.error}>{error}</Text>} */}
-      
-      {/* <TouchableOpacity 
-        style={styles.button}
-        onPress={handleRegister}
-        disabled={isLoading}
-      >
-        <Text style={styles.buttonText}>
-          {isLoading ? 'Creating account...' : 'Agree & Join'}
-        </Text>
-      </TouchableOpacity> */}
-      
-      <Link href="/login" asChild>
-        <TouchableOpacity style={styles.linkButton}>
-          <Text style={styles.linkText}>
-            Already on LinkedIn? Sign in
+        <View className="mb-8">
+          <Text className="text-white text-2xl font-semibold mb-2">
+            Signup
           </Text>
-        </TouchableOpacity>
-      </Link>
-    </View>
+          <Text className="text-gray-400 text-base">
+            Network with people from around the world, join groups, create your own, watch courses and become the best version of yourself.
+          </Text>
+        </View>
+
+        <TextInput
+          placeholder="Email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          className="bg-[#141414] border-transparent mb-3"
+        />
+
+        <TextInput
+          placeholder="Password"
+          secureTextEntry
+          className="bg-[#141414] border-transparent mb-6"
+        />
+
+        <Button 
+          onPress={() => {}} 
+          className="bg-white mb-6"
+        >
+          <Text className="text-black font-semibold">Sign Up with Email</Text>
+        </Button>
+
+        <View className="flex-row items-center mb-6">
+          <View className="flex-1 h-[1px] bg-gray-800" />
+          <Text className="text-gray-500 mx-4 text-sm">OR CONTINUE WITH</Text>
+          <View className="flex-1 h-[1px] bg-gray-800" />
+        </View>
+
+        <SocialButton
+          icon="google"
+          onPress={() => {}}
+          className="mb-6"
+        >
+          Google
+        </SocialButton>
+      </View>
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: spacing.large,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 84,
-    height: 21,
-    marginBottom: spacing.xlarge,
-  },
-  title: {
-    fontSize: fontSizes.xxlarge,
-    fontWeight: '600',
-    marginBottom: spacing.small,
-  },
-  subtitle: {
-    fontSize: fontSizes.large,
-    color: colors.text.secondary,
-    marginBottom: spacing.xlarge,
-  },
-  input: {
-    width: '100%',
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.small,
-    paddingHorizontal: spacing.medium,
-    marginBottom: spacing.large,
-    fontSize: fontSizes.large,
-  },
-  button: {
-    width: '100%',
-    height: 48,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.round,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.small,
-  },
-  buttonText: {
-    color: colors.white,
-    fontSize: fontSizes.large,
-    fontWeight: '600',
-  },
-  linkButton: {
-    marginTop: spacing.large,
-  },
-  linkText: {
-    color: colors.primary,
-    fontSize: fontSizes.large,
-    fontWeight: '600',
-  },
-  error: {
-    // color: colors.error,
-    marginBottom: spacing.large,
-  },
-});
 

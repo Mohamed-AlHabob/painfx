@@ -1,131 +1,57 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Image, TouchableOpacity, StyleSheet, RefreshControl, Text } from 'react-native';
-import { useSelector } from 'react-redux';
+import { ScrollView, RefreshControl } from 'react-native';
+import { useState } from 'react';
+import { Container } from '@/components/ui/container';
+import { Post } from '@/components/post';
+import { useAppContext } from '@/hooks/useAppContext';
 
-import { colors, spacing, borderRadius } from '../../config/theme';
-import { PostCard } from '@/components/post-card';
-import { useRefresh } from '@/hooks/useRefresh';
-import { RootState } from '@/redux/store';
-import { useGetPostsQuery } from '@/redux/services/booking/postApiSlice';
-import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice';
 
-interface Post {
-  id: string;
-  author: {
-    name: string;
-    headline: string;
-    avatar: string;
-  };
-  content: string;
-  image?: string;
-  likes: number;
-  comments: number;
-  timestamp: string;
-}
-
-export default function HomeScreen() {
-  const { data: user } = useRetrieveUserQuery();
-  const { data: posts, error, isLoading,isFetching } = useGetPostsQuery({ page: 1 });
-
-  // if (isFetching || isLoading) {
-  //   return (
-  //       <PostItem.Skeleton />
-  //   )
-  // }
+export default function Home() {
+  const { isDarkMode } = useAppContext();
+  const [refreshing, setRefreshing] = useState(false);
   
-  if (!posts || error) {
-    return <Text>sss</Text>;
-  }
-  
-  // const [posts, setPosts] = useState<Post[]>([
-  //   {
-  //     id: '1',
-  //     author: {
-  //       name: 'Sarah Wilson',
-  //       headline: 'Software Engineer at Tech Corp',
-  //       avatar: '/placeholder.svg?height=48&width=48',
-  //     },
-  //     content: 'Excited to share that I\'ve started a new position as Senior Software Engineer! #newjob #tech',
-  //     image: '/placeholder.svg?height=300&width=600',
-  //     likes: 142,
-  //     comments: 23,
-  //     timestamp: '2h',
-  //   },
-  //   {
-  //     id: '2',
-  //     author: {
-  //       name: 'Tech Insights',
-  //       headline: 'Technology News and Updates',
-  //       avatar: '/placeholder.svg?height=48&width=48',
-  //     },
-  //     content: 'The future of AI is here! Check out our latest report on emerging trends in artificial intelligence and machine learning.',
-  //     likes: 856,
-  //     comments: 134,
-  //     timestamp: '4h',
-  //   },
-  // ]);
-
-  const onRefresh = async () => {
-    // Simulate fetching new posts
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // In a real app, you would fetch new posts from an API here
-  };
-
-  const { refreshing, handleRefresh } = useRefresh(onRefresh);
+  const posts = [
+    {
+      id: '1',
+      author: {
+        name: 'droos.english',
+        username: 'droos.english',
+        avatar: '/placeholder.svg?height=40&width=40',
+        verified: true
+      },
+      content: {
+        text: 'A Trip to the Beach',
+        description: 'Last weekend, I went to the beach with my family. The weather was sunny and warm. We played in the sand and built a big sandcastle. My brother swam in the sea, but I just walked near the water. We ate sandwiches and drank orange juice. I collected some small shells and put them in my bag. In the evening, we watched the sunset. It was very beautiful. I had a great time at the beach.',
+      },
+      stats: {
+        likes: 156,
+        replies: 50,
+        reposts: 40
+      },
+      timeAgo: '14h'
+    },
+    // Add more posts as needed
+  ];
 
   return (
-    <ScrollView 
-      style={styles.container}
+    <ScrollView
+      className={isDarkMode ? 'bg-black' : 'bg-white'}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => {
+            setRefreshing(true);
+            // Add refresh logic
+            setTimeout(() => setRefreshing(false), 1000);
+          }}
+        />
       }
     >
-      <View style={styles.postBox}>
-        <Image 
-          source={{ uri: user?.profile?.avatar || "" }} 
-          style={styles.avatar}
-        />
-        <TouchableOpacity style={styles.postButton}>
-          <Text style={styles.postButtonText}>Start a post</Text>
-        </TouchableOpacity>
-      </View>
-
-      {posts.results.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
+      <Container>
+        {posts.map(post => (
+          <Post key={post.id} post={post} />
+        ))}
+      </Container>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  postBox: {
-    flexDirection: 'row',
-    padding: spacing.large,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.round,
-    marginRight: spacing.medium,
-  },
-  postButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.text.secondary,
-    borderRadius: borderRadius.round,
-    paddingVertical: spacing.medium,
-    paddingHorizontal: spacing.large,
-  },
-  postButtonText: {
-    color: colors.text.secondary,
-  },
-});
 

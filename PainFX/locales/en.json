@@ -1,0 +1,167 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share"
+  },
+
+  "auth": {
+    "loginTitle": "Login",
+    "loginSubtitle": "Protect yourself from misinformation with advanced video verification.",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "forgotPassword": "Forgot password?",
+    "signInWithEmail": "Sign In with Email",
+    "continueWith": "OR CONTINUE WITH",
+    "signInWithGoogle": "Google",
+    "noAccount": "Don't have an account?",
+    "registerHere": "Register here",
+
+    "signupTitle": "Signup",
+    "signupSubtitle": "Network with people from around the world, join groups, create your own, watch courses and become the best version of yourself.",
+    "signUpWithEmail": "Sign Up with Email",
+    
+    "forgotPasswordTitle": "Reset Password",
+    "forgotPasswordSubtitle": "Enter your email to receive reset instructions",
+    "resetPassword": "Reset Password",
+    "backToLogin": "Back to Login"
+  },
+
+  "feed": {
+    "title": "Home",
+    "noPosts": "No posts yet",
+    "writeReply": "Write a reply...",
+    "showThread": "Show thread",
+    "sharePost": "Share post",
+    "reportPost": "Report post",
+    "deletePost": "Delete post",
+    "postDeleted": "Post deleted",
+    "repost": "Repost",
+    "quoted": "Quoted"
+  },
+
+  "create": {
+    "title": "New Thread",
+    "placeholder": "Start a thread...",
+    "addToThread": "Add to thread",
+    "whoCanReply": "Who can reply?",
+    "everyone": "Everyone",
+    "profilesYouFollow": "Profiles you follow",
+    "mentionedOnly": "Mentioned only",
+    "post": "Post"
+  },
+
+  "search": {
+    "title": "Search",
+    "placeholder": "Search people, threads, and tags",
+    "trending": "Trending",
+    "suggested": "Suggested for you",
+    "seeAll": "See all",
+    "people": "People",
+    "threads": "Threads",
+    "noResults": "No results found"
+  },
+
+  "activity": {
+    "title": "Activity",
+    "all": "All",
+    "replies": "Replies",
+    "mentions": "Mentions",
+    "verified": "Verified",
+    "followed": "followed you",
+    "liked": "liked your post",
+    "replied": "replied to your thread",
+    "reposted": "reposted your thread",
+    "mentioned": "mentioned you",
+    "noActivity": "No activity yet"
+  },
+
+  "profile": {
+    "edit": "Edit profile",
+    "share": "Share profile",
+    "followers": "followers",
+    "following": "following",
+    "threads": "Threads",
+    "replies": "Replies",
+    "reposts": "Reposts",
+    "joined": "Joined",
+    "blocked": "Blocked",
+    "muted": "Muted",
+    "private": "Private account",
+    
+    "editTitle": "Edit Profile",
+    "nameLabel": "Name",
+    "bioLabel": "Bio",
+    "linkLabel": "Link",
+    "privateAccount": "Private account",
+    "privateAccountDescription": "Only your followers can see your posts",
+    "mentionsLabel": "Allow mentions from",
+    "everyoneCanMention": "Everyone",
+    "followersCanMention": "Followers only",
+    "noOneCanMention": "No one"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "notifications": "Notifications",
+    "appearance": "Appearance",
+    "language": "Language",
+    "help": "Help",
+    "about": "About",
+    "logout": "Log out",
+
+    "theme": {
+      "title": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+
+    "languages": {
+      "en": "English",
+      "ar": "العربية",
+      "ku": "کوردی",
+      "auto": "System Default"
+    },
+
+    "privacy": {
+      "private": "Private account",
+      "mentions": "Mentions",
+      "muted": "Muted accounts",
+      "blocked": "Blocked accounts",
+      "hideStatus": "Hide activity status"
+    },
+
+    "notifications": {
+      "push": "Push notifications",
+      "email": "Email notifications",
+      "posts": "Posts",
+      "comments": "Comments",
+      "follows": "Follows",
+      "messages": "Messages"
+    }
+  },
+
+  "errors": {
+    "login": {
+      "invalidEmail": "Please enter a valid email",
+      "invalidPassword": "Password must be at least 8 characters",
+      "incorrect": "Incorrect email or password"
+    },
+    "register": {
+      "emailTaken": "This email is already registered",
+      "weakPassword": "Password is too weak",
+      "generic": "Could not create account"
+    },
+    "network": {
+      "offline": "No internet connection",
+      "serverError": "Server error, please try again"
+    }
+  }
+}

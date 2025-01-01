@@ -1,64 +1,57 @@
 import { Tabs } from 'expo-router';
-import { useSelector } from 'react-redux';
-import { Home, Video, Users, Bell, Briefcase, User } from 'lucide-react-native';
-import { colors } from '../../config/theme';
-import { RootState } from '@/redux/store';
-
+import { Home, Search, PenSquare, Heart, User } from 'lucide-react-native';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function TabsLayout() {
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-
-  // if (!isAuthenticated) {
-  //   return null; // This will redirect to the auth flow
-  // }
-
+  const { isDarkMode } = useAppContext();
+  
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text.secondary,
-        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: isDarkMode ? '#000' : '#fff',
+          borderTopColor: isDarkMode ? '#333' : '#e5e7eb',
+        },
+        tabBarActiveTintColor: isDarkMode ? '#fff' : '#000',
+        tabBarInactiveTintColor: isDarkMode ? '#666' : '#999',
+        headerStyle: {
+          backgroundColor: isDarkMode ? '#000' : '#fff',
+        },
+        headerTintColor: isDarkMode ? '#fff' : '#000',
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: '',
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="reels"
+        name="search"
         options={{
-          title: 'Reels',
-          tabBarIcon: ({ color }) => <Video size={24} color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <Search size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="network"
+        name="create"
         options={{
-          title: 'My Network',
-          tabBarIcon: ({ color }) => <Users size={24} color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <PenSquare size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="notifications"
+        name="activity"
         options={{
-          title: 'Notifications',
-          tabBarIcon: ({ color }) => <Bell size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="jobs"
-        options={{
-          title: 'Jobs',
-          tabBarIcon: ({ color }) => <Briefcase size={24} color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <Heart size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: '',
           tabBarIcon: ({ color }) => <User size={24} color={color} />,
         }}
       />
