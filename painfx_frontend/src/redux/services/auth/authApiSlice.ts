@@ -10,6 +10,7 @@ interface SocialAuthArgs {
 interface LoginArgs {
   email: string;
   password: string;
+  platform: "web";
 }
 
 interface RegisterArgs {
@@ -50,10 +51,10 @@ const authApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     login: builder.mutation<{ access: string }, LoginArgs>({
-      query: ({ email, password }) => ({
+      query: ({  email, password, platform }) => ({
         url: '/jwt/create/',
         method: 'POST',
-        body: { email, password,platform="web" },
+        body: {  email, password, platform },
       }),
     }),
     register: builder.mutation<void, RegisterArgs>({
