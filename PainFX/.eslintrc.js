@@ -4,11 +4,11 @@ module.exports = {
   settings: {
     'import/resolver': {
       node: {
-        paths: ['/'], // Ensure ESLint knows where to resolve imports
-        extensions: ['.js', '.jsx', '.ts', '.tsx'], // Add relevant extensions
+        paths: ['app','components'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
       alias: {
-        map: [['@', './src']], // Define your alias
+        map: [['@', './components']],
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
     },
