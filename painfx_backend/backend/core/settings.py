@@ -181,7 +181,7 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'apps.authentication.authentication.CustomJWTAuthentication',
+         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -203,13 +203,29 @@ DJOSER = {
     },
 }
 
-# Authentication cookies
+
+# JWT settings
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+
+# Cookie settings for web
 AUTH_COOKIE = 'access'
 AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7  # 1 week
 AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE', default="True") == "True"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = '/'
 AUTH_COOKIE_SAMESITE = 'None'
+
+# Cookie settings for mobile apps
+MOBILE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 year
+MOBILE_AUTH_COOKIE_SECURE = False
+MOBILE_AUTH_COOKIE_HTTP_ONLY = False
+MOBILE_AUTH_COOKIE_SAMESITE = 'Lax'
 
 # Social authentication settings
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env('GOOGLE_AUTH_KEY',default="147186679814-li24gppjsibbettdfpcemuisbnrlp7lj.apps.googleusercontent.com")
