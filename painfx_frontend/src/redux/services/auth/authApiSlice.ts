@@ -53,7 +53,7 @@ const authApiSlice = apiSlice.injectEndpoints({
       query: ({ email, password }) => ({
         url: '/jwt/create/',
         method: 'POST',
-        body: { email, password },
+        body: { email, password,platform="web" },
       }),
     }),
     register: builder.mutation<void, RegisterArgs>({
