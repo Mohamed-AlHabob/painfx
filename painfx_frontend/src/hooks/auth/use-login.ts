@@ -1,11 +1,10 @@
 import { useAppDispatch } from '@/redux/hooks';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { extractErrorMessage } from '../error-handling';
+import { extractErrorMessage } from '../utils/error-handling';
 import { setAuth } from '@/redux/services/auth/authSlice';
 import { useLoginMutation } from '@/redux/services/auth/authApiSlice';
 import { SignInSchema } from '@/schemas/auth';
@@ -26,22 +25,26 @@ export default function useLogin() {
   });
 
   const onAuthenticateUser = handleSubmit(async (values) => {
-    toast.promise(
-      login({ email: values.email, password: values.password }).unwrap(),
-      {
-        loading: "Logging in...",
-        success: () => {
-          dispatch(setAuth());
-          router.push('/X');
-          return "Logged in successfully!";
-        },
-        error: (error) => {
-          const errorMessage = extractErrorMessage(error);
-          return errorMessage;
-        },
-      }
-    );
-    reset(); 
+    try {
+      await toast.promise(
+        login({ email: values.email, password: values.password }).unwrap(),
+        {
+          loading: "Logging in...",
+          success: () => {
+            dispatch(setAuth());
+            router.push('/dashboard');
+            return "Logged in successfully!";
+          },
+          error: (error) => {
+            const errorMessage = extractErrorMessage(error);
+            return errorMessage;
+          },
+        }
+      );
+      reset();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   });
 
   return {
@@ -51,3 +54,4 @@ export default function useLogin() {
     errors,
   };
 }
+
