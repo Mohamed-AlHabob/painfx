@@ -27,7 +27,7 @@ export default function useLogin() {
   const onAuthenticateUser = handleSubmit(async (values) => {
     try {
       await toast.promise(
-        login({ email: values.email, password: values.password,platform: "web" }).unwrap(),
+        login({ email: values.email, password: values.password }).unwrap(),
         {
           loading: "Logging in...",
           success: () => {
