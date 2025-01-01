@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { extractErrorMessage } from '../utils/error-handling';
+import { extractErrorMessage } from '../error-handling';
 import { setAuth } from '@/redux/services/auth/authSlice';
 import { useLoginMutation } from '@/redux/services/auth/authApiSlice';
 import { SignInSchema } from '@/schemas/auth';
