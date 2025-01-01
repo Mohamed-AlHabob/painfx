@@ -3,6 +3,7 @@ import environ
 from django.core.management.utils import get_random_secret_key
 import os
 from django.core.exceptions import ImproperlyConfigured
+from datetime import timedelta
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
