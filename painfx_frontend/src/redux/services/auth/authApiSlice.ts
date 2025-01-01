@@ -1,27 +1,10 @@
 import { apiSlice } from "@/redux/services/apiSlice";
 import { UserProfile } from "@/schemas";
 
-
-interface User {
-  id: string;
-  first_name?: string;
-  last_name?: string;
-  email: string;
-  role: string;
-  profile:{
-    avatar: string;
-  }
-}
-
 interface SocialAuthArgs {
   provider: string;
   state: string;
   code: string;
-}
-
-interface CreateUserResponse {
-  success: boolean;
-  user: User;
 }
 
 interface LoginArgs {
@@ -54,8 +37,9 @@ const authApiSlice = apiSlice.injectEndpoints({
   endpoints: builder => ({
     retrieveUser: builder.query<UserProfile, void>({
       query: () => '/users/me/',
+      providesTags: ['User'],
     }),
-    socialAuthenticate: builder.mutation<CreateUserResponse, SocialAuthArgs>({
+    socialAuthenticate: builder.mutation<{ access: string }, SocialAuthArgs>({
       query: ({ provider, state, code }) => ({
         url: `/o/${provider}/?state=${encodeURIComponent(state)}&code=${encodeURIComponent(code)}`,
         method: 'POST',
@@ -64,13 +48,6 @@ const authApiSlice = apiSlice.injectEndpoints({
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Social authentication error:', error);
-        }
-      },
     }),
     login: builder.mutation<{ access: string }, LoginArgs>({
       query: ({ email, password }) => ({
@@ -78,13 +55,6 @@ const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { email, password },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Login error:', error);
-        }
-      },
     }),
     register: builder.mutation<void, RegisterArgs>({
       query: ({ email, password }) => ({
@@ -92,32 +62,18 @@ const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { email, password, re_password: password },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Registration error:', error);
-        }
-      },
     }),
-		verify: builder.mutation({
-			query: () => ({
-				url: '/jwt/verify/',
-				method: 'POST',
-			}),
-		}),
+    verify: builder.mutation<void, void>({
+      query: () => ({
+        url: '/jwt/verify/',
+        method: 'POST',
+      }),
+    }),
     logout: builder.mutation<void, void>({
       query: () => ({
         url: '/logout/',
         method: 'POST',
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Logout error:', error);
-        }
-      },
     }),
     activation: builder.mutation<void, ActivationArgs>({
       query: ({ uid, token }) => ({
@@ -125,13 +81,6 @@ const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { uid, token },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Activation error:', error);
-        }
-      },
     }),
     resetPassword: builder.mutation<void, ResetPasswordArgs>({
       query: ({ email }) => ({
@@ -139,13 +88,6 @@ const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { email },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Reset password error:', error);
-        }
-      },
     }),
     resetPasswordConfirm: builder.mutation<void, ResetPasswordConfirmArgs>({
       query: ({ uid, token, new_password, re_new_password }) => ({
@@ -153,13 +95,6 @@ const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { uid, token, new_password, re_new_password },
       }),
-      async onQueryStarted(_, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          console.error('Reset password confirm error:', error);
-        }
-      },
     }),
   }),
 });
@@ -175,3 +110,4 @@ export const {
   useResetPasswordMutation,
   useResetPasswordConfirmMutation,
 } = authApiSlice;
+
