@@ -25,7 +25,10 @@ class CampaignStatus(models.TextChoices):
     ACTIVE = 'active', 'Active'
     PAUSED = 'paused', 'Paused'
     COMPLETED = 'completed', 'Completed'
-
+    
+class MediaType(models.TextChoices):
+    IMAGE = 'image', 'Image'
+    VIDEO = 'video', 'Video'
 # ---------------------------------------------
 # Tags
 # ---------------------------------------------
@@ -285,50 +288,73 @@ class Review(BaseModel):
 class Post(BaseModel):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='posts')
     title = models.CharField(max_length=255)
-    tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
-    video_file = models.FileField(upload_to='videos/',blank=True, null=True)
-    video_url = models.URLField(blank=True, null=True)
-    thumbnail_file = models.FileField(upload_to='videos_thumbnail/', blank=True, null=True)  # Renamed
-    thumbnail_url = models.URLField(blank=True, null=True)
     content = models.TextField(blank=True, null=True)
+    tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
+    view_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         indexes = [
-            models.Index(fields=['doctor'], name='idx_posts_doctor_id'),
+            models.Index(fields=['doctor']),
+            models.Index(fields=['view_count']),
         ]
-        verbose_name = "Post"
-        verbose_name_plural = "Posts"
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Post '{self.title}' by {self.doctor.user.get_full_name()}"
 
+    def increment_view_count(self):
+        self.view_count += 1
+        self.save(update_fields=['view_count'])
+
+    def add_tags(self, tag_names):
+        for tag_name in tag_names:
+            tag, created = Tag.objects.get_or_create(name=tag_name)
+            self.tags.add(tag)
+            tag.usage_count += 1
+            tag.save()
+        
+class MediaAttachment(BaseModel):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media_attachments')
+    media_type = models.CharField(max_length=5, choices=MediaType.choices)
+    file = models.FileField(upload_to='post_media/')
+    thumbnail = models.ImageField(upload_to='post_thumbnails/', blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        indexes = [
+            models.Index(fields=['post', 'media_type']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_media_type_display()} for {self.post}"
+
+
 # Comments and Likes
 class Comment(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    replied = models.BooleanField(default=False)
-    comment_text = models.TextField()
-    reply_to = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies'
-    )
-    parent_comment = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_comments'
-    )
+    content = models.TextField()
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['post', 'user']),
+        ]
 
     def __str__(self):
         return f"Comment by {self.user} on {self.post}"
 
 
 class Like(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('post', 'user')
-
-    def clean(self):
-        if Like.objects.filter(post=self.post, user=self.user).exists():
-            raise ValidationError('User has already liked this post.')
+        indexes = [
+            models.Index(fields=['post', 'user']),
+        ]
 
     def __str__(self):
         return f"{self.user} likes {self.post}"
