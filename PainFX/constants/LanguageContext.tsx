@@ -60,7 +60,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const t = useCallback((key: string, params?: object) => i18n.t(key, params), [locale]);
+  const t = useCallback((key: string, params?: object) => i18n.t(key, params), []);
 
   const isRTL = ['ar', 'ku'].includes(locale);
 

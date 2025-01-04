@@ -4,13 +4,10 @@ module.exports = {
   settings: {
     'import/resolver': {
       node: {
-        paths: ['app','components'],
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-      },
-      alias: {
-        map: [['@', './components']],
+        paths: ['app', 'locales','components', 'hooks', 'constants'],
         extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
     },
   },
+  
 };
