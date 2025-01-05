@@ -18,7 +18,7 @@ export const postSchema = z.object({
     title: z.string().nullable().optional(),
     doctor: doctorSchema.optional(),
     content: z.string().nullable().optional(),
-    media_attachments: media_attachmentsSchema.nullable().optional(),
+    media_attachments: z.array(media_attachmentsSchema).nullable().optional(),
     comments_count: z.number().nullable().optional(),
     likes_count: z.number().nullable().optional(),
     created_at: z.string().datetime().nullable().optional(),
