@@ -28,7 +28,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
 
     if (isVideo) {
       return (
-        <div className="relative aspect-video" key={index}>
+        <div className="relative aspect-video min-w-[300px] mx-2" key={index}>
           {(!isPlaying && (media.url || media.thumbnail)) && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Image 
@@ -61,7 +61,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
     } else {
       // Render image
       return (
-        <div className="relative aspect-video" key={index}>
+        <div className="relative aspect-video min-w-[300px] mx-2" key={index}>
           <Image 
             src={mediaSource} 
             alt="Post media" 
@@ -77,12 +77,12 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
   return (
     <>
       {mediaAttachments && mediaAttachments.length > 0 && (
-        <div className="mb-4 px-3">
+        <div className="mb-4 px-3 overflow-x-auto flex space-x-4">
           {mediaAttachments.map((media, index) => (
             <React.Fragment key={index}>
               {renderMedia(media, index)}
               {index < mediaAttachments.length - 1 && (
-                <Separator orientation="horizontal" className="my-3" />
+                <Separator orientation="vertical" className="my-3" />
               )}
             </React.Fragment>
           ))}
@@ -99,4 +99,3 @@ PostMedia.Skeleton = function ItemSkeleton() {
     </div>
   )
 }
-
