@@ -115,7 +115,7 @@ export function EditPostModal() {
                 <Label htmlFor="video_url">{t("enter_video_url")}</Label>
                 <Input
                   id="video_url"
-                  defaultValue={data?.Post?.video_url || ""}
+                  defaultValue={data?.Post?.media_attachments?.url || ""}
                   type="url"
                   {...register("video_url")}
                 />
@@ -129,7 +129,7 @@ export function EditPostModal() {
                 <Label htmlFor="thumbnail_url">{t("thumbnail_url")}</Label>
                 <Input
                   id="thumbnail_url"
-                  defaultValue={data?.Post?.thumbnail_url || ""}
+                  defaultValue={data?.Post?.media_attachments?.thumbnail || ""}
                   type="url"
                   {...register("thumbnail_url")}
                 />
