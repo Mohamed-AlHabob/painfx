@@ -110,10 +110,10 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='painfx_datebase_gzxx'),
-        'USER': env('POSTGRES_USER', default='painfx_datebase_gzxx_user'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='y1YQZtSIgAnIit1KTLQoMflW9asfPZ7I'),
-        "HOST": env("POSTGRES_HOST", default="dpg-ctmdu2dumphs73deglcg-a"),
+        'NAME': env('POSTGRES_DB', default='painfx_datebase_6a8y'),
+        'USER': env('POSTGRES_USER', default='painfx_datebase_6a8y_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='YhiLxXLywsv1rX9vEpZi5jAENjMLrnoc'),
+        "HOST": env("POSTGRES_HOST", default="dpg-ctsrblbv2p9s738dqj00-a"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
@@ -187,6 +187,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
+}
+
+# Add caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
 }
 
 # Djoser settings

@@ -1,10 +1,20 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator,FileExtensionValidator
 from apps.authentication.models import Specialization, User, Doctor, Patient
-from django.db.models import Q
 from apps.core.general import BaseModel
+from django.utils.translation import gettext_lazy as _
+
+
+def validate_file_size(value):
+    max_size = getattr(5 * 1024 * 1024)  # 5 MB default
+    if value.size > max_size:
+        raise ValidationError(
+            _('File size cannot exceed %(max_size)s MB.'),
+            params={'max_size': max_size / (1024 * 1024)},
+        )
+
 # Enum Choices
 class ReservationStatus(models.TextChoices):
     PENDING = 'pending', 'Pending'
@@ -29,9 +39,9 @@ class CampaignStatus(models.TextChoices):
 class MediaType(models.TextChoices):
     IMAGE = 'image', 'Image'
     VIDEO = 'video', 'Video'
-# ---------------------------------------------
-# Tags
-# ---------------------------------------------
+
+
+
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -44,10 +54,6 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
-
-# ---------------------------------------------
-# Clinics, Branches, and their Doctors
-# ---------------------------------------------
 class Clinic(BaseModel):
     name = models.CharField(max_length=255, db_index=True)
     address = models.CharField(max_length=255, blank=True)
@@ -73,11 +79,11 @@ class Clinic(BaseModel):
         ]
         constraints = [
             models.CheckConstraint(
-                check=Q(latitude__gte=-90) & Q(latitude__lte=90),
+                check=models.Q(latitude__gte=-90) & models.Q(latitude__lte=90),
                 name='valid_latitude'
             ),
             models.CheckConstraint(
-                check=Q(longitude__gte=-180) & Q(longitude__lte=180),
+                check=models.Q(longitude__gte=-180) & models.Q(longitude__lte=180),
                 name='valid_longitude'
             ),
         ]
@@ -150,9 +156,7 @@ class BannedPatient(BaseModel):
 
     def __str__(self):
         return f"{self.patient} banned from {self.clinic}"
-# ---------------------------------------------
-# Branches for Clinics
-# ---------------------------------------------
+
 class Branch(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='branches')
     name = models.CharField(max_length=255)
@@ -185,14 +189,22 @@ class BranchDoctor(BaseModel):
     def __str__(self):
         return f"{self.doctor} at {self.branch}"
 
-# ---------------------------------------------
-# Reservations
-# ---------------------------------------------
+
 class Reservation(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations')
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
-    status = models.CharField(max_length=10, choices=ReservationStatus.choices, default=ReservationStatus.PENDING, db_index=True)
+    status = models.CharField(
+        max_length=10,
+        choices=[
+            ('pending', _('Pending')),
+            ('approved', _('Approved')),
+            ('rejected', _('Rejected')),
+            ('cancelled', _('Cancelled'))
+        ],
+        default='pending',
+        db_index=True
+    )
     reason_for_cancellation = models.TextField(blank=True)
     reservation_date = models.DateField(db_index=True)
     reservation_time = models.TimeField()
@@ -204,20 +216,14 @@ class Reservation(BaseModel):
             models.Index(fields=['doctor']),
             models.Index(fields=['reservation_date', 'reservation_time']),
         ]
-        constraints = [
-            models.CheckConstraint(
-                check=Q(status__in=ReservationStatus.values),
-                name='valid_reservation_status'
-            )
-        ]
 
     def clean(self):
         if not self.clinic and not self.doctor:
-            raise ValidationError('A reservation must be linked to either a clinic or a doctor.')
+            raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
         if self.clinic and not self.clinic.reservation_open:
-            raise ValidationError('Reservations are currently closed for the selected clinic.')
+            raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
         if not self.clinic and self.doctor and not self.doctor.reservation_open:
-            raise ValidationError('Reservations are currently closed for the selected doctor.')
+            raise ValidationError(_('Reservations are currently closed for the selected doctor.'))
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -230,27 +236,12 @@ class Reservation(BaseModel):
     def get_upcoming_reservations(cls, clinic_or_doctor):
         from django.utils import timezone
         return cls.objects.filter(
-            Q(clinic=clinic_or_doctor) | Q(doctor=clinic_or_doctor),
+            models.Q(clinic=clinic_or_doctor) | models.Q(doctor=clinic_or_doctor),
             reservation_date__gte=timezone.now().date(),
-            status=ReservationStatus.APPROVED
+            status='approved'
         ).select_related('patient', 'doctor', 'clinic')
 
 
-
-
-
-class ReservationDoctor(BaseModel):
-    reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    assigned_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.doctor} assigned to {self.reservation}"
-
-
-# ---------------------------------------------
-# Reviews
-# ---------------------------------------------
 class Review(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews')
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reviews')
@@ -282,12 +273,9 @@ class Review(BaseModel):
     def get_clinic_average_rating(cls, clinic):
         return cls.objects.filter(clinic=clinic).aggregate(models.Avg('rating'))['rating__avg']
 
-# ---------------------------------------------
-# Posts, Videos, Comments, and Likes
-# ---------------------------------------------
 class Post(BaseModel):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='posts')
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255,blank=True, null=True)
     content = models.TextField(blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
     view_count = models.PositiveIntegerField(default=0)
@@ -316,8 +304,22 @@ class Post(BaseModel):
 class MediaAttachment(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media_attachments')
     media_type = models.CharField(max_length=5, choices=MediaType.choices)
-    file = models.FileField(upload_to='post_media/')
-    thumbnail = models.ImageField(upload_to='post_thumbnails/', blank=True, null=True)
+    file = models.FileField(
+        upload_to='post_media/',
+        blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'mp4', 'mov']),
+            validate_file_size
+        ]
+    )
+    thumbnail = models.ImageField(
+        upload_to='post_thumbnails/',
+        blank=True,
+        null=True,
+        validators=[validate_file_size]
+    )
+    url = models.URLField(blank=True, null=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -326,11 +328,20 @@ class MediaAttachment(BaseModel):
             models.Index(fields=['post', 'media_type']),
         ]
 
+    def clean(self):
+        if not self.file and not self.url:
+            raise ValidationError("Either a file or a URL must be provided.")
+        if self.file and self.url:
+            raise ValidationError("Only one of file or URL should be provided, not both.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.get_media_type_display()} for {self.post}"
 
 
-# Comments and Likes
 class Comment(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -359,9 +370,7 @@ class Like(BaseModel):
     def __str__(self):
         return f"{self.user} likes {self.post}"
     
-# ---------------------------------------------
-# Categories, Subscriptions, and Payments
-# ---------------------------------------------
+
 class Category(BaseModel):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -412,9 +421,6 @@ class Subscription(BaseModel):
     def __str__(self):
         return f"{self.user} subscribed to {self.category}"
 
-# ---------------------------------------------
-# Notifications
-# ---------------------------------------------
 class Notification(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
@@ -424,9 +430,6 @@ class Notification(BaseModel):
         return f"Notification for {self.user}"
 
 
-# ---------------------------------------------
-# Event Schedules
-# ---------------------------------------------
 class EventSchedule(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
@@ -442,9 +445,6 @@ class EventSchedule(BaseModel):
     def __str__(self):
         return f"Event {self.event_name} at {self.clinic}"
 
-# ---------------------------------------------
-# Advertising Campaigns
-# ---------------------------------------------
 class AdvertisingCampaign(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE)
     campaign_name = models.CharField(max_length=255)
@@ -462,9 +462,6 @@ class AdvertisingCampaign(BaseModel):
     def __str__(self):
         return f"Campaign {self.campaign_name} for {self.clinic}"
 
-# ---------------------------------------------
-# Users Audit Trail
-# ---------------------------------------------
 class UsersAudit(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     changed_data = models.JSONField()

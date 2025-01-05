@@ -12,20 +12,13 @@ export interface CreatePostRequest {
   title: string;
   content: string;
   tags?: number[];
-  video_file?: File;
-  video_url?: string;
-  thumbnail_url?: string;
 }
 
-// New Interfaces for Update and Delete
 export interface UpdatePostRequest {
   id: string;
   title?: string;
   content?: string;
   tags?: number[];
-  video_file?: File;
-  video_url?: string;
-  thumbnail_url?: string;
 }
 
 export interface DeletePostRequest {

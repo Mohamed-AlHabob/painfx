@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { patientSchema } from '../Patient';
 import { doctorSchema } from '../Doctor';
+import { clinicSchema } from '../Clinic';
 
 
 export const ReservationStatusEnum = z.enum([
@@ -15,8 +16,8 @@ export const ReservationStatusEnum = z.enum([
 export const reservationSchema = z.object({
   id: z.string().uuid().optional(),
   patient: patientSchema.nullable().optional(),
-  clinic:z.string().nullable().optional(),
-  doctor: z.string().nullable().optional(),
+  clinic:z.array(clinicSchema).nullable().optional(),
+  doctor: z.array(doctorSchema).nullable().optional(),
   status: ReservationStatusEnum.optional(),
   reasonForCancellation: z.string().optional(),
   reservation_date: z.string().date().nullable().optional(),

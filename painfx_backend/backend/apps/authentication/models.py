@@ -3,15 +3,12 @@ from django.db import models
 from django.core.validators import EmailValidator
 from django.core.validators import RegexValidator
 from apps.core.general import BaseModel
+from django.utils.translation import gettext_lazy as _
 
-# User Management and Authentication
 class UserManager(BaseUserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(is_deleted=False)
-
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("The Email field must be set")
+            raise ValueError(_("The Email field must be set"))
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -23,32 +20,38 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
 
         if not extra_fields.get("is_staff"):
-            raise ValueError("Superuser must have is_staff=True.")
+            raise ValueError(_("Superuser must have is_staff=True."))
         if not extra_fields.get("is_superuser"):
-            raise ValueError("Superuser must have is_superuser=True.")
+            raise ValueError(_("Superuser must have is_superuser=True."))
 
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
-    email = models.EmailField(unique=True, max_length=255, validators=[EmailValidator()])
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(
+        unique=True, 
+        max_length=255, 
+        validators=[EmailValidator()],
+        verbose_name=_("Email Address")
+    )
+    first_name = models.CharField(max_length=30, blank=True, verbose_name=_("First Name"))
+    last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last Name"))
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     role = models.CharField(
         max_length=10,
-        choices=[("patient", "Patient"), ("doctor", "Doctor"), ("clinic", "Clinic")],
+        choices=[("patient", _("Patient")), ("doctor", _("Doctor")), ("clinic", _("Clinic"))],
         default="patient",
+        verbose_name=_("User Role")
     )
-    date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     class Meta:
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
         indexes = [
             models.Index(fields=['email']),
             models.Index(fields=['role']),
@@ -63,12 +66,6 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip() or self.email
-    
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser
-
-    def has_module_perms(self, app_label):
-        return self.is_superuser
 
     def __str__(self):
         return self.get_full_name()
@@ -83,11 +80,9 @@ class UserProfile(BaseModel):
     phone_number = models.CharField(
         max_length=15,
         blank=True,
-        validators=[RegexValidator(regex=r"^\+?1?\d{9,15}$", message="Phone number must be in the format: '+999999999'.")],
+        validators=[RegexValidator(regex=r"^\+?1?\d{9,15}$", message=_("Phone number must be in the format: '+999999999'."))],
     )
-    html_content = models.TextField(blank=True)
-    json_content = models.JSONField(blank=True, null=True)
-    gender = models.CharField(max_length=10, choices=[("male", "Male"), ("female", "Female"), ("other", "Other")], blank=True)
+    gender = models.CharField(max_length=10, choices=[("he", _("He")), ("she", _("She")), ("other", _("Other"))], blank=True)
 
     class Meta:
         indexes = [
@@ -98,29 +93,32 @@ class UserProfile(BaseModel):
     def __str__(self):
         return f"Profile of {self.user.get_full_name()}"
 
-
-class Patient(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient')
-    medical_history = models.TextField(blank=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['user']),
-        ]
-
-    def __str__(self):
-        return f"Patient: {self.user.get_full_name()}"
-
 class Specialization(BaseModel):
     name = models.CharField(max_length=255, unique=True)
 
     class Meta:
+        verbose_name = _("Specialization")
+        verbose_name_plural = _("Specializations")
         indexes = [
             models.Index(fields=['name']),
         ]
 
     def __str__(self):
         return self.name
+
+class Patient(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient')
+    medical_history = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = _("Patient")
+        verbose_name_plural = _("Patients")
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"Patient: {self.user.get_full_name()}"
     
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor')
@@ -133,6 +131,8 @@ class Doctor(models.Model):
     reservation_open = models.BooleanField(default=True)
 
     class Meta:
+        verbose_name = _("Doctor")
+        verbose_name_plural = _("Doctors")
         indexes = [
             models.Index(fields=['user']),
             models.Index(fields=['specialization']),

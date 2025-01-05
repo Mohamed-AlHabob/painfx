@@ -3,7 +3,7 @@ from apps.booking_app.models import (
     Clinic, Reservation, ReservationStatus, Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
     Payment, Notification, EventSchedule, AdvertisingCampaign,
-    UsersAudit, Tag
+    UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment
 )
 from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
 
@@ -22,15 +22,42 @@ class ClinicSerializer(serializers.ModelSerializer):
         model = Clinic
         fields = ['id', 'name', 'address', 'doctors', 'icon', 'owner', 'specialization', 'description',
                   'reservation_open', 'privacy', 'active', 'license_number', 'license_expiry_date',
-                  'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+                  'created_at']
+        read_only_fields = ['id', 'created_at']
+        
+class ClinicDoctorSerializer(serializers.ModelSerializer):
+    clinic = ClinicSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
 
-class ReservationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClinicDoctor
+        fields = ['id', 'clinic', 'doctor', 'joined_at']
+
+class ClinicSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClinicSettings
+        fields = ['id', 'clinic', 'allow_online_bookings', 'notification_email',
+                  'default_appointment_duration', 'cancellation_policy',
+                  'working_hours', 'holiday_dates']
+
+class BannedPatientSerializer(serializers.ModelSerializer):
+    clinic = ClinicSerializer(read_only=True)
     patient = PatientSerializer(read_only=True)
 
     class Meta:
+        model = BannedPatient
+        fields = ['id', 'clinic', 'patient', 'reason', 'banned_until']
+
+class ReservationSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
+    clinic = ClinicSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
+
+    class Meta:
         model = Reservation
-        fields = ['id','clinic','status','reason_for_cancellation','reservation_date','reservation_time','patient','doctor']
+        fields = ['id', 'patient', 'clinic', 'doctor', 'status',
+                  'reason_for_cancellation', 'reservation_date', 'reservation_time']
+        read_only_fields = ['id']
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -39,10 +66,18 @@ class ReservationSerializer(serializers.ModelSerializer):
         validated_data['patient'] = user.patient
         return super().create(validated_data)
 
+    def validate(self, attrs):
+        if not attrs.get('clinic') and not attrs.get('doctor'):
+            raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
+        return attrs
+
 class ReviewSerializer(serializers.ModelSerializer):
+    clinic = ClinicSerializer(read_only=True)
+    patient = PatientSerializer(read_only=True)
+
     class Meta:
         model = Review
-        fields = ['id', 'clinic', 'patient', 'rating', 'review_text', 'created_at']
+        fields = ['id', 'clinic', 'patient', 'rating', 'review_text']
         read_only_fields = ['id', 'patient', 'created_at']
 
     def validate(self, attrs):
@@ -56,17 +91,43 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Patient must have an approved reservation at the clinic to leave a review')
         attrs['patient'] = patient
         return attrs
+    
+class MediaAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MediaAttachment
+        fields = ['id', 'post', 'media_type', 'file', 'thumbnail', 'order']
+        read_only_fields = ['id', 'post', 'order']
 
+class CommentSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'post', 'user', 'content', 'parent']
+        read_only_fields = ['id', 'user']
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Like
+        fields = ['id', 'post', 'user']
+        read_only_fields = ['id', 'user']
+    
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    media_attachments = MediaAttachmentSerializer(many=True, read_only=True)
     likes_count = serializers.IntegerField(read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'video_file', 'video_url','thumbnail_url', 'content',
-            'doctor', 'likes_count', 'comments_count',
+            'id', 'title', 'content','tags','media_attachments',
+            'doctor', 'likes_count', 'comments_count','view_count',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'doctor', 'likes_count', 'comments_count', 'created_at', 'updated_at']
@@ -78,47 +139,12 @@ class PostSerializer(serializers.ModelSerializer):
         validated_data['doctor'] = user.doctor
         return super().create(validated_data)
 
-class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ['id', 'post', 'user', 'comment_text', 'parent_comment', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
-
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
-
-class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Like
-        fields = ['id', 'post', 'user', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
-
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'description']
         read_only_fields = ['id']
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Subscription
-        fields = ['id', 'user', 'category', 'status', 'payment', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
-
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:
@@ -127,26 +153,29 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class PaymentSerializer(serializers.ModelSerializer):
-    subscription = SubscriptionSerializer(read_only=True)
-    reservation = ReservationSerializer(read_only=True)
-    method = PaymentMethodSerializer(read_only=True)
     user = UserSerializer(read_only=True)
+    method = PaymentMethodSerializer(read_only=True)
 
     class Meta:
         model = Payment
-        fields = ['id', 'user', 'amount', 'method', 'payment_status', 'subscription', 'reservation', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        fields = ['id', 'user', 'amount', 'method', 'payment_status', 'related_object']
+        read_only_fields = ['id', 'user']
+        
+class SubscriptionSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    payment = PaymentSerializer(read_only=True)
 
-    def validate(self, attrs):
-        subscription = attrs.get('subscription')
-        reservation = attrs.get('reservation')
-        if bool(subscription) == bool(reservation):
-            raise serializers.ValidationError('Payment must be associated with either a subscription or a reservation, but not both.')
-        return attrs
+    class Meta:
+        model = Subscription
+        fields = ['id', 'user', 'category', 'status', 'payment']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -157,6 +186,9 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'created_at']
 
 class EventScheduleSerializer(serializers.ModelSerializer):
+    clinic = ClinicSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
+
     class Meta:
         model = EventSchedule
         fields = ['id', 'clinic', 'doctor', 'event_name', 'start_time', 'end_time', 'description']
@@ -168,9 +200,12 @@ class EventScheduleSerializer(serializers.ModelSerializer):
         return attrs
 
 class AdvertisingCampaignSerializer(serializers.ModelSerializer):
+    clinic = ClinicSerializer(read_only=True)
+
     class Meta:
         model = AdvertisingCampaign
-        fields = ['id', 'clinic', 'image', 'goto', 'campaign_name', 'start_date', 'end_date', 'budget', 'status']
+        fields = ['id', 'clinic', 'campaign_name', 'iamge', 'start_date', 'end_date',
+                  'budget', 'status', 'goto']
         read_only_fields = ['id']
 
     def validate(self, attrs):

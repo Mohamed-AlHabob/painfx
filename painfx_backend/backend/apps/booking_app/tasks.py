@@ -6,6 +6,8 @@ from django.core.mail import send_mail
 from twilio.rest import Client
 from django.conf import settings
 from django.utils.timezone import now
+from django.utils import timezone
+from apps.booking_app.models import Reservation
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = settings.TWILIO_ACCOUNT_SID
@@ -13,6 +15,21 @@ TWILIO_AUTH_TOKEN = settings.TWILIO_AUTH_TOKEN
 TWILIO_FROM_NUMBER = settings.TWILIO_FROM_NUMBER
 
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+
+@shared_task
+def send_reservation_reminder():
+    tomorrow = timezone.now().date() + timezone.timedelta(days=1)
+    reservations = Reservation.objects.filter(reservation_date=tomorrow, status='approved')
+    
+    for reservation in reservations:
+        send_mail(
+            'Reservation Reminder',
+            f'This is a reminder for your reservation tomorrow at {reservation.reservation_time}.',
+             settings.DEFAULT_FROM_EMAIL,
+            [reservation.patient.user.email],
+            fail_silently=False,
+        )
 
 @shared_task(bind=True, max_retries=3)
 def send_sms_notification(self, user_id, message):
