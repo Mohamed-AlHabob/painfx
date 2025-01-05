@@ -189,13 +189,16 @@ REST_FRAMEWORK = {
     ]
 }
 
-# Add caching
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': env('DJANGO_REDIS_CACHS_URL',default='redis://red-ctk0mhbtq21c73e5i4gg:6379/0'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
     }
 }
+
 
 # Djoser settings
 DJOSER = {
