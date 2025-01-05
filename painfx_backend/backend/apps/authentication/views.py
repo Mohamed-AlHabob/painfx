@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
+
 class CustomProviderAuthView(ProviderAuthView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -17,33 +18,27 @@ class CustomProviderAuthView(ProviderAuthView):
             access_token = response.data.get('access')
             refresh_token = response.data.get('refresh')
 
-            if request.data.get('platform') == 'mobile':
-                response.data['access_token'] = access_token
-                response.data['refresh_token'] = refresh_token
-            else:
-                self.set_auth_cookies(response, access_token, refresh_token)
+            response.set_cookie(
+                'access',
+                access_token,
+                max_age=settings.AUTH_COOKIE_MAX_AGE,
+                path=settings.AUTH_COOKIE_PATH,
+                secure=settings.AUTH_COOKIE_SECURE,
+                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+                samesite=settings.AUTH_COOKIE_SAMESITE
+            )
+            response.set_cookie(
+                'refresh',
+                refresh_token,
+                max_age=settings.AUTH_COOKIE_MAX_AGE,
+                path=settings.AUTH_COOKIE_PATH,
+                secure=settings.AUTH_COOKIE_SECURE,
+                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+                samesite=settings.AUTH_COOKIE_SAMESITE
+            )
 
         return response
 
-    def set_auth_cookies(self, response, access_token, refresh_token):
-        response.set_cookie(
-            'access',
-            access_token,
-            max_age=settings.AUTH_COOKIE_MAX_AGE,
-            path=settings.AUTH_COOKIE_PATH,
-            secure=settings.AUTH_COOKIE_SECURE,
-            httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-            samesite=settings.AUTH_COOKIE_SAMESITE
-        )
-        response.set_cookie(
-            'refresh',
-            refresh_token,
-            max_age=settings.AUTH_COOKIE_MAX_AGE,
-            path=settings.AUTH_COOKIE_PATH,
-            secure=settings.AUTH_COOKIE_SECURE,
-            httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-            samesite=settings.AUTH_COOKIE_SAMESITE
-        )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -53,40 +48,31 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             access_token = response.data.get('access')
             refresh_token = response.data.get('refresh')
 
-            if request.data.get('platform') == 'mobile':
-                response.data['access_token'] = access_token
-                response.data['refresh_token'] = refresh_token
-            else:
-                self.set_auth_cookies(response, access_token, refresh_token)
+            response.set_cookie(
+                'access',
+                access_token,
+                max_age=settings.AUTH_COOKIE_MAX_AGE,
+                path=settings.AUTH_COOKIE_PATH,
+                secure=settings.AUTH_COOKIE_SECURE,
+                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+                samesite=settings.AUTH_COOKIE_SAMESITE
+            )
+            response.set_cookie(
+                'refresh',
+                refresh_token,
+                max_age=settings.AUTH_COOKIE_MAX_AGE,
+                path=settings.AUTH_COOKIE_PATH,
+                secure=settings.AUTH_COOKIE_SECURE,
+                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+                samesite=settings.AUTH_COOKIE_SAMESITE
+            )
 
         return response
 
-    def set_auth_cookies(self, response, access_token, refresh_token):
-        response.set_cookie(
-            'access',
-            access_token,
-            max_age=settings.AUTH_COOKIE_MAX_AGE,
-            path=settings.AUTH_COOKIE_PATH,
-            secure=settings.AUTH_COOKIE_SECURE,
-            httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-            samesite=settings.AUTH_COOKIE_SAMESITE
-        )
-        response.set_cookie(
-            'refresh',
-            refresh_token,
-            max_age=settings.AUTH_COOKIE_MAX_AGE,
-            path=settings.AUTH_COOKIE_PATH,
-            secure=settings.AUTH_COOKIE_SECURE,
-            httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-            samesite=settings.AUTH_COOKIE_SAMESITE
-        )
 
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        if request.data.get('platform') == 'mobile':
-            refresh_token = request.data.get('refresh')
-        else:
-            refresh_token = request.COOKIES.get('refresh')
+        refresh_token = request.COOKIES.get('refresh')
 
         if refresh_token:
             request.data['refresh'] = refresh_token
@@ -96,50 +82,40 @@ class CustomTokenRefreshView(TokenRefreshView):
         if response.status_code == 200:
             access_token = response.data.get('access')
 
-            if request.data.get('platform') == 'mobile':
-                response.data['access_token'] = access_token
-            else:
-                self.set_auth_cookies(response, access_token)
+            response.set_cookie(
+                'access',
+                access_token,
+                max_age=settings.AUTH_COOKIE_MAX_AGE,
+                path=settings.AUTH_COOKIE_PATH,
+                secure=settings.AUTH_COOKIE_SECURE,
+                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+                samesite=settings.AUTH_COOKIE_SAMESITE
+            )
 
         return response
 
-    def set_auth_cookies(self, response, access_token):
-        response.set_cookie(
-            'access',
-            access_token,
-            max_age=settings.AUTH_COOKIE_MAX_AGE,
-            path=settings.AUTH_COOKIE_PATH,
-            secure=settings.AUTH_COOKIE_SECURE,
-            httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-            samesite=settings.AUTH_COOKIE_SAMESITE
-        )
 
 class CustomTokenVerifyView(TokenVerifyView):
     def post(self, request, *args, **kwargs):
-        if request.data.get('platform') == 'mobile':
-            access_token = request.data.get('token')
-        else:
-            access_token = request.COOKIES.get('access')
+        access_token = request.COOKIES.get('access')
 
         if access_token:
             request.data['token'] = access_token
 
         return super().post(request, *args, **kwargs)
 
+
 class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
         response = Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
-        
-        if request.data.get('platform') != 'mobile':
-            response.delete_cookie(
-                'access',
-                path=settings.AUTH_COOKIE_PATH,
-                samesite=settings.AUTH_COOKIE_SAMESITE
-            )
-            response.delete_cookie(
-                'refresh',
-                path=settings.AUTH_COOKIE_PATH,
-                samesite=settings.AUTH_COOKIE_SAMESITE
-            )
-        
+        response.delete_cookie(
+            'access',
+            path=settings.AUTH_COOKIE_PATH,
+            samesite=settings.AUTH_COOKIE_SAMESITE
+        )
+        response.delete_cookie(
+            'refresh',
+            path=settings.AUTH_COOKIE_PATH,
+            samesite=settings.AUTH_COOKIE_SAMESITE
+        )
         return response
