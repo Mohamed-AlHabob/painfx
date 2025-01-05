@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Play } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { Post } from '@/schemas/Social/post';
-import {Interactions} from '@/features/X/post/components/post-feed/interactions';
-
+import { Interactions } from '@/features/X/post/components/post-feed/interactions';
 
 interface ReelItemProps {
   reel: Post;
@@ -48,6 +47,8 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
     }
   };
 
+  const mediaAttachment = reel.media_attachments?.[0]; // Access the first media attachment safely
+
   return (
     <motion.div
       ref={containerRef}
@@ -57,63 +58,62 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
       transition={{ duration: 0.5 }}
       className="mb-6"
     >
-
-    {(reel.media_attachments?.[0].file !== null || reel.media_attachments?.[0].url) ? (
-      <Card className="w-full max-w-lg h-[calc(100vh-100px)] overflow-hidden relative">
-        <CardContent className="p-0 h-full">
-          <div className="relative h-full">
-                {!isPlaying && reel.media_attachments?.[0].thumbnail && (
-                  <Image
-                    src={reel.media_attachments?.[0].thumbnail}
-                    alt="Reel thumbnail"
-                    fill
-                    style={{ objectFit: 'cover' }}
-                  />
-                )}
-                <video
-                  ref={videoRef}
-                  src={reel.media_attachments?.[0].file || reel.media_attachments?.[0].url || ""}
-                  className="w-full h-full object-cover"
-                  loop
-                  playsInline
-                  onError={() => setIsPlaying(false)}
+      {mediaAttachment && (mediaAttachment.file || mediaAttachment.url) ? (
+        <Card className="w-full max-w-lg h-[calc(100vh-100px)] overflow-hidden relative">
+          <CardContent className="p-0 h-full">
+            <div className="relative h-full">
+              {!isPlaying && mediaAttachment.thumbnail && (
+                <Image
+                  src={mediaAttachment.thumbnail}
+                  alt="Reel thumbnail"
+                  fill
+                  style={{ objectFit: 'cover' }}
                 />
-                {!isPlaying && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute inset-0 w-full h-full bg-black/30 flex items-center justify-center"
-                    onClick={togglePlay}
-                    aria-label={isPlaying ? "Pause Video" : "Play Video"}
-                  >
-                    <Play className="w-16 h-16 " />
-                  </Button>
-                )}
-          </div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-            className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent"
-            >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Avatar>
-                  <AvatarImage src={reel.doctor?.user?.profile?.avatar || ""} alt={reel.doctor?.user.first_name || ""} />
-                  <AvatarFallback>{reel.doctor?.user?.first_name?.charAt(0) || "S"}</AvatarFallback>
-                </Avatar>
-                <span className="font-semibold">
-                  {`${reel.doctor?.user.first_name || ""} ${reel.doctor?.user.last_name || ""}`}
-                </span>
-              </div>
-              <div className="flex space-x-2">
-                <Interactions postId={reel.id || ""} initialLikeCount={reel.likes_count || 0} commentsCount={reel.comments_count || 0} />
-              </div>
+              )}
+              <video
+                ref={videoRef}
+                src={mediaAttachment.file || mediaAttachment.url || ""}
+                className="w-full h-full object-cover"
+                loop
+                playsInline
+                onError={() => setIsPlaying(false)}
+              />
+              {!isPlaying && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute inset-0 w-full h-full bg-black/30 flex items-center justify-center"
+                  onClick={togglePlay}
+                  aria-label={isPlaying ? "Pause Video" : "Play Video"}
+                >
+                  <Play className="w-16 h-16 " />
+                </Button>
+              )}
             </div>
-            <p className="mt-2">{reel.title}</p>
-          </motion.div>
-        </CardContent>
-      </Card>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Avatar>
+                    <AvatarImage src={reel.doctor?.user?.profile?.avatar || ""} alt={reel.doctor?.user.first_name || ""} />
+                    <AvatarFallback>{reel.doctor?.user?.first_name?.charAt(0) || "S"}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-semibold">
+                    {`${reel.doctor?.user.first_name || ""} ${reel.doctor?.user.last_name || ""}`}
+                  </span>
+                </div>
+                <div className="flex space-x-2">
+                  <Interactions postId={reel.id || ""} initialLikeCount={reel.likes_count || 0} commentsCount={reel.comments_count || 0} />
+                </div>
+              </div>
+              <p className="mt-2">{reel.title}</p>
+            </motion.div>
+          </CardContent>
+        </Card>
       ) : null}
     </motion.div>
   );
