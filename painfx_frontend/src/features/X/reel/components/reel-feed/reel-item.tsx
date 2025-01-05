@@ -9,6 +9,7 @@ import { Play } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { Post } from '@/schemas/Social/post';
 import { Interactions } from '@/features/X/post/components/post-feed/interactions';
+import { ReelVideo } from './reel-video';
 
 interface ReelItemProps {
   reel: Post;
@@ -61,35 +62,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
       {mediaAttachment && (mediaAttachment.file || mediaAttachment.url) ? (
         <Card className="w-full max-w-lg h-[calc(100vh-100px)] overflow-hidden relative">
           <CardContent className="p-0 h-full">
-            <div className="relative h-full">
-              {!isPlaying && mediaAttachment.thumbnail && (
-                <Image
-                  src={mediaAttachment.thumbnail}
-                  alt="Reel thumbnail"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                />
-              )}
-              <video
-                ref={videoRef}
-                src={mediaAttachment.file || mediaAttachment.url || ""}
-                className="w-full h-full object-cover"
-                loop
-                playsInline
-                onError={() => setIsPlaying(false)}
-              />
-              {!isPlaying && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute inset-0 w-full h-full bg-black/30 flex items-center justify-center"
-                  onClick={togglePlay}
-                  aria-label={isPlaying ? "Pause Video" : "Play Video"}
-                >
-                  <Play className="w-16 h-16 " />
-                </Button>
-              )}
-            </div>
+            <ReelVideo video={Array.isArray(reel?.media_attachments) ? reel.media_attachments : []} />
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

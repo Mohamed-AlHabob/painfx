@@ -7,13 +7,12 @@ import { Play } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactPlayer from 'react-player';
 import { MediaAttachments } from '@/schemas/Social/post';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-interface PostMediaProps {
-  mediaAttachments: MediaAttachments[];
+interface ReelVideoProps {
+  video: MediaAttachments[];
 }
 
-export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
+export const ReelVideo = ({ video }: ReelVideoProps) => {
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
 
   const handlePlayClick = (index: number) => {
@@ -31,13 +30,12 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
       return (
           <div className="relative aspect-video" key={index}>
             {(!isPlaying && (media.url || media.thumbnail)) && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Image 
-                  src={media.thumbnail || media.url || ''} 
-                  alt="Thumbnail" 
-                  layout="fill" 
-                  objectFit="cover" 
-                  className="rounded"
+             <div className="relative h-full">
+                <Image
+                  src={media.thumbnail}
+                  alt="Reel thumbnail"
+                  fill
+                  style={{ objectFit: 'cover' }}
                 />
                 <button 
                   onClick={() => handlePlayClick(index)}
@@ -58,45 +56,32 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
               />
             )}
           </div>
+
       );
     } else {
-      // Render image
-      return (
-          <div className="relative aspect-video" key={index}>
-            <Image 
-              src={mediaSource} 
-              alt="Post media" 
-              layout="fill" 
-              objectFit="cover" 
-              className="rounded"
-            />
-          </div>
-      );
+      return null
     }
   };
 
   return (
     <>
-      {mediaAttachments && mediaAttachments.length > 0 && (
-        <ScrollArea className="w-full h-[280px] dark:bg-[#1C1C1E] whitespace-nowrap rounded-lg border dark:border-[#27272A] overflow-hidden">
+      {video && video.length > 0 && (
         <div className="mb-4 px-3">
-          {mediaAttachments.map((media, index) => (
+          {video.map((media, index) => (
             <React.Fragment key={index}>
               {renderMedia(media, index)}
-              {index < mediaAttachments.length - 1 && (
+              {index < video.length - 1 && (
                 <Separator orientation="horizontal" className="my-3" />
               )}
             </React.Fragment>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
       )}
     </>
   );
 };
 
-PostMedia.Skeleton = function ItemSkeleton() {
+ReelVideo.Skeleton = function ItemSkeleton() {
   return (
     <div className="w-full pt-4 dark:bg-[#1C1C1E] rounded-lg border dark:border-[#27272A] overflow-hidden">
       <Skeleton className="h-[280px] w-full dark:bg-[#202020]" />
