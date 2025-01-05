@@ -191,8 +191,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 # Post ViewSet
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().annotate(
-        likes_count=Count('like', distinct=True),
-        comments_count=Count('comment', distinct=True)
+        likes_count=Count('likes', distinct=True),
+        comments_count=Count('comments', distinct=True)
+
     )
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -201,8 +202,8 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def stats(self, request):
         stats = Post.objects.annotate(
-            likes_count=Count('like', distinct=True),
-            comments_count=Count('comment', distinct=True)
+            likes_count=Count('likes', distinct=True),
+            comments_count=Count('comments', distinct=True)
         ).values('id', 'title', 'likes_count', 'comments_count')
         return Response(stats)
 
