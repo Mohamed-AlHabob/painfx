@@ -66,7 +66,7 @@ export const PostItem = ({ post }: PostItemProps) => {
         </Link>
       </CardContent>
       <Separator orientation="horizontal" className="mt-3" />
-      <PostMedia mediaAttachments={post.media_attachments || []} />
+      <PostMedia mediaAttachments={Array.isArray(post?.media_attachments) ? post.media_attachments : []} />
       <Interactions 
         postId={post.id || ""} 
         initialLikeCount={post.likes_count || 0} 
