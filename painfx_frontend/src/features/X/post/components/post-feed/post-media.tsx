@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -29,68 +29,65 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
 
     if (isVideo) {
       return (
-          <div className="relative aspect-video" key={index}>
-            {(!isPlaying && (media.url || media.thumbnail)) && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Image 
-                  src={media.thumbnail || media.url || ''} 
-                  alt="Thumbnail" 
-                  layout="fill" 
-                  objectFit="cover" 
-                  className="rounded"
-                />
-                <button 
-                  onClick={() => handlePlayClick(index)}
-                  className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hover:bg-opacity-30 transition-opacity"
-                >
-                  <Play className="w-16 h-16 text-white" />
-                </button>
-              </div>
-            )}
-            {(isPlaying || !media.thumbnail) && (
-              <ReactPlayer
-                url={mediaSource}
-                playing={isPlaying}
-                controls
-                width="100%"
-                height="100%"
-                className="rounded"
+        <div className="relative aspect-video" key={index}>
+          {!isPlaying && media.thumbnail && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Image 
+                src={media.thumbnail} 
+                alt="Thumbnail" 
+                fill
+                className="rounded object-cover"
               />
-            )}
-          </div>
-      );
-    } else {
-      // Render image
-      return (
-          <div className="relative aspect-video" key={index}>
-            <Image 
-              src={mediaSource} 
-              alt="Post media" 
-              layout="fill" 
-              objectFit="cover" 
+              <button 
+                onClick={() => handlePlayClick(index)}
+                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hover:bg-opacity-30 transition-opacity"
+              >
+                <Play className="w-16 h-16 text-white" />
+              </button>
+            </div>
+          )}
+          {(isPlaying || !media.thumbnail) && (
+            <ReactPlayer
+              url={mediaSource}
+              playing={isPlaying}
+              controls
+              width="100%"
+              height="100%"
               className="rounded"
             />
-          </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div className="relative aspect-video" key={index}>
+          <Image 
+            src={mediaSource} 
+            alt="Post media" 
+            fill
+            className="rounded object-cover"
+          />
+        </div>
       );
     }
   };
 
   return (
     <>
-      {mediaAttachments && mediaAttachments.length > 0 && (
-        <ScrollArea className="w-full h-[280px] dark:bg-[#1C1C1E] whitespace-nowrap rounded-lg border dark:border-[#27272A] overflow-hidden">
-        <div className="mb-4 px-3">
-          {mediaAttachments.map((media, index) => (
-            <React.Fragment key={index}>
-              {renderMedia(media, index)}
-              {index < mediaAttachments.length - 1 && (
-                <Separator orientation="horizontal" className="my-3" />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      {mediaAttachments?.length > 0 && (
+        <ScrollArea className="w-full h-[280px] dark:bg-[#1C1C1E] rounded-lg border dark:border-[#27272A] overflow-hidden">
+          <div className="mb-4 px-3">
+            {mediaAttachments.map((media, index) => (
+              <React.Fragment key={index}>
+                {renderMedia(media, index)}
+                {index < mediaAttachments.length - 1 && (
+                  <Separator orientation="horizontal" className="my-3" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       )}
     </>
   );
@@ -102,4 +99,4 @@ PostMedia.Skeleton = function ItemSkeleton() {
       <Skeleton className="h-[280px] w-full dark:bg-[#202020]" />
     </div>
   );
-}
+};
