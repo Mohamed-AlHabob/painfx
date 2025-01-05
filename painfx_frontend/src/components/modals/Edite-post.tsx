@@ -34,13 +34,13 @@ export function EditPostModal() {
     const values: Partial<PostFormValues> = {
       title: formData.get("title") as string,
       content: formData.get("content") as string,
-      video_url: formData.get("video_url") as string,
-      thumbnail_url: formData.get("thumbnail_url") as string,
+      file: formData.get("file") as File,
+      thumbnail: formData.get("thumbnail") as string,
     };
 
     const videoFile = formData.get("video_file") as File | null;
     if (videoFile instanceof File) {
-      values.video_file = videoFile;
+      values.file = videoFile;
     }
 
     updatePost(postId, values);
@@ -98,44 +98,44 @@ export function EditPostModal() {
           {isVideoExpanded && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="video_file">{t("upload_video_file")}</Label>
+                <Label htmlFor="file">{t("upload_video_file")}</Label>
                 <Input
-                  id="video_file"
+                  id="file"
                   type="file"
                   accept="video/*"
-                  {...register("video_file")}
+                  {...register("file")}
                 />
-                {errors.video_file && (
+                {errors.file && (
                   <p className="text-red-500 text-sm">
-                    {errors.video_file.message}
+                    {errors.file.message}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="video_url">{t("enter_video_url")}</Label>
+                <Label htmlFor="url">{t("enter_video_url")}</Label>
                 <Input
-                  id="video_url"
-                  defaultValue={data?.Post?.media_attachments?.url || ""}
+                  id="url"
+                  defaultValue={data?.Post?.media_attachments?.[0]?.url || ""}
                   type="url"
-                  {...register("video_url")}
+                  {...register("url")}
                 />
-                {errors.video_url && (
+                {errors.url && (
                   <p className="text-red-500 text-sm">
-                    {errors.video_url.message}
+                    {errors.url.message}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="thumbnail_url">{t("thumbnail_url")}</Label>
+                <Label htmlFor="thumbnail">{t("thumbnail")}</Label>
                 <Input
-                  id="thumbnail_url"
-                  defaultValue={data?.Post?.media_attachments?.thumbnail || ""}
+                  id="thumbnail"
+                  defaultValue={data?.Post?.media_attachments?.[0]?.thumbnail ?? ""}
                   type="url"
-                  {...register("thumbnail_url")}
+                  {...register("thumbnail")}
                 />
-                {errors.thumbnail_url && (
+                {errors.thumbnail && (
                   <p className="text-red-500 text-sm">
-                    {errors.thumbnail_url.message}
+                    {errors.thumbnail.message}
                   </p>
                 )}
               </div>

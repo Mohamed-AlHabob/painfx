@@ -18,9 +18,9 @@ export interface PostFormValues {
   id?: string;
   title: string;
   content: string;
-  video_file?: File;
-  video_url?: string;
-  thumbnail_url?: string;
+  file?: File;
+  url?: string;
+  thumbnail?: string;
 }
 
 export const usePosts = () => {
