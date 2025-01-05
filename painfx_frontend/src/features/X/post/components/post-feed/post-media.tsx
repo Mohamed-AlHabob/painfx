@@ -29,7 +29,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
 
     if (isVideo) {
       return (
-        <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden" key={index}>
+        <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden flex items-center justify-center">
           {!isPlaying && media.thumbnail && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Image 
@@ -53,19 +53,19 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
               controls
               width="100%"
               height="100%"
-              className="rounded"
+              className="absolute top-0 left-0 w-full h-full"
             />
           )}
         </div>
       );
     } else {
       return (
-         <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden" key={index}>
+         <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden flex items-center justify-center">
           <Image 
             src={mediaSource} 
             alt="Post media" 
             fill
-            className="rounded object-cover"
+            className="rounded object-cover object-center"
           />
         </div>
       );
