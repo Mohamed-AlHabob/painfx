@@ -29,7 +29,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
 
     if (isVideo) {
       return (
-        <div className="relative aspect-video" key={index}>
+        <div className="relative min-w-[320px] h-[280px] rounded overflow-hidden" key={index}>
           {!isPlaying && media.thumbnail && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Image 
@@ -60,7 +60,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
       );
     } else {
       return (
-        <div className="relative aspect-video" key={index}>
+        <div className="relative min-w-[320px] h-[280px] rounded overflow-hidden" key={index}>
           <Image 
             src={mediaSource} 
             alt="Post media" 
@@ -75,14 +75,11 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
   return (
     <>
       {mediaAttachments?.length > 0 && (
-        <ScrollArea className="w-full h-[280px] dark:bg-[#1C1C1E] rounded-lg border dark:border-[#27272A] overflow-hidden">
-          <div className="mb-4 px-3">
+        <ScrollArea className="w-full rounded-lg border dark:border-[#27272A] overflow-hidden">
+          <div className="flex space-x-3 px-3 py-2">
             {mediaAttachments.map((media, index) => (
               <React.Fragment key={index}>
                 {renderMedia(media, index)}
-                {index < mediaAttachments.length - 1 && (
-                  <Separator orientation="horizontal" className="my-3" />
-                )}
               </React.Fragment>
             ))}
           </div>
