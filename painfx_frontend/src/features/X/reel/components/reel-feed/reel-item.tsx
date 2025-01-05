@@ -58,13 +58,13 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
       className="mb-6"
     >
 
-    {(reel.media_attachments?.file !== null || reel.media_attachments?.url) ? (
+    {(reel.media_attachments?.[0].file !== null || reel.media_attachments?.[0].url) ? (
       <Card className="w-full max-w-lg h-[calc(100vh-100px)] overflow-hidden relative">
         <CardContent className="p-0 h-full">
           <div className="relative h-full">
-                {!isPlaying && reel.media_attachments?.thumbnail && (
+                {!isPlaying && reel.media_attachments?.[0].thumbnail && (
                   <Image
-                    src={reel.media_attachments?.thumbnail}
+                    src={reel.media_attachments?.[0].thumbnail}
                     alt="Reel thumbnail"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -72,7 +72,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
                 )}
                 <video
                   ref={videoRef}
-                  src={reel.media_attachments?.file || reel.media_attachments?.url || ""}
+                  src={reel.media_attachments?.[0].file || reel.media_attachments?.[0].url || ""}
                   className="w-full h-full object-cover"
                   loop
                   playsInline

@@ -59,9 +59,9 @@ export default function PostContent() {
             id="video_file"
             type="file"
             accept="video/*"
-            {...register('video_file')}
+            {...register('file')}
           />
-          {errors.video_file && <p className="text-red-500 text-sm">{errors.video_file.message}</p>}
+          {errors.file && <p className="text-red-500 text-sm">{errors.file.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="video_url">Or Enter Video URL</Label>
@@ -69,9 +69,9 @@ export default function PostContent() {
             id="video_url"
             type="url"
             placeholder="https://example.com/video.mp4"
-            {...register('video_url')}
+            {...register('url')}
           />
-          {errors.video_url && <p className="text-red-500 text-sm">{errors.video_url.message}</p>}
+          {errors.url && <p className="text-red-500 text-sm">{errors.url.message}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="thumbnail_url">Thumbnail URL (optional)</Label>
@@ -79,9 +79,9 @@ export default function PostContent() {
             id="thumbnail_url"
             type="url"
             placeholder="https://example.com/thumbnail.jpg"
-            {...register('thumbnail_url')}
+            {...register('thumbnail')}
           />
-          {errors.thumbnail_url && <p className="text-red-500 text-sm">{errors.thumbnail_url.message}</p>}
+          {errors.thumbnail && <p className="text-red-500 text-sm">{errors.thumbnail.message}</p>}
         </div>
       </div>
     )}
