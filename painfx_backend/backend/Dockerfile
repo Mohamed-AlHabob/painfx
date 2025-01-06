@@ -23,7 +23,10 @@ COPY . .
 # Expose the application port (adjust if necessary)
 EXPOSE 8000
 
-# Command to run migrations, create superuser, and start the server
+# Copy supervisord configuration
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Command to run migrations, create superuser, and start supervisord
 CMD sh -c "\
     echo 'Running migrations...' && \
     python manage.py makemigrations && \
@@ -35,8 +38,5 @@ CMD sh -c "\
 from apps.authentication.models import User; \
 User.objects.filter(email='admin@painfx.in').exists() or \
 User.objects.create_superuser(email='admin@painfx.in',password='admin')\" && \
-    echo 'Starting Gunicorn server...' && \
-    exec gunicorn --log-level debug core.wsgi:application --bind 0.0.0.0:8000 && \
-    echo 'Starting Celery...' && \
-    exec celery -A core worker --loglevel=info -c 4 \
-"
+    echo 'Starting supervisord...' && \
+    supervisord -c /etc/supervisor/conf.d/supervisord.conf"
