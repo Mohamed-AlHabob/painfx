@@ -422,8 +422,14 @@ class Subscription(BaseModel):
         return f"{self.user} subscribed to {self.category}"
 
 class Notification(BaseModel):
+    NOTIFICATION_TYPE_CHOICES = (
+        ('like', 'Like'),
+        ('booking', 'Booking'),
+        ('comment', 'Comment'),
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPE_CHOICES)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
