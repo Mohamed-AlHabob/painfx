@@ -13,7 +13,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY ./backend/requirements.txt ./
+COPY .././backend/requirements.txt ./
 RUN pip install --upgrade pip
 RUN pip install --default-timeout=1000 -r requirements.txt
 
