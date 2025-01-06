@@ -20,4 +20,4 @@ RUN pip install --upgrade pip && \
 
 COPY . .
 
-CMD ["celery", "-A", "core", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "core", "worker", "--loglevel=info", "-c", "4"]
