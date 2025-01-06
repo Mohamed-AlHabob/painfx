@@ -31,7 +31,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
     "painfx.in",
     "www.painfx.in",
-    "painfx-backend.onrender.com",
+    "painfx.onrender.com",
     "127.0.0.1",
     "localhost",
     "api.painfx.in"
@@ -41,7 +41,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://painfx.in",
     "https://www.painfx.in",
-    "https://painfx-backend.onrender.com",
+    "https://painfx.onrender.com",
     "https://api.painfx.in"
 ])
 CORS_ALLOW_CREDENTIALS = True
@@ -332,7 +332,7 @@ if not DEVELOPMENTMODE:
     # Additional security settings
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    CSRF_TRUSTED_ORIGINS = ['https://painfx.in', 'https://www.painfx.in', 'https://painfx-backend.onrender.com']
+    CSRF_TRUSTED_ORIGINS = ['https://painfx.in', 'https://www.painfx.in', 'https://painfx.onrender.com']
     
     # Content Security Policy (CSP)
     CSP_DEFAULT_SRC = ("'self'",)
