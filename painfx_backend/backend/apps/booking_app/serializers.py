@@ -66,10 +66,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         validated_data['patient'] = user.patient
         return super().create(validated_data)
 
-    def validate(self, attrs):
-        if not attrs.get('clinic') and not attrs.get('doctor'):
-            raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
-        return attrs
+    # def validate(self, attrs):
+    #     if not attrs.get('clinic') and not attrs.get('doctor'):
+    #         raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
+    #     return attrs
 
 class ReviewSerializer(serializers.ModelSerializer):
     clinic = ClinicSerializer(read_only=True)
