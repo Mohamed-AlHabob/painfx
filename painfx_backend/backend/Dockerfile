@@ -36,5 +36,7 @@ from apps.authentication.models import User; \
 User.objects.filter(email='admin@painfx.in').exists() or \
 User.objects.create_superuser(email='admin@painfx.in',password='admin')\" && \
     echo 'Starting Gunicorn server...' && \
-    exec gunicorn --log-level debug core.wsgi:application --bind 0.0.0.0:8000 \
+    exec gunicorn --log-level debug core.wsgi:application --bind 0.0.0.0:8000 && \
+    echo 'Starting Celery...' && \
+    exec celery -A core worker --loglevel=info -c 4 \
 "
