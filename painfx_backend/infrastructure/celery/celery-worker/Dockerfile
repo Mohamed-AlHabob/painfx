@@ -17,8 +17,8 @@ COPY ./requirements.txt ./
 RUN pip install --upgrade pip
 RUN pip install --default-timeout=1000 -r requirements.txt
 
-# Copy project
-COPY . .
+# Copy the 'backend' directory into the container
+COPY ./painfx_backend/backend /app
 
 # Start the Celery worker
 CMD ["celery", "-A", "core", "worker", "--loglevel=info"]
