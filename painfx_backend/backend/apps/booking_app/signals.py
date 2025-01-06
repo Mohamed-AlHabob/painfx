@@ -1,19 +1,36 @@
-# signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from apps.booking_app.models import Post, Reservation
-from apps.booking_app.tasks import send_push_notification
+from apps.booking_app.models import Post, Reservation ,Notification
+from apps.authentication.models import User
 
 @receiver(post_save, sender=Post)
-def post_liked(sender, instance, created, **kwargs):
-    if created:  # Only trigger if the post is created
-        # Create notification and send it asynchronously
-        message = f"Your post titled '{instance.title}' was liked!"
-        send_push_notification.delay(instance.user.id, message, instance)
+def send_like_notification(sender, instance, created, **kwargs):
+    if created:
+        return
+    
+    if instance.likes.count() > 0:  # Assuming you have a `likes` ManyToMany relationship
+        for user in instance.likes.all():
+            # Create a like notification
+            Notification.objects.create(
+                user=user,
+                content=f"Your post has been liked by {instance.user.username}",
+                notification_type='like'
+            )
 
-@receiver(post_save, sender=Reservation)
-def reservation_status_changed(sender, instance, **kwargs):
-    if instance.status in ['accepted', 'rejected', 'cancelled']:
-        message = f"Your reservation has been {instance.status}."
-        # Send notification and save it asynchronously
-        send_push_notification.delay(instance.user.id, message, instance)
+@receiver(post_save, sender=Booking)
+def send_booking_notification(sender, instance, created, **kwargs):
+    if created:
+        return
+    
+    if instance.status == 'accepted':
+        status_message = 'Your booking has been accepted.'
+    elif instance.status == 'cancelled':
+        status_message = 'Your booking has been cancelled.'
+    elif instance.status == 'declined':
+        status_message = 'Your booking has been declined.'
+
+    Notification.objects.create(
+        user=instance.patient,  # Assuming Booking has a `patient` field pointing to User
+        content=status_message,
+        notification_type='booking'
+    )
