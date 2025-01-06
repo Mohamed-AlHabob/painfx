@@ -17,8 +17,8 @@ def send_like_notification(sender, instance, created, **kwargs):
                 notification_type='like'
             )
 
-@receiver(post_save, sender=Booking)
-def send_booking_notification(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Reservation)
+def send_Reservation_notification(sender, instance, created, **kwargs):
     if created:
         return
     
