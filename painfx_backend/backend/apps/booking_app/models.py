@@ -218,8 +218,8 @@ class Reservation(BaseModel):
         ]
 
     def clean(self):
-        if not self.clinic and not self.doctor:
-            raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
+        # if not self.clinic and not self.doctor:
+        #     raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
         if self.clinic and not self.clinic.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
         if not self.clinic and self.doctor and not self.doctor.reservation_open:
