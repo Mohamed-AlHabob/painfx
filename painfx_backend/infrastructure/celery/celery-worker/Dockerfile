@@ -21,4 +21,4 @@ RUN pip install --default-timeout=1000 -r requirements.txt
 COPY ./painfx_backend/backend /app
 
 # Start the Celery worker
-CMD ["celery", "-A", "core", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "backend.core", "worker", "--loglevel=info"]
