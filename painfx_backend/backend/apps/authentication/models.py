@@ -82,6 +82,7 @@ class UserProfile(BaseModel):
         blank=True,
         validators=[RegexValidator(regex=r"^\+?1?\d{9,15}$", message=_("Phone number must be in the format: '+999999999'."))],
     )
+    expo_push_token = models.CharField(max_length=255, null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[("he", _("He")), ("she", _("She")), ("other", _("Other"))], blank=True)
 
     class Meta:
