@@ -2,6 +2,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator,FileExtensionValidator
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from apps.authentication.models import Specialization, User, Doctor, Patient
 from apps.core.general import BaseModel
 from django.utils.translation import gettext_lazy as _
@@ -194,14 +196,18 @@ class Reservation(BaseModel):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
     status = models.CharField(
         max_length=10,
-        choices=ReservationStatus.choices,
-        default=ReservationStatus.PENDING,
+        choices=[
+            ('pending', _('Pending')),
+            ('approved', _('Approved')),
+            ('rejected', _('Rejected')),
+            ('cancelled', _('Cancelled'))
+        ],
+        default='pending',
         db_index=True
     )
     reason_for_cancellation = models.TextField(blank=True)
     reservation_date = models.DateField(db_index=True)
     reservation_time = models.TimeField()
-    duration = models.PositiveIntegerField(default=30, help_text="Duration in minutes")  # Default duration is 30 minutes
 
     class Meta:
         indexes = [
@@ -212,59 +218,21 @@ class Reservation(BaseModel):
         ]
 
     def clean(self):
+        # Ensure that the reservation is linked to either a clinic or a doctor, but not both
         if not self.clinic and not self.doctor:
             raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
+        if self.clinic and self.doctor:
+            raise ValidationError(_('A reservation cannot be linked to both a clinic and a doctor.'))
 
+        # Ensure the clinic or doctor is accepting reservations
         if self.clinic and not self.clinic.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
         if self.doctor and not self.doctor.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected doctor.'))
 
-        if self.doctor:
-            # Convert reservation_time to a datetime object for calculation
-            reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
-            end_datetime = reservation_datetime + timedelta(minutes=self.duration)
-
-            # Exclude the current reservation during updates
-            overlapping_reservations = Reservation.objects.filter(
-                doctor=self.doctor,
-                reservation_date=self.reservation_date,
-                reservation_time__lt=end_datetime.time(),  # Convert back to time
-                reservation_time__gte=self.reservation_time,
-            ).exclude(id=self.id)  # Exclude the current reservation during updates
-            if overlapping_reservations.exists():
-                raise ValidationError(_('The doctor is already booked at this time.'))
-
-        if self.clinic:
-            # Convert reservation_time to a datetime object for calculation
-            reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
-            end_datetime = reservation_datetime + timedelta(minutes=self.duration)
-
-            # Exclude the current reservation during updates
-            overlapping_reservations = Reservation.objects.filter(
-                clinic=self.clinic,
-                reservation_date=self.reservation_date,
-                reservation_time__lt=end_datetime.time(),  # Convert back to time
-                reservation_time__gte=self.reservation_time,
-            ).exclude(id=self.id)  # Exclude the current reservation during updates
-            if overlapping_reservations.exists():
-                raise ValidationError(_('The clinic is already booked at this time.'))
-
     def save(self, *args, **kwargs):
-        self.full_clean()  # Ensure validation is run before saving
+        self.full_clean()  # Ensure validation is always called
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Reservation by {self.patient} at {self.clinic or self.doctor} on {self.reservation_date}"
-
-    @classmethod
-    def get_upcoming_reservations(cls, clinic_or_doctor):
-        from django.utils import timezone
-        return cls.objects.filter(
-            models.Q(clinic=clinic_or_doctor) | models.Q(doctor=clinic_or_doctor),
-            reservation_date__gte=timezone.now().date(),
-            status='approved'
-        ).select_related('patient', 'doctor', 'clinic')
         
 class Review(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews')
@@ -299,7 +267,7 @@ class Review(BaseModel):
 
 class Post(BaseModel):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='posts')
-    title = models.CharField(max_length=255,blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
     content = models.TextField(blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
     view_count = models.PositiveIntegerField(default=0)
@@ -367,32 +335,36 @@ class MediaAttachment(BaseModel):
 
 
 class Comment(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    text = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
 
     class Meta:
         indexes = [
-            models.Index(fields=['post', 'user']),
+            models.Index(fields=['content_type', 'object_id']),  # Faster lookups
         ]
 
     def __str__(self):
-        return f"Comment by {self.user} on {self.post}"
+        return f"Comment by {self.user} on {self.content_object}"
 
 
 class Like(BaseModel):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
-        unique_together = ('post', 'user')
+        unique_together = ('user', 'content_type', 'object_id')  # Prevent duplicate likes
         indexes = [
-            models.Index(fields=['post', 'user']),
+            models.Index(fields=['content_type', 'object_id']),  # Faster lookups
         ]
 
     def __str__(self):
-        return f"{self.user} likes {self.post}"
+        return f"{self.user} likes {self.content_object}"
     
 
 class Category(BaseModel):

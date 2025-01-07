@@ -12,6 +12,7 @@ export interface CreatePostRequest {
   title: string;
   content: string;
   tags?: number[];
+  mediaAttachments?: { media_type: string; file?: File; url?: string }[];
 }
 
 export interface UpdatePostRequest {
@@ -19,6 +20,7 @@ export interface UpdatePostRequest {
   title?: string;
   content?: string;
   tags?: number[];
+  mediaAttachments?: { media_type: string; file?: File; url?: string }[];
 }
 
 export interface DeletePostRequest {
@@ -61,7 +63,6 @@ export const postApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
     }),
-
     updatePost: builder.mutation<Post, UpdatePostRequest>({
       query: ({ id, ...patch }) => ({
         url: `posts/${id}/`,
@@ -77,7 +78,6 @@ export const postApiSlice = apiSlice.injectEndpoints({
         { type: 'Post', id: 'LIST' },
       ],
     }),
-
     deletePost: builder.mutation<{ success: boolean; id: string }, DeletePostRequest>({
       query: ({ id }) => ({
         url: `posts/${id}/`,
@@ -94,10 +94,11 @@ export const postApiSlice = apiSlice.injectEndpoints({
   }),
   overrideExisting: false,
 });
+
 export const {
   useGetPostsQuery,
   useGetPostQuery,
   useCreatePostMutation,
   useUpdatePostMutation,
-  useDeletePostMutation, 
+  useDeletePostMutation,
 } = postApiSlice;

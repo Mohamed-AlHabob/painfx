@@ -3,39 +3,44 @@ import { userProfileSchema } from '../user-profile';
 import { postSchema } from './post';
 
 export const commentSchema = z.object({
-  post: postSchema.optional(),
+  id: z.string().uuid().optional(),
   user: userProfileSchema.optional(),
-  commentText: z.string().optional(),
-  parentCommentId: z.string().uuid().optional(),
-  createdAt: z.string().datetime().optional(),
+  content_type: z.string(), // e.g., "post", "comment", "event"
+  object_id: z.string().uuid(), // ID of the object being commented on
+  text: z.string(),
+  parent: z.string().uuid().nullable().optional(), // For nested comments
+  created_at: z.string().datetime().optional(),
 });
 
 export const commentListSchema = z.array(commentSchema);
 
 export type Comment = z.infer<typeof commentSchema>;
 
+export const createUpdateCommentSchema = z.object({
+  content_type: z.string(), // e.g., "post", "comment", "event"
+  object_id: z.string().uuid(), // ID of the object being commented on
+  text: z.string().min(1, "Comment text is required"),
+  parent: z.string().uuid().nullable().optional(), // For nested comments
+});
+
+export type CreateUpdateComment = z.infer<typeof createUpdateCommentSchema>;
+
 
 export const likeSchema = z.object({
   id: z.string().uuid(),
-  post: z.string().optional(),
-  user:  userProfileSchema.optional(),
-  createdAt: z.string().datetime().optional(),
+  user: userProfileSchema.optional(),
+  content_type: z.string(), // e.g., "post", "comment", "event"
+  object_id: z.string().uuid(), // ID of the object being liked
+  created_at: z.string().datetime().optional(),
 });
 
 export const likeListSchema = z.array(likeSchema);
 
 export type Like = z.infer<typeof likeSchema>;
 
-
 export const createUpdateLikeSchema = z.object({
-  postId: z.string().uuid().optional(),
-});
-export type createUpdateLike = z.infer<typeof createUpdateLikeSchema>;
-
-export const createUpdateCommentSchema = z.object({
-  postId: z.string().uuid(),
-  commentText: z.string(),
-  parentCommentId: z.string().uuid().nullable().optional(),
+  content_type: z.string(), // e.g., "post", "comment", "event"
+  object_id: z.string().uuid(), // ID of the object being liked
 });
 
-export type createUpdateComment = z.infer<typeof createUpdateCommentSchema>;
+export type CreateUpdateLike = z.infer<typeof createUpdateLikeSchema>;

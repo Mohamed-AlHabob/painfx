@@ -58,21 +58,24 @@ const InteractionButton = React.memo<InteractionButtonProps>(({
 InteractionButton.displayName = 'InteractionButton'
 
 interface InteractionsProps {
-  postId: string
+  content_type: string // e.g., "post", "comment", "event"
+  object_id: string // ID of the object being interacted with
   initialLikeCount: number
   commentsCount: number
 }
 
 export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } = ({ 
-  postId, 
+  content_type,
+  object_id, 
   initialLikeCount,
   commentsCount 
 }) => {
   const { data: user } = useRetrieveUserQuery()
   const userId = user?.id
 
+  // Fetch whether the current user has liked the post
   const { data: userLike, isLoading: isFetchingLike } = useGetUserLikeQuery(
-    { postId, userId: userId || "" }, 
+    { content_type, object_id, userId: userId || "" }, 
     { skip: !userId }
   )
 
@@ -82,34 +85,41 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
   const [isLiked, setIsLiked] = useState<boolean>(false)
   const [likeCount, setLikeCount] = useState<number>(initialLikeCount)
 
+  // Update the like state when the userLike data changes
   useEffect(() => {
     if (userLike) {
       setIsLiked(true)
+    } else {
+      setIsLiked(false)
     }
   }, [userLike])
 
   const handleLikeToggle = useCallback(async () => {
     if (!userId) {
-      toast.error("You must be logged in to like a post.")
+      toast.error("You must be logged in to like this.")
       return
     }
 
     const newIsLiked = !isLiked
     const newLikeCount = newIsLiked ? likeCount + 1 : likeCount - 1
 
+    // Optimistic update
     setIsLiked(newIsLiked)
     setLikeCount(newLikeCount)
 
     try {
       if (newIsLiked) {
-        await likePost({ post: postId }).unwrap()
-        toast.success('Post liked!')
-      } else if (userLike) {
-        await unlikePost({
-          id: userLike.id,
-          postId: postId
-        }).unwrap()
-        toast.success('Like removed!')
+        await likePost({ content_type, object_id }).unwrap()
+        toast.success('Liked!')
+      } else {
+        if (userLike) {
+          await unlikePost({
+            id: userLike.id,
+            content_type,
+            object_id
+          }).unwrap()
+          toast.success('Like removed!')
+        }
       }
     } catch (error: any) {
       // Revert state on error
@@ -117,26 +127,26 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
       setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1)
       toast.error(extractErrorMessage(error))
     }
-  }, [isLiked, likePost, unlikePost, postId, userId, userLike, likeCount])
+  }, [isLiked, likePost, unlikePost, content_type, object_id, userId, userLike, likeCount])
 
   const handleShare = useCallback(() => {
-    const shareUrl = `${window.location.origin}/X/post/${postId}`
+    const shareUrl = `${window.location.origin}/${content_type}/${object_id}`
     if (navigator.share) {
       navigator.share({
-        title: 'Check out this post!',
+        title: `Check out this ${content_type}!`,
         url: shareUrl,
       }).then(() => {
-        toast.success('Post shared successfully!')
+        toast.success('Shared successfully!')
       }).catch((error: any) => {
         console.error('Error sharing:', error)
-        toast.error('Failed to share the post.')
+        toast.error('Failed to share.')
       })
     } else {
       navigator.clipboard.writeText(shareUrl)
         .then(() => toast.success('Link copied to clipboard!'))
         .catch(() => toast.error('Failed to copy link.'))
     }
-  }, [postId])
+  }, [content_type, object_id])
 
   return (
     <div className="flex items-center justify-between py-2 px-6">
@@ -147,19 +157,19 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
           onClick={handleLikeToggle}
           isActive={isLiked}
           isLoading={isLiking || isUnliking || isFetchingLike}
-          label={isLiked ? 'Unlike post' : 'Like post'}
+          label={isLiked ? `Unlike ${content_type}` : `Like ${content_type}`}
           activeColor="text-red-500"
         />
         <InteractionButton
           icon={<MessageCircle size={16} />}
           count={commentsCount}
-          label="Comment on post"
+          label={`Comment on ${content_type}`}
         />
         <InteractionButton
           icon={<Share2 size={16} />}
           count={0}
           onClick={handleShare}
-          label="Share post"
+          label={`Share ${content_type}`}
         />
       </div>
     </div>
@@ -180,4 +190,3 @@ Interactions.Skeleton = function InteractionsSkeleton() {
     </div>
   )
 }
-

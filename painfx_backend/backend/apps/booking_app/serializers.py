@@ -7,6 +7,7 @@ from apps.booking_app.models import (
 )
 from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
 from apps.authentication.models import Doctor
+from django.contrib.contenttypes.models import ContentType
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,29 +52,51 @@ class BannedPatientSerializer(serializers.ModelSerializer):
 
 class ReservationSerializer(serializers.ModelSerializer):
     patient = PatientSerializer(read_only=True)
-    clinic = serializers.PrimaryKeyRelatedField(queryset=Clinic.objects.all(), required=False)
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all(), required=False)
+    clinic = ClinicSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
 
     class Meta:
         model = Reservation
         fields = [
             'id', 'patient', 'clinic', 'doctor', 'status',
-            'reason_for_cancellation', 'reservation_date', 'reservation_time', 'duration'
+            'reason_for_cancellation', 'reservation_date', 'reservation_time'
         ]
         read_only_fields = ['id', 'patient']
 
     def validate(self, attrs):
-        # Ensure either clinic or doctor is provided
-        if not attrs.get('clinic') and not attrs.get('doctor'):
+        # Ensure that the reservation is linked to either a clinic or a doctor, but not both
+        clinic = attrs.get('clinic')
+        doctor = attrs.get('doctor')
+
+        if not clinic and not doctor:
             raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
+        if clinic and doctor:
+            raise serializers.ValidationError("A reservation cannot be linked to both a clinic and a doctor.")
+
         return attrs
 
     def create(self, validated_data):
         user = self.context['request'].user
         if not hasattr(user, 'patient'):
             raise serializers.ValidationError("Only patients can create reservations.")
+
+        # Ensure the patient is linked to the reservation
         validated_data['patient'] = user.patient
-        return super().create(validated_data)
+
+        # Create the reservation
+        reservation = Reservation.objects.create(**validated_data)
+        return reservation
+
+    def update(self, instance, validated_data):
+        # Update the reservation fields
+        instance.status = validated_data.get('status', instance.status)
+        instance.reason_for_cancellation = validated_data.get('reason_for_cancellation', instance.reason_for_cancellation)
+        instance.reservation_date = validated_data.get('reservation_date', instance.reservation_date)
+        instance.reservation_time = validated_data.get('reservation_time', instance.reservation_time)
+
+        # Save and return the updated instance
+        instance.save()
+        return instance
 
 class ReviewSerializer(serializers.ModelSerializer):
     clinic = ClinicSerializer(read_only=True)
@@ -104,11 +127,25 @@ class MediaAttachmentSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'post', 'user', 'content', 'parent']
-        read_only_fields = ['id', 'user']
+        fields = ['id', 'user', 'text', 'content_type', 'object_id', 'parent', 'replies', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']
+
+    def get_replies(self, obj):
+        replies = obj.replies.all()
+        return CommentSerializer(replies, many=True).data
+
+    def validate(self, attrs):
+        content_type = attrs.get('content_type')
+        object_id = attrs.get('object_id')
+        model_class = content_type.model_class()
+
+        if not model_class.objects.filter(id=object_id).exists():
+            raise serializers.ValidationError("The object does not exist.")
+        return attrs
 
 
 class LikeSerializer(serializers.ModelSerializer):
@@ -116,8 +153,17 @@ class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
-        fields = ['id', 'post', 'user']
-        read_only_fields = ['id', 'user']
+        fields = ['id', 'user', 'content_type', 'object_id', 'created_at']
+        read_only_fields = ['id', 'user', 'created_at']
+
+    def validate(self, attrs):
+        content_type = attrs.get('content_type')
+        object_id = attrs.get('object_id')
+        model_class = content_type.model_class()
+
+        if not model_class.objects.filter(id=object_id).exists():
+            raise serializers.ValidationError("The object does not exist.")
+        return attrs
     
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)

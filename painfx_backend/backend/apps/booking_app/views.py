@@ -187,7 +187,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-# Post ViewSet
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().annotate(
         likes_count=Count('likes', distinct=True),

@@ -9,18 +9,20 @@ export interface LikeListResponse {
 }
 
 export interface CreateLikeRequest {
-  post: string;
+  content_type: string; // e.g., "post", "comment", "event"
+  object_id: string; // ID of the object being liked
 }
 
 export interface UnlikeLikeRequest {
   id: string;
-  postId: string;
+  content_type: string; // e.g., "post", "comment", "event"
+  object_id: string; // ID of the object being unliked
 }
 
 export const likeApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getLikes: builder.query<LikeListResponse, { postId: string; page?: number }>({
-      query: ({ postId, page = 1 }) => `likes/?post_id=${postId}&page=${page}`,
+    getLikes: builder.query<LikeListResponse, { content_type: string; object_id: string; page?: number }>({
+      query: ({ content_type, object_id, page = 1 }) => `likes/?content_type=${content_type}&object_id=${object_id}&page=${page}`,
       transformResponse: (response: LikeListResponse) => {
         likeListSchema.parse(response);
         return response;
@@ -33,8 +35,8 @@ export const likeApiSlice = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Like', id: 'LIST' }],
     }),
-    getUserLike: builder.query<Like | null, { postId: string; userId: string }>({
-      query: ({ postId, userId }) => `likes/?post_id=${postId}&user=${userId}`,
+    getUserLike: builder.query<Like | null, { content_type: string; object_id: string; userId: string }>({
+      query: ({ content_type, object_id, userId }) => `likes/?content_type=${content_type}&object_id=${object_id}&user=${userId}`,
       transformResponse: (response: LikeListResponse) => {
         likeListSchema.parse(response);
         return response.results[0] || null;
@@ -43,7 +45,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         result
           ? [
               { type: 'Like', id: result.id },
-              { type: 'Like', id: `USER_POST_${result.user}_${result.post}` },
+              { type: 'Like', id: `USER_${result.content_type}_${result.object_id}` },
             ]
           : [{ type: 'Like', id: 'LIST' }],
     }),
@@ -58,22 +60,22 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         return response;
       },
       invalidatesTags: [{ type: 'Like', id: 'LIST' }],
-      async onQueryStarted({ post }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ content_type, object_id }, { dispatch, queryFulfilled }) {
         const userId = "4121ee66-153c-4200-906c-88337e53dea1";
         const tempId = `temp-${Math.random()}`;
 
         // Optimistic Update
         const patchResult = dispatch(
-          likeApiSlice.util.updateQueryData('getLikes', { postId: post, page: 1 }, (draft) => {
+          likeApiSlice.util.updateQueryData('getLikes', { content_type, object_id, page: 1 }, (draft) => {
             draft.results.push({
               id: tempId,
-              post,
+              content_type,
+              object_id,
               user: {
                 id: userId,
                 email: '',
               },
-              // created_at: new Date().toISOString(),
-              // updated_at: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
             });
             draft.count += 1;
           })
@@ -82,7 +84,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(
-            likeApiSlice.util.updateQueryData('getLikes', { postId: post, page: 1 }, (draft) => {
+            likeApiSlice.util.updateQueryData('getLikes', { content_type, object_id, page: 1 }, (draft) => {
               const index = draft.results.findIndex((like) => like.id === tempId);
               if (index !== -1) {
                 draft.results[index] = data;
@@ -93,17 +95,18 @@ export const likeApiSlice = apiSlice.injectEndpoints({
           console.error('Failed to update like:', error);
           patchResult.undo();
         }
-      },    }),
+      },
+    }),
     unlikePost: builder.mutation<{ success: boolean; id: string }, UnlikeLikeRequest>({
       query: ({ id }) => ({
         url: `likes/${id}/`,
         method: 'DELETE',
       }),
       invalidatesTags: (result) => result ? [{ type: 'Like', id: result.id }] : [],
-      async onQueryStarted({ id, postId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ id, content_type, object_id }, { dispatch, queryFulfilled }) {
         // Optimistic Update
         const patchResult = dispatch(
-          likeApiSlice.util.updateQueryData('getLikes', { postId, page: 1 }, (draft) => {
+          likeApiSlice.util.updateQueryData('getLikes', { content_type, object_id, page: 1 }, (draft) => {
             draft.results = draft.results.filter((like) => like.id !== id);
             draft.count -= 1;
           })
@@ -115,7 +118,8 @@ export const likeApiSlice = apiSlice.injectEndpoints({
           console.error('Failed to unlike post:', error);
           patchResult.undo();
         }
-      },    }),
+      },
+    }),
   }),
   overrideExisting: false,
 });

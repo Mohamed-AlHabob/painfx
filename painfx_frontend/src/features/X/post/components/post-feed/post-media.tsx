@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Separator } from "@/components/ui/separator";
 import { Play } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactPlayer from 'react-player';
-import { MediaAttachments } from '@/schemas/Social/post';
+import { MediaAttachments } from '@/schemas/Social/media-attachments';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface PostMediaProps {
@@ -25,7 +24,14 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
     const isVideo = media.media_type === 'video';
     const mediaSource = media.file || media.url;
 
-    if (!mediaSource) return null;
+    // Handle missing or invalid media source
+    if (!mediaSource) {
+      return (
+        <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+          <p className="text-gray-500 dark:text-gray-400">Media not available</p>
+        </div>
+      );
+    }
 
     if (isVideo) {
       return (
@@ -34,15 +40,17 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
             <div className="absolute inset-0 flex items-center justify-center">
               <Image 
                 src={media.thumbnail} 
-                alt="Thumbnail" 
+                alt="Video thumbnail" 
                 fill
                 className="rounded object-cover"
+                priority={index === 0} // Prioritize loading the first thumbnail
               />
               <button 
                 onClick={() => handlePlayClick(index)}
                 className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hover:bg-opacity-30 transition-opacity"
+                aria-label="Play video"
               >
-                 <Play className="w-16 h-16 text-white" />
+                <Play className="w-16 h-16 text-white" />
               </button>
             </div>
           )}
@@ -54,18 +62,26 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
               width="100%"
               height="100%"
               className="absolute top-0 left-0 w-full h-full"
+              config={{
+                file: {
+                  attributes: {
+                    controlsList: 'nodownload', // Disable download option
+                  },
+                },
+              }}
             />
           )}
         </div>
       );
     } else {
       return (
-         <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="relative min-w-[320px] w-[320px] h-[280px] rounded-lg overflow-hidden flex items-center justify-center">
           <Image 
             src={mediaSource} 
             alt="Post media" 
             fill
             className="rounded object-cover object-center"
+            priority={index === 0} // Prioritize loading the first image
           />
         </div>
       );

@@ -13,6 +13,7 @@ import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PostMedia } from './post-media';
+import { Tag } from '@/schemas/Social/tag'; // Import the Tag schema
 
 interface PostItemProps {
   post: Post;
@@ -62,13 +63,27 @@ export const PostItem = ({ post }: PostItemProps) => {
           <div className="flex flex-col gap-y-3">
             <h2 className="text-2xl">{post.title}</h2>
             <p>{post.content}</p>
+            {/* Display Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag: Tag) => (
+                  <span
+                    key={tag.id}
+                    className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 rounded-full"
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </Link>
       </CardContent>
       <Separator orientation="horizontal" className="mt-3" />
       <PostMedia mediaAttachments={Array.isArray(post?.media_attachments) ? post.media_attachments : []} />
       <Interactions 
-        postId={post.id || ""} 
+        content_type="post"
+        object_id={post.id || ""} 
         initialLikeCount={post.likes_count || 0} 
         commentsCount={post.comments_count || 0} 
       />
@@ -93,4 +108,3 @@ PostItem.Skeleton = function ItemSkeleton() {
     </div>
   )
 }
-

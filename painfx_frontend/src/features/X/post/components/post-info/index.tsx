@@ -4,7 +4,6 @@ import { NoResult } from "@/components/global/no-results"
 import UserCard from "@/components/global/user-widget/user-card"
 import {Interactions} from "../post-feed/interactions"
 import { useGetPostQuery } from "@/redux/services/booking/postApiSlice"
-import { useState } from "react"
 import { Edit, Trash } from 'lucide-react';
 import { ActionTooltip } from '@/components/global/action-tooltip';
 import { ModalType, useModal } from '@/hooks/use-modal-store';
