@@ -34,7 +34,14 @@ export const likeSchema = z.object({
   created_at: z.string().datetime().optional(),
 });
 
-export const likeListSchema = z.array(likeSchema);
+export const likeListSchema = z.object({
+  count: z.number(),
+  next: z.string().nullable(),
+  previous: z.string().nullable(),
+  results: z.array(likeSchema),
+});
+
+
 
 export type Like = z.infer<typeof likeSchema>;
 

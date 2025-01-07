@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { useGetUserLikeQuery, useLikePostMutation, useUnlikePostMutation } from '@/redux/services/booking/likeApiSlice'
+import { useGetLikesQuery, useCreateLikeMutation, useDeleteLikeMutation, useToggleLikeMutation } from '@/redux/services/booking/likeApiSlice'
 import { extractErrorMessage } from '@/hooks/error-handling'
 import { MessageCircle, Share2 } from 'lucide-react'
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice'
@@ -73,26 +73,26 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
   const { data: user } = useRetrieveUserQuery()
   const userId = user?.id
 
-  // Fetch whether the current user has liked the post
-  const { data: userLike, isLoading: isFetchingLike } = useGetUserLikeQuery(
-    { content_type, object_id, userId: userId || "" }, 
-    { skip: !userId }
+  // Fetch likes for the specific content type and object ID
+  const { data: likes, isLoading: isFetchingLikes } = useGetLikesQuery(
+    { content_type, object_id },
+    { skip: !userId } // Skip if user is not logged in
   )
 
-  const [likePost, { isLoading: isLiking }] = useLikePostMutation()
-  const [unlikePost, { isLoading: isUnliking }] = useUnlikePostMutation()
+  const [createLike, { isLoading: isLiking }] = useCreateLikeMutation()
+  const [deleteLike, { isLoading: isUnliking }] = useDeleteLikeMutation()
+  const [toggleLike, { isLoading: isToggling }] = useToggleLikeMutation()
 
   const [isLiked, setIsLiked] = useState<boolean>(false)
   const [likeCount, setLikeCount] = useState<number>(initialLikeCount)
 
-  // Update the like state when the userLike data changes
+  // Update the like state when the likes data changes
   useEffect(() => {
-    if (userLike) {
-      setIsLiked(true)
-    } else {
-      setIsLiked(false)
+    if (likes && userId) {
+      const userLike = likes.find((like) => like.user.id === userId)
+      setIsLiked(!!userLike)
     }
-  }, [userLike])
+  }, [likes, userId])
 
   const handleLikeToggle = useCallback(async () => {
     if (!userId) {
@@ -109,15 +109,12 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
     try {
       if (newIsLiked) {
-        await likePost({ content_type, object_id }).unwrap()
+        await createLike({ content_type, object_id }).unwrap()
         toast.success('Liked!')
       } else {
+        const userLike = likes?.find((like) => like.user.id === userId)
         if (userLike) {
-          await unlikePost({
-            id: userLike.id,
-            content_type,
-            object_id
-          }).unwrap()
+          await deleteLike(userLike.id).unwrap()
           toast.success('Like removed!')
         }
       }
@@ -127,7 +124,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
       setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1)
       toast.error(extractErrorMessage(error))
     }
-  }, [isLiked, likePost, unlikePost, content_type, object_id, userId, userLike, likeCount])
+  }, [isLiked, createLike, deleteLike, content_type, object_id, userId, likes, likeCount])
 
   const handleShare = useCallback(() => {
     const shareUrl = `${window.location.origin}/${content_type}/${object_id}`
@@ -156,7 +153,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
           count={likeCount}
           onClick={handleLikeToggle}
           isActive={isLiked}
-          isLoading={isLiking || isUnliking || isFetchingLike}
+          isLoading={isLiking || isUnliking || isFetchingLikes}
           label={isLiked ? `Unlike ${content_type}` : `Like ${content_type}`}
           activeColor="text-red-500"
         />
