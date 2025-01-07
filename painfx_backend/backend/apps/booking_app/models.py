@@ -190,24 +190,23 @@ class BranchDoctor(BaseModel):
         return f"{self.doctor} at {self.branch}"
 
 
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
 class Reservation(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations')
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
     status = models.CharField(
         max_length=10,
-        choices=[
-            ('pending', _('Pending')),
-            ('approved', _('Approved')),
-            ('rejected', _('Rejected')),
-            ('cancelled', _('Cancelled'))
-        ],
-        default='pending',
+        choices=ReservationStatus.choices,
+        default=ReservationStatus.PENDING,
         db_index=True
     )
     reason_for_cancellation = models.TextField(blank=True)
     reservation_date = models.DateField(db_index=True)
     reservation_time = models.TimeField()
+    duration = models.PositiveIntegerField(default=30, help_text="Duration in minutes")  # Default duration is 30 minutes
 
     class Meta:
         indexes = [
@@ -218,15 +217,39 @@ class Reservation(BaseModel):
         ]
 
     def clean(self):
-        # if not self.clinic and not self.doctor:
-        #     raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
+        # Ensure either clinic or doctor is provided
+        if not self.clinic and not self.doctor:
+            raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
+
+        # Check if the clinic or doctor is available for reservations
         if self.clinic and not self.clinic.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
-        if not self.clinic and self.doctor and not self.doctor.reservation_open:
+        if self.doctor and not self.doctor.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected doctor.'))
 
+        # Check for overlapping reservations
+        if self.doctor:
+            overlapping_reservations = Reservation.objects.filter(
+                doctor=self.doctor,
+                reservation_date=self.reservation_date,
+                reservation_time__lt=(self.reservation_time + timezone.timedelta(minutes=self.duration)),
+                reservation_time__gte=self.reservation_time,
+            ).exclude(id=self.id)  # Exclude the current reservation during updates
+            if overlapping_reservations.exists():
+                raise ValidationError(_('The doctor is already booked at this time.'))
+
+        if self.clinic:
+            overlapping_reservations = Reservation.objects.filter(
+                clinic=self.clinic,
+                reservation_date=self.reservation_date,
+                reservation_time__lt=(self.reservation_time + timezone.timedelta(minutes=self.duration)),
+                reservation_time__gte=self.reservation_time,
+            ).exclude(id=self.id)  # Exclude the current reservation during updates
+            if overlapping_reservations.exists():
+                raise ValidationError(_('The clinic is already booked at this time.'))
+
     def save(self, *args, **kwargs):
-        self.full_clean()
+        self.full_clean()  # Ensure validation is run before saving
         super().save(*args, **kwargs)
 
     def __str__(self):

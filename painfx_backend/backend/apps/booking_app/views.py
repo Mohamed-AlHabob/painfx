@@ -115,8 +115,6 @@ class ClinicViewSet(viewsets.ModelViewSet):
         
         serializer.save(owner=self.request.user)
 
-
-# Reservation ViewSet
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
@@ -139,41 +137,42 @@ class ReservationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("Only patients can create reservations.")
         serializer.save(patient=user.patient)
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner | IsDoctor])
     def approve(self, request, pk=None):
         reservation = self.get_object()
         if reservation.status == ReservationStatus.APPROVED:
-            return Response({'error': 'Reservation already approved'}, status=400)
+            return Response({'error': 'Reservation already approved'}, status=status.HTTP_400_BAD_REQUEST)
 
         reservation.status = ReservationStatus.APPROVED
         reservation.save()
 
-        # Assign a doctor
-        assigned_doctor = reservation.clinic.doctors.filter(reservation_open=True).first()
-        if not assigned_doctor:
-            return Response({'error': 'No available doctors'}, status=400)
+        # Assign a doctor if not already assigned
+        if not reservation.doctor and reservation.clinic:
+            assigned_doctor = reservation.clinic.doctors.filter(reservation_open=True).first()
+            if assigned_doctor:
+                reservation.doctor = assigned_doctor
+                reservation.save()
 
-        reservation.doctor = assigned_doctor
-        reservation.save()
-
-        # Send notifications asynchronously
+        # Send notifications
         send_sms_notification.delay(reservation.patient.user.id, 'Your reservation has been approved.')
         send_email_notification.delay(
             reservation.patient.user.email,
             'Reservation Approved',
             'Your reservation has been approved.'
         )
-        return Response({'status': 'Reservation approved', 'doctor': DoctorSerializer(assigned_doctor).data})
+        return Response({'status': 'Reservation approved', 'doctor': DoctorSerializer(reservation.doctor).data})
 
-
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner | IsDoctor])
     def reject(self, request, pk=None):
         reservation = self.get_object()
+        if reservation.status == ReservationStatus.REJECTED:
+            return Response({'error': 'Reservation already rejected'}, status=status.HTTP_400_BAD_REQUEST)
+
         reservation.status = ReservationStatus.REJECTED
         reservation.reason_for_cancellation = request.data.get('reason', '')
         reservation.save()
 
-        # Send notifications asynchronously
+        # Send notifications
         send_sms_notification.delay(reservation.patient.user.id, 'Your reservation has been rejected.')
         send_email_notification.delay(
             reservation.patient.user.email,

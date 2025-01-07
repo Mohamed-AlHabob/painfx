@@ -35,6 +35,8 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     )
     first_name = models.CharField(max_length=30, blank=True, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last Name"))
+    language = models.CharField(max_length=10, default="en")
+    timezone = models.CharField(max_length=50, default="UTC")
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     role = models.CharField(
@@ -72,6 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
 class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    date_of_birth = models.DateField(null=True, blank=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True, default="avatars/default.png")
     bio = models.TextField(blank=True)
     address = models.CharField(max_length=255, blank=True)
