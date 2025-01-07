@@ -27,12 +27,14 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         url: 'likes/',
         params: { content_type, object_id, page },
       }),
-      transformResponse: (response: LikeListResponse) => {
+      transformResponse: (response: unknown) => {
         // Parse and validate the response
-        const parsedResults = likeListSchema.array().parse(response.results);
+        const parsedResponse = likeListSchema.parse(response);
         return {
-          ...response,
-          results: parsedResults,
+          count: parsedResponse.count,
+          next: parsedResponse.next,
+          previous: parsedResponse.previous,
+          results: parsedResponse.results,
         };
       },
       providesTags: (result) =>
@@ -50,10 +52,10 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         url: 'likes/',
         params: { content_type, object_id, user: userId },
       }),
-      transformResponse: (response: LikeListResponse) => {
+      transformResponse: (response: unknown) => {
         // Parse and validate the response
-        const parsedResults = likeListSchema.array().parse(response.results);
-        return parsedResults[0] || null; // Return the first like or null
+        const parsedResponse = likeListSchema.parse(response);
+        return parsedResponse.results[0] || null; // Return the first like or null
       },
       providesTags: (result) =>
         result
@@ -71,10 +73,9 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: data,
       }),
-      transformResponse: (response: Like) => {
+      transformResponse: (response: unknown) => {
         // Parse and validate the response
-        createUpdateLikeSchema.parse(response);
-        return response;
+        return createUpdateLikeSchema.parse(response);
       },
       invalidatesTags: [{ type: 'Like', id: 'LIST' }],
       async onQueryStarted({ content_type, object_id }, { dispatch, queryFulfilled }) {
