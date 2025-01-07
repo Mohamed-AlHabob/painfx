@@ -8,9 +8,10 @@ import { extractErrorMessage } from '@/hooks/error-handling'
 import { MessageCircle, Share2 } from 'lucide-react'
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice'
 import { cn } from '@/lib'
-import { Like, Unlike } from '@/components/icons'
+import { Like as LikeIcon , Unlike } from '@/components/icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { Like } from "@/schemas/Social";
 
 // Improved type definition for better type safety
 interface InteractionButtonProps {
@@ -76,7 +77,13 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
   // Fetch likes for the specific content type and object ID
   const { data: likes, isLoading: isFetchingLikes } = useGetLikesQuery(
     { content_type, object_id },
-    { skip: !userId } // Skip if user is not logged in
+    {
+      skip: !userId,
+      selectFromResult: (result) => ({
+        ...result,
+        data: result.data as Like[], // Explicitly type the response as an array of Like objects
+      }),
+    }
   )
 
   const [createLike, { isLoading: isLiking }] = useCreateLikeMutation()
@@ -89,7 +96,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
   // Update the like state when the likes data changes
   useEffect(() => {
     if (likes && userId) {
-      const userLike = likes.find((like) => like.user.id === userId)
+      const userLike = likes.find((like) => like.user?.id  === userId)
       setIsLiked(!!userLike)
     }
   }, [likes, userId])
@@ -112,7 +119,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
         await createLike({ content_type, object_id }).unwrap()
         toast.success('Liked!')
       } else {
-        const userLike = likes?.find((like) => like.user.id === userId)
+        const userLike = likes?.find((like) => like.user?.id === userId)
         if (userLike) {
           await deleteLike(userLike.id).unwrap()
           toast.success('Like removed!')
@@ -149,7 +156,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
     <div className="flex items-center justify-between py-2 px-6">
       <div className="flex gap-5">
         <InteractionButton
-          icon={isLiked ? <Unlike /> : <Like />}
+          icon={isLiked ? <Unlike /> : <LikeIcon />}
           count={likeCount}
           onClick={handleLikeToggle}
           isActive={isLiked}
