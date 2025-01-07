@@ -192,19 +192,10 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().annotate(
         likes_count=Count('likes', distinct=True),
         comments_count=Count('comments', distinct=True)
-
     )
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
-
-    @action(detail=False, methods=['get'])
-    def stats(self, request):
-        stats = Post.objects.annotate(
-            likes_count=Count('likes', distinct=True),
-            comments_count=Count('comments', distinct=True)
-        ).values('id', 'title', 'likes_count', 'comments_count')
-        return Response(stats)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -212,39 +203,70 @@ class PostViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("Only doctors can create posts.")
         serializer.save(doctor=user.doctor)
 
+    @action(detail=True, methods=['get'])
+    def likes(self, request, pk=None):
+        post = self.get_object()
+        likes = post.likes.all()
+        serializer = LikeSerializer(likes, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def comments(self, request, pk=None):
+        post = self.get_object()
+        comments = post.comments.filter(parent=None)  # Only top-level comments
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
 
 # Comment ViewSet
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.none()
+    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    pagination_class = GlPagination
-
-    def get_queryset(self):
-        post_id = self.request.query_params.get('post_id')
-        return Comment.objects.filter(post_id=post_id) if post_id else Comment.objects.none()
-
-# Like ViewSet
-class LikeViewSet(viewsets.ModelViewSet):
-    queryset = Like.objects.none()
-    serializer_class = LikeSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        post_id = self.request.query_params.get('post_id')
-        return Like.objects.filter(post_id=post_id) if post_id else Like.objects.none()
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def destroy(self, request, *args, **kwargs):
-        like = self.get_object()
-        if like.user != request.user:
-            return Response(
-                {"detail": "You can only delete your own likes."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        return super().destroy(request, *args, **kwargs)
+    @action(detail=True, methods=['post'])
+    def reply(self, request, pk=None):
+        parent_comment = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user, parent=parent_comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# Like ViewSet
+class LikeViewSet(viewsets.ModelViewSet):
+    queryset = Like.objects.all()
+    serializer_class = LikeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def toggle_like(self, request):
+        content_type = request.data.get('content_type')
+        object_id = request.data.get('object_id')
+
+        # Get the content type and object
+        try:
+            content_type = ContentType.objects.get(model=content_type)
+            model_class = content_type.model_class()
+            obj = model_class.objects.get(id=object_id)
+        except (ContentType.DoesNotExist, model_class.DoesNotExist):
+            return Response({"error": "Invalid content type or object ID"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Toggle like
+        like, created = Like.objects.get_or_create(
+            user=request.user,
+            content_type=content_type,
+            object_id=object_id
+        )
+        if not created:
+            like.delete()
+            return Response({"status": "unliked"}, status=status.HTTP_200_OK)
+        return Response({"status": "liked"}, status=status.HTTP_201_CREATED)
     
     
 # Category ViewSet
