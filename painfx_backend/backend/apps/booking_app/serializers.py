@@ -185,6 +185,9 @@ class PostSerializer(serializers.ModelSerializer):
         if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
         
+        # Remove 'doctor' from validated_data if it exists
+        validated_data.pop('doctor', None)
+        
         # Handle tags if provided
         tags_data = validated_data.pop('tags', [])
         post = Post.objects.create(doctor=user.doctor, **validated_data)
