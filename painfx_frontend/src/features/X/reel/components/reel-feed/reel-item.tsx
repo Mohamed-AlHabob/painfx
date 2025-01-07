@@ -81,7 +81,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
                 </div>
                 <div className="flex space-x-2">
                 <Interactions 
-                   content_type="post"
+                   content_type="Booking_App | post"
                    object_id={reel?.id || ""} 
                    initialLikeCount={reel?.likes_count || 0} 
                    commentsCount={reel?.comments_count || 0} 
