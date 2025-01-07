@@ -66,7 +66,8 @@ export const PostInfo = ({ id }: PostInfoProps) => {
       </div>
       <PostMedia mediaAttachments={Array.isArray(post?.media_attachments) ? post.media_attachments : []} />
       <Interactions 
-        postId={post?.id || ""} 
+        content_type="post"
+        object_id={post?.id || ""} 
         initialLikeCount={post?.likes_count || 0} 
         commentsCount={post?.comments_count || 0} 
       />

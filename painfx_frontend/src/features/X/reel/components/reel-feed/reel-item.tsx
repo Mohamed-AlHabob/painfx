@@ -80,7 +80,12 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
                   </span>
                 </div>
                 <div className="flex space-x-2">
-                  <Interactions postId={reel.id || ""} initialLikeCount={reel.likes_count || 0} commentsCount={reel.comments_count || 0} />
+                <Interactions 
+                   content_type="post"
+                   object_id={reel?.id || ""} 
+                   initialLikeCount={reel?.likes_count || 0} 
+                   commentsCount={reel?.comments_count || 0} 
+                 />
                 </div>
               </div>
               <p className="mt-2">{reel.title}</p>
