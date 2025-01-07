@@ -1,7 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from apps.booking_app.models import Post, Reservation ,Notification
-from apps.authentication.models import User
 
 @receiver(post_save, sender=Post)
 def send_like_notification(sender, instance, created, **kwargs):
@@ -13,7 +12,7 @@ def send_like_notification(sender, instance, created, **kwargs):
             # Create a like notification
             Notification.objects.create(
                 user=user,
-                content=f"Your post has been liked by {instance.user.username}",
+                content=f"Your post has been liked by {instance.user.first_name}",
                 notification_type='like'
             )
 
