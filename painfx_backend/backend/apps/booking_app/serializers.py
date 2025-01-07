@@ -6,6 +6,7 @@ from apps.booking_app.models import (
     UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment
 )
 from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
+from apps.authentication.models import Doctor
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,14 +51,22 @@ class BannedPatientSerializer(serializers.ModelSerializer):
 
 class ReservationSerializer(serializers.ModelSerializer):
     patient = PatientSerializer(read_only=True)
-    clinic = ClinicSerializer(read_only=True)
-    doctor = DoctorSerializer(read_only=True)
+    clinic = serializers.PrimaryKeyRelatedField(queryset=Clinic.objects.all(), required=False)
+    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all(), required=False)
 
     class Meta:
         model = Reservation
-        fields = ['id', 'patient', 'clinic', 'doctor', 'status',
-                  'reason_for_cancellation', 'reservation_date', 'reservation_time']
-        read_only_fields = ['id']
+        fields = [
+            'id', 'patient', 'clinic', 'doctor', 'status',
+            'reason_for_cancellation', 'reservation_date', 'reservation_time', 'duration'
+        ]
+        read_only_fields = ['id', 'patient']
+
+    def validate(self, attrs):
+        # Ensure either clinic or doctor is provided
+        if not attrs.get('clinic') and not attrs.get('doctor'):
+            raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
+        return attrs
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -65,11 +74,6 @@ class ReservationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Only patients can create reservations.")
         validated_data['patient'] = user.patient
         return super().create(validated_data)
-
-    def validate(self, attrs):
-        if not attrs.get('clinic') and not attrs.get('doctor'):
-            raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
-        return attrs
 
 class ReviewSerializer(serializers.ModelSerializer):
     clinic = ClinicSerializer(read_only=True)
