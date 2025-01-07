@@ -12,8 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ['id', 'name', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ['id', 'name']
 
 class ClinicSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
@@ -122,8 +121,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class MediaAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaAttachment
-        fields = ['id', 'post', 'media_type', 'file', 'thumbnail', 'order']
-        read_only_fields = ['id', 'post', 'order']
+        fields = ['id', 'media_type', 'file', 'url', 'order']
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
