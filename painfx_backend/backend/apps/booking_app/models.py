@@ -3,6 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator,FileExtensionValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from apps.authentication.models import Specialization, User, Doctor, Patient
 from apps.core.general import BaseModel
@@ -271,7 +272,7 @@ class Post(BaseModel):
     content = models.TextField(blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
     view_count = models.PositiveIntegerField(default=0)
-
+    likes = GenericRelation('Like', related_query_name='post')
     class Meta:
         indexes = [
             models.Index(fields=['doctor']),
