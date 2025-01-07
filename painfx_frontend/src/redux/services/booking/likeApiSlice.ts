@@ -21,11 +21,19 @@ export interface UnlikeLikeRequest {
 
 export const likeApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    // Get all likes for a specific object
     getLikes: builder.query<LikeListResponse, { content_type: string; object_id: string; page?: number }>({
-      query: ({ content_type, object_id, page = 1 }) => `likes/?content_type=${content_type}&object_id=${object_id}&page=${page}`,
+      query: ({ content_type, object_id, page = 1 }) => ({
+        url: 'likes/',
+        params: { content_type, object_id, page },
+      }),
       transformResponse: (response: LikeListResponse) => {
-        likeListSchema.parse(response);
-        return response;
+        // Parse and validate the response
+        const parsedResults = likeListSchema.array().parse(response.results);
+        return {
+          ...response,
+          results: parsedResults,
+        };
       },
       providesTags: (result) =>
         result
@@ -35,11 +43,17 @@ export const likeApiSlice = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Like', id: 'LIST' }],
     }),
+
+    // Get a specific like by the current user
     getUserLike: builder.query<Like | null, { content_type: string; object_id: string; userId: string }>({
-      query: ({ content_type, object_id, userId }) => `likes/?content_type=${content_type}&object_id=${object_id}&user=${userId}`,
+      query: ({ content_type, object_id, userId }) => ({
+        url: 'likes/',
+        params: { content_type, object_id, user: userId },
+      }),
       transformResponse: (response: LikeListResponse) => {
-        likeListSchema.parse(response);
-        return response.results[0] || null;
+        // Parse and validate the response
+        const parsedResults = likeListSchema.array().parse(response.results);
+        return parsedResults[0] || null; // Return the first like or null
       },
       providesTags: (result) =>
         result
@@ -49,6 +63,8 @@ export const likeApiSlice = apiSlice.injectEndpoints({
             ]
           : [{ type: 'Like', id: 'LIST' }],
     }),
+
+    // Like an object
     likePost: builder.mutation<Like, CreateLikeRequest>({
       query: (data) => ({
         url: 'likes/',
@@ -56,15 +72,16 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
       transformResponse: (response: Like) => {
+        // Parse and validate the response
         createUpdateLikeSchema.parse(response);
         return response;
       },
       invalidatesTags: [{ type: 'Like', id: 'LIST' }],
       async onQueryStarted({ content_type, object_id }, { dispatch, queryFulfilled }) {
-        const userId = "4121ee66-153c-4200-906c-88337e53dea1";
+        const userId = "4121ee66-153c-4200-906c-88337e53dea1"; // Replace with actual user ID
         const tempId = `temp-${Math.random()}`;
 
-        // Optimistic Update
+        // Optimistic update: Add a temporary like to the list
         const patchResult = dispatch(
           likeApiSlice.util.updateQueryData('getLikes', { content_type, object_id, page: 1 }, (draft) => {
             draft.results.push({
@@ -75,7 +92,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
                 id: userId,
                 email: '',
               },
-              createdAt: new Date().toISOString(),
+              created_at: new Date().toISOString(),
             });
             draft.count += 1;
           })
@@ -83,6 +100,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
 
         try {
           const { data } = await queryFulfilled;
+          // Replace the temporary like with the actual like from the server
           dispatch(
             likeApiSlice.util.updateQueryData('getLikes', { content_type, object_id, page: 1 }, (draft) => {
               const index = draft.results.findIndex((like) => like.id === tempId);
@@ -93,18 +111,20 @@ export const likeApiSlice = apiSlice.injectEndpoints({
           );
         } catch (error) {
           console.error('Failed to update like:', error);
-          patchResult.undo();
+          patchResult.undo(); // Revert the optimistic update on error
         }
       },
     }),
+
+    // Unlike an object
     unlikePost: builder.mutation<{ success: boolean; id: string }, UnlikeLikeRequest>({
       query: ({ id }) => ({
         url: `likes/${id}/`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result) => result ? [{ type: 'Like', id: result.id }] : [],
+      invalidatesTags: (result) => (result ? [{ type: 'Like', id: result.id }] : []),
       async onQueryStarted({ id, content_type, object_id }, { dispatch, queryFulfilled }) {
-        // Optimistic Update
+        // Optimistic update: Remove the like from the list
         const patchResult = dispatch(
           likeApiSlice.util.updateQueryData('getLikes', { content_type, object_id, page: 1 }, (draft) => {
             draft.results = draft.results.filter((like) => like.id !== id);
@@ -116,7 +136,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
           await queryFulfilled;
         } catch (error) {
           console.error('Failed to unlike post:', error);
-          patchResult.undo();
+          patchResult.undo(); // Revert the optimistic update on error
         }
       },
     }),
