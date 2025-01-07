@@ -12,7 +12,7 @@ export interface CreatePostRequest {
   title: string;
   content: string;
   tags?: number[];
-  mediaAttachments?: { media_type: string; file?: File; url?: string }[];
+  media_attachments?: { media_type: string; file?: File; url?: string }[]; // Updated field name
 }
 
 export interface UpdatePostRequest {
@@ -20,7 +20,7 @@ export interface UpdatePostRequest {
   title?: string;
   content?: string;
   tags?: number[];
-  mediaAttachments?: { media_type: string; file?: File; url?: string }[];
+  media_attachments?: { media_type: string; file?: File; url?: string }[]; // Updated field name
 }
 
 export interface DeletePostRequest {
@@ -32,7 +32,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
     getPosts: builder.query<PostListResponse, { page?: number }>({
       query: ({ page = 1 }) => `posts/?page=${page}`,
       transformResponse: (response: PostListResponse) => {
-        postListResponseSchema.parse(response);
+        postListResponseSchema.parse(response); // Validate the response
         return response;
       },
       providesTags: (result) =>
@@ -46,7 +46,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
     getPost: builder.query<Post, string>({
       query: (id) => `posts/${id}/`,
       transformResponse: (response: Post) => {
-        postSchema.parse(response);
+        postSchema.parse(response); // Validate the response
         return response;
       },
       providesTags: (result, error, id) => [{ type: 'Post', id }],
@@ -55,10 +55,13 @@ export const postApiSlice = apiSlice.injectEndpoints({
       query: (data) => ({
         url: 'posts/',
         method: 'POST',
-        body: data,
+        body: {
+          ...data,
+          media_attachments: data.media_attachments, // Updated field name
+        },
       }),
       transformResponse: (response: Post) => {
-        postSchema.parse(response);
+        postSchema.parse(response); // Validate the response
         return response;
       },
       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
@@ -67,10 +70,13 @@ export const postApiSlice = apiSlice.injectEndpoints({
       query: ({ id, ...patch }) => ({
         url: `posts/${id}/`,
         method: 'PATCH',
-        body: patch,
+        body: {
+          ...patch,
+          media_attachments: patch.media_attachments, // Updated field name
+        },
       }),
       transformResponse: (response: Post) => {
-        postSchema.parse(response);
+        postSchema.parse(response); // Validate the response
         return response;
       },
       invalidatesTags: (result, error, { id }) => [

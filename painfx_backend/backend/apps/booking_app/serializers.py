@@ -176,8 +176,8 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'content','tags','media_attachments','comments',
-            'doctor', 'likes_count', 'comments_count','view_count',
+            'id', 'title', 'content', 'tags', 'media_attachments', 'comments',
+            'doctor', 'likes_count', 'comments_count', 'view_count',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'doctor', 'likes_count', 'comments_count', 'created_at', 'updated_at']
@@ -186,8 +186,17 @@ class PostSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
-        validated_data['doctor'] = user.doctor
-        return super().create(validated_data)
+        
+        # Handle tags if provided
+        tags_data = validated_data.pop('tags', [])
+        post = Post.objects.create(doctor=user.doctor, **validated_data)
+        
+        # Add tags to the post
+        for tag_data in tags_data:
+            tag, created = Tag.objects.get_or_create(name=tag_data['name'])
+            post.tags.add(tag)
+        
+        return post
 
 
 class CategorySerializer(serializers.ModelSerializer):

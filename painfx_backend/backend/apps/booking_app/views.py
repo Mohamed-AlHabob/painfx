@@ -200,7 +200,15 @@ class PostViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
-        serializer.save(doctor=user.doctor)
+        
+        # Handle tags if provided
+        tags_data = self.request.data.get('tags', [])
+        post = serializer.save(doctor=user.doctor)
+        
+        # Add tags to the post
+        for tag_data in tags_data:
+            tag, created = Tag.objects.get_or_create(name=tag_data['name'])
+            post.tags.add(tag)
 
     @action(detail=True, methods=['get'])
     def likes(self, request, pk=None):

@@ -12,8 +12,8 @@ export const postSchema = z.object({
   tags: z.array(TagSchema).nullable().optional(),
   likes_count: z.number().nullable().optional(), // Total likes on the post
   comments_count: z.number().nullable().optional(), // Total comments on the post
-  createdAt: z.string().datetime().nullable().optional(),
-  updatedAt: z.string().datetime().nullable().optional(),
+  created_at: z.string().datetime().nullable().optional(), // Updated field name
+  updated_at: z.string().datetime().nullable().optional(), // Updated field name
 });
 
 export const postListSchema = z.array(postSchema);
