@@ -240,12 +240,65 @@ class Reservation(BaseModel):
             reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
             end_datetime = reservation_datetime + timedelta(minutes=self.duration)
 
+class Reservation(BaseModel):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations')
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
+    status = models.CharField(
+        max_length=10,
+        choices=ReservationStatus.choices,
+        default=ReservationStatus.PENDING,
+        db_index=True
+    )
+    reason_for_cancellation = models.TextField(blank=True)
+    reservation_date = models.DateField(db_index=True)
+    reservation_time = models.TimeField()
+    duration = models.PositiveIntegerField(default=30, help_text="Duration in minutes")  # Default duration is 30 minutes
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['patient']),
+            models.Index(fields=['clinic']),
+            models.Index(fields=['doctor']),
+            models.Index(fields=['reservation_date', 'reservation_time']),
+        ]
+
+    def clean(self):
+        if not self.clinic and not self.doctor:
+            raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
+
+        if self.clinic and not self.clinic.reservation_open:
+            raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
+        if self.doctor and not self.doctor.reservation_open:
+            raise ValidationError(_('Reservations are currently closed for the selected doctor.'))
+
+        if self.doctor:
+            # Convert reservation_time to a datetime object for calculation
+            reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
+            end_datetime = reservation_datetime + timedelta(minutes=self.duration)
+
+            # Exclude the current reservation during updates
+            overlapping_reservations = Reservation.objects.filter(
+                doctor=self.doctor,
+                reservation_date=self.reservation_date,
+                reservation_time__lt=end_datetime.time(),  # Convert back to time
+                reservation_time__gte=self.reservation_time,
+            ).exclude(id=self.id)  # Exclude the current reservation during updates
+            if overlapping_reservations.exists():
+                raise ValidationError(_('The doctor is already booked at this time.'))
+
+        if self.clinic:
+            # Convert reservation_time to a datetime object for calculation
+            reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
+            end_datetime = reservation_datetime + timedelta(minutes=self.duration)
+
+            # Exclude the current reservation during updates
             overlapping_reservations = Reservation.objects.filter(
                 clinic=self.clinic,
                 reservation_date=self.reservation_date,
                 reservation_time__lt=end_datetime.time(),  # Convert back to time
                 reservation_time__gte=self.reservation_time,
-            ).exclude(id=self.id)
+            ).exclude(id=self.id)  # Exclude the current reservation during updates
             if overlapping_reservations.exists():
                 raise ValidationError(_('The clinic is already booked at this time.'))
 
@@ -264,8 +317,7 @@ class Reservation(BaseModel):
             reservation_date__gte=timezone.now().date(),
             status='approved'
         ).select_related('patient', 'doctor', 'clinic')
-
-
+        
 class Review(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews')
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reviews')
