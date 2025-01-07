@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator,FileExte
 from apps.authentication.models import Specialization, User, Doctor, Patient
 from apps.core.general import BaseModel
 from django.utils.translation import gettext_lazy as _
-
+from datetime import datetime, timedelta
 
 def validate_file_size(value):
     max_size = 10 * 1024 * 1024  # 5 MB
@@ -189,10 +189,6 @@ class BranchDoctor(BaseModel):
     def __str__(self):
         return f"{self.doctor} at {self.branch}"
 
-
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-
 class Reservation(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations')
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
@@ -217,34 +213,39 @@ class Reservation(BaseModel):
         ]
 
     def clean(self):
-        # Ensure either clinic or doctor is provided
         if not self.clinic and not self.doctor:
             raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
 
-        # Check if the clinic or doctor is available for reservations
         if self.clinic and not self.clinic.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
         if self.doctor and not self.doctor.reservation_open:
             raise ValidationError(_('Reservations are currently closed for the selected doctor.'))
 
-        # Check for overlapping reservations
         if self.doctor:
+            # Convert reservation_time to a datetime object for calculation
+            reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
+            end_datetime = reservation_datetime + timedelta(minutes=self.duration)
+
             overlapping_reservations = Reservation.objects.filter(
                 doctor=self.doctor,
                 reservation_date=self.reservation_date,
-                reservation_time__lt=(self.reservation_time + timezone.timedelta(minutes=self.duration)),
+                reservation_time__lt=end_datetime.time(),  # Convert back to time
                 reservation_time__gte=self.reservation_time,
-            ).exclude(id=self.id)  # Exclude the current reservation during updates
+            ).exclude(id=self.id)
             if overlapping_reservations.exists():
                 raise ValidationError(_('The doctor is already booked at this time.'))
 
         if self.clinic:
+            # Convert reservation_time to a datetime object for calculation
+            reservation_datetime = datetime.combine(self.reservation_date, self.reservation_time)
+            end_datetime = reservation_datetime + timedelta(minutes=self.duration)
+
             overlapping_reservations = Reservation.objects.filter(
                 clinic=self.clinic,
                 reservation_date=self.reservation_date,
-                reservation_time__lt=(self.reservation_time + timezone.timedelta(minutes=self.duration)),
+                reservation_time__lt=end_datetime.time(),  # Convert back to time
                 reservation_time__gte=self.reservation_time,
-            ).exclude(id=self.id)  # Exclude the current reservation during updates
+            ).exclude(id=self.id)
             if overlapping_reservations.exists():
                 raise ValidationError(_('The clinic is already booked at this time.'))
 
