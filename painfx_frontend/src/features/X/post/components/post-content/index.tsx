@@ -29,7 +29,7 @@ export default function PostContent() {
     const postData = {
       title,
       content,
-      tags: tags.map((tag) => ({ name: tag })), // Convert tags to the required format
+      tags: tags.map((tag) => ({ name: tag })), // Convert tag names to objects
       media_attachments: mediaFiles.map((file) => ({
         media_type: file.type.startsWith('image') ? 'image' : 'video', // Determine media type
         file, // Include the file
