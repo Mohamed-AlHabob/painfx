@@ -7,96 +7,91 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Upload } from 'lucide-react';
 import { usePosts } from '@/hooks/Social/post';
-
+import {
+  useGetPostsQuery,
+  useCreatePostMutation,
+  useUpdatePostMutation,
+  useDeletePostMutation,
+} from "@/redux/services/booking/postApiSlice";
 
 export default function PostContent() {
-  const [isVideoExpanded, setIsVideoExpanded] = useState(false)
-  const { register, errors, onCreatePost, isLoading } = usePosts()
+  const [createPost, { isLoading }] = useCreatePostMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onCreatePost()
-  }
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [tags, setTags] = useState<number[]>([]);
+  const [mediaAttachments, setMediaAttachments] = useState<{ media_type: string; file?: File; url?: string }[]>([]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const postData: CreatePostRequest = {
+      title,
+      content,
+      tags,
+      media_attachments: mediaAttachments,
+    };
+
+    try {
+      await createPost(postData).unwrap();
+      // Clear the form after successful submission
+      setTitle('');
+      setContent('');
+      setTags([]);
+      setMediaAttachments([]);
+      alert('Post created successfully!');
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      alert('Failed to create post.');
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-    <div className="space-y-2">
-      <Label htmlFor="title">Title</Label>
-      <Input
-        id="title"
-        {...register('title')}
-        placeholder="Enter your post title"
-      />
-      {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
-    </div>
-    <div className="space-y-2">
-      <Label htmlFor="content">Content</Label>
-      <Textarea
-        id="content"
-        {...register('content')}
-        placeholder="Write your post content here"
-        rows={5}
-      />
-      {errors.content && <p className="text-red-500 text-sm">{errors.content.message}</p>}
-    </div>
-
-    <div className="space-y-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setIsVideoExpanded(!isVideoExpanded)}
-        className="w-full"
-      >
-        <Upload className="mr-2 h-4 w-4" />
-        {isVideoExpanded ? 'Hide Video Options' : 'Add Video'}
-      </Button>
-    </div>
-
-    {isVideoExpanded && (
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="video_file">Upload Video File</Label>
-          <Input
-            id="video_file"
-            type="file"
-            accept="video/*"
-            {...register('file')}
-          />
-          {errors.file && <p className="text-red-500 text-sm">{errors.file.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="video_url">Or Enter Video URL</Label>
-          <Input
-            id="video_url"
-            type="url"
-            placeholder="https://example.com/video.mp4"
-            {...register('url')}
-          />
-          {errors.url && <p className="text-red-500 text-sm">{errors.url.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="thumbnail_url">Thumbnail URL (optional)</Label>
-          <Input
-            id="thumbnail_url"
-            type="url"
-            placeholder="https://example.com/thumbnail.jpg"
-            {...register('thumbnail')}
-          />
-          {errors.thumbnail && <p className="text-red-500 text-sm">{errors.thumbnail.message}</p>}
-        </div>
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label htmlFor="title">Title:</label>
+        <input
+          type="text"
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
       </div>
-    )}
-
-    <Button type="submit" className="w-full" disabled={isLoading}>
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Creating Post...
-        </>
-      ) : (
-        'Create Post'
-      )}
-    </Button>
-  </form>
+      <div>
+        <label htmlFor="content">Content:</label>
+        <textarea
+          id="content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="tags">Tags (comma-separated IDs):</label>
+        <input
+          type="text"
+          id="tags"
+          value={tags.join(',')}
+          onChange={(e) => setTags(e.target.value.split(',').map(Number))}
+        />
+      </div>
+      <div>
+        <label htmlFor="media_attachments">Media Attachments:</label>
+        <input
+          type="file"
+          id="media_attachments"
+          multiple
+          onChange={(e) => {
+            const files = Array.from(e.target.files || []);
+            setMediaAttachments(files.map(file => ({ media_type: 'image', file })));
+          }}
+        />
+      </div>
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Creating...' : 'Create Post'}
+      </button>
+    </form>
   );
 };
 
