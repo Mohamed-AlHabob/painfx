@@ -33,7 +33,7 @@ export default function PostContent() {
       media_attachments: mediaFiles.map((file) => ({
         media_type: file.type.startsWith('image') ? 'image' : 'video', // Determine media type
         file, // Include the file
-        url: null, // URL is not needed when uploading files
+        url: undefined, // URL is not needed when uploading files
       })),
     };
 
