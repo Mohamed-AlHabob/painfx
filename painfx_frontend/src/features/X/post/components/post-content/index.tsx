@@ -15,28 +15,36 @@ import {
 export default function PostContent() {
   const [createPost, { isLoading }] = useCreatePostMutation();
 
+  // State for form fields
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [tags, setTags] = useState<number[]>([]);
-  const [mediaAttachments, setMediaAttachments] = useState<{ media_type: string; file?: File; url?: string }[]>([]);
+  const [tags, setTags] = useState<string[]>([]); // Array of tag names
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]); // Array of files for media attachments
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const postData: CreatePostRequest = {
+    // Prepare the payload
+    const postData = {
       title,
       content,
-      tags,
-      media_attachments: mediaAttachments,
+      tags: tags.map((tag) => ({ name: tag })), // Convert tags to the required format
+      media_attachments: mediaFiles.map((file) => ({
+        media_type: file.type.startsWith('image') ? 'image' : 'video', // Determine media type
+        file, // Include the file
+        url: null, // URL is not needed when uploading files
+      })),
     };
 
     try {
+      // Call the createPost mutation
       await createPost(postData).unwrap();
       // Clear the form after successful submission
       setTitle('');
       setContent('');
       setTags([]);
-      setMediaAttachments([]);
+      setMediaFiles([]);
       alert('Post created successfully!');
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -44,52 +52,105 @@ export default function PostContent() {
     }
   };
 
+  // Handle adding tags
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+      e.preventDefault();
+      setTags([...tags, e.currentTarget.value.trim()]);
+      e.currentTarget.value = ''; // Clear the input
+    }
+  };
+
+  // Handle removing tags
+  const handleRemoveTag = (index: number) => {
+    setTags(tags.filter((_, i) => i !== index));
+  };
+
+  // Handle file uploads
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setMediaFiles([...mediaFiles, ...files]);
+    }
+  };
+
+  // Handle removing files
+  const handleRemoveFile = (index: number) => {
+    setMediaFiles(mediaFiles.filter((_, i) => i !== index));
+  };
+
   return (
     <form onSubmit={handleSubmit}>
+    {/* Title Field */}
+    <div>
+      <label htmlFor="title">Title:</label>
+      <input
+        type="text"
+        id="title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+      />
+    </div>
+
+    {/* Content Field */}
+    <div>
+      <label htmlFor="content">Content:</label>
+      <textarea
+        id="content"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        required
+      />
+    </div>
+
+    {/* Tags Field */}
+    <div>
+      <label htmlFor="tags">Tags:</label>
+      <input
+        type="text"
+        id="tags"
+        placeholder="Add a tag and press Enter"
+        onKeyDown={handleAddTag}
+      />
       <div>
-        <label htmlFor="title">Title:</label>
-        <input
-          type="text"
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
+        {tags.map((tag, index) => (
+          <div key={index}>
+            <span>{tag}</span>
+            <button type="button" onClick={() => handleRemoveTag(index)}>
+              Remove
+            </button>
+          </div>
+        ))}
       </div>
+    </div>
+
+    {/* Media Attachments Field */}
+    <div>
+      <label htmlFor="media_attachments">Media Attachments:</label>
+      <input
+        type="file"
+        id="media_attachments"
+        multiple
+        onChange={handleFileChange}
+      />
       <div>
-        <label htmlFor="content">Content:</label>
-        <textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          required
-        />
+        {mediaFiles.map((file, index) => (
+          <div key={index}>
+            <span>{file.name}</span>
+            <button type="button" onClick={() => handleRemoveFile(index)}>
+              Remove
+            </button>
+          </div>
+        ))}
       </div>
-      <div>
-        <label htmlFor="tags">Tags (comma-separated IDs):</label>
-        <input
-          type="text"
-          id="tags"
-          value={tags.join(',')}
-          onChange={(e) => setTags(e.target.value.split(',').map(Number))}
-        />
-      </div>
-      <div>
-        <label htmlFor="media_attachments">Media Attachments:</label>
-        <input
-          type="file"
-          id="media_attachments"
-          multiple
-          onChange={(e) => {
-            const files = Array.from(e.target.files || []);
-            setMediaAttachments(files.map(file => ({ media_type: 'image', file })));
-          }}
-        />
-      </div>
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? 'Creating...' : 'Create Post'}
-      </button>
-    </form>
+    </div>
+
+    {/* Submit Button */}
+    <button type="submit" disabled={isLoading}>
+      {isLoading ? 'Creating...' : 'Create Post'}
+    </button>
+  </form>
   );
 };
 
