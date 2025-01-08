@@ -8,10 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Upload } from 'lucide-react';
 import { usePosts } from '@/hooks/Social/post';
 import {
-  useGetPostsQuery,
   useCreatePostMutation,
-  useUpdatePostMutation,
-  useDeletePostMutation,
+  CreatePostRequest,
 } from "@/redux/services/booking/postApiSlice";
 
 export default function PostContent() {
