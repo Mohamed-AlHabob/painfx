@@ -55,10 +55,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
       query: (data) => ({
         url: 'posts/',
         method: 'POST',
-        body: {
-          ...data,
-          media_attachments: data.media_attachments, // Updated field name
-        },
+        body: data,
       }),
       transformResponse: (response: Post) => {
         postSchema.parse(response); // Validate the response
