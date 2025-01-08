@@ -25,21 +25,26 @@ export default function PostContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prepare the payload
-    const postData = {
-      title,
-      content,
-      tags: tags.map((tag) => ({ name: tag })), // Convert tag names to objects
-      media_attachments: mediaFiles.map((file) => ({
-        media_type: file.type.startsWith('image') ? 'image' : 'video', // Determine media type
-        file, // Include the file
-        url: undefined, // URL is not needed when uploading files
-      })),
-    };
+    // Create a FormData object
+    const formData = new FormData();
+
+    // Append text fields
+    formData.append('title', title);
+    formData.append('content', content);
+
+    // Append tags
+    tags.forEach((tag, index) => {
+      formData.append(`tags[${index}][name]`, tag);
+    });
+
+    // Append media attachments
+    mediaFiles.forEach((file, index) => {
+      formData.append(`media_attachments`, file);
+    });
 
     try {
-      // Call the createPost mutation
-      await createPost(postData).unwrap();
+      // Call the createPost mutation with FormData
+      await createPost(formData).unwrap();
       // Clear the form after successful submission
       setTitle('');
       setContent('');

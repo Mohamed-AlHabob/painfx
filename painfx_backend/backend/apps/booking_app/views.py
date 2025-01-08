@@ -200,15 +200,24 @@ class PostViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
-        
+
         # Handle tags if provided
         tags_data = self.request.data.get('tags', [])
         post = serializer.save(doctor=user.doctor)
-        
+
         # Add tags to the post
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(name=tag_data['name'])
             post.tags.add(tag)
+
+        # Handle media attachments if provided
+        media_attachments_data = self.request.FILES.getlist('media_attachments')
+        for media_file in media_attachments_data:
+            MediaAttachment.objects.create(
+                post=post,
+                media_type='image' if media_file.content_type.startswith('image') else 'video',
+                file=media_file
+            )
 
     @action(detail=True, methods=['get'])
     def likes(self, request, pk=None):

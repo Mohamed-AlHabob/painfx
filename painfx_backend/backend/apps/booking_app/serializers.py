@@ -165,8 +165,8 @@ class LikeSerializer(serializers.ModelSerializer):
     
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
-    tags = TagSerializer(many=True, required=False)  # Make tags writable
-    media_attachments = MediaAttachmentSerializer(many=True, required=False)  # Make media_attachments writable
+    tags = TagSerializer(many=True, required=False)
+    media_attachments = MediaAttachmentSerializer(many=True, required=False)
     likes_count = serializers.IntegerField(read_only=True)
     comments = serializers.SerializerMethodField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
@@ -181,9 +181,7 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'doctor', 'likes_count', 'comments_count', 'created_at', 'updated_at']
 
     def get_comments(self, obj):
-        # Return serialized comments for the post
-        from apps.booking_app.serializers import CommentSerializer  # Import here to avoid circular imports
-        comments = obj.comments.all()
+        comments = obj.comments.filter(parent=None)
         return CommentSerializer(comments, many=True).data
 
     def create(self, validated_data):
@@ -191,19 +189,15 @@ class PostSerializer(serializers.ModelSerializer):
         if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
 
-        # Extract tags and media_attachments from validated_data
         tags_data = validated_data.pop('tags', [])
         media_attachments_data = validated_data.pop('media_attachments', [])
 
-        # Create the post
         post = Post.objects.create(doctor=user.doctor, **validated_data)
 
-        # Add tags to the post
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(name=tag_data['name'])
             post.tags.add(tag)
 
-        # Add media attachments to the post
         for media_data in media_attachments_data:
             MediaAttachment.objects.create(post=post, **media_data)
 
