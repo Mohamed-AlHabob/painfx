@@ -1,12 +1,11 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState, useMemo } from 'react'
 import { I18nextProvider } from 'react-i18next'
-import i18next from 'i18next'
+import i18next, { i18n } from 'i18next'
 import { initReactI18next } from 'react-i18next/initReactI18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { getOptions, languages } from '@/i18n/settings'
-
 
 interface TranslationsProviderProps {
   children: ReactNode
@@ -17,7 +16,7 @@ export default function TranslationsProvider({
   children,
   locale
 }: TranslationsProviderProps) {
-  const [instance] = useState(() => {
+  const instance = useMemo(() => {
     const i18nInstance = i18next.createInstance()
     i18nInstance
       .use(initReactI18next)
@@ -30,25 +29,23 @@ export default function TranslationsProvider({
           caches: ['localStorage'],
           lookupLocalStorage: 'lang',
         },
-        resources: languages.reduce((acc: { [x: string]: { translation: any } }, lang: string | number) => {
-          acc[lang] = {
-            translation: require(`@/i18n/locales/${lang}/translation.json`)
-          }
-          return acc
-        }, {} as Record<string, { translation: Record<string, string> }>)
+        resources: languages.reduce(
+          (acc: Record<string, { translation: Record<string, string> }>, lang) => {
+            acc[lang] = {
+              translation: require(`@/i18n/locales/${lang}/translation.json`)
+            }
+            return acc
+          },
+          {}
+        )
       })
     return i18nInstance
-  })
+  }, [locale])
 
   useEffect(() => {
     const storedLang = localStorage.getItem('lang') || locale
     instance.changeLanguage(storedLang)
   }, [instance, locale])
 
-  return (
-    <I18nextProvider i18n={instance}>
-      {children}
-    </I18nextProvider>
-  )
+  return <I18nextProvider i18n={instance}>{children}</I18nextProvider>
 }
-
