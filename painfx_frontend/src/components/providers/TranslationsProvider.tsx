@@ -1,8 +1,8 @@
 'use client'
 
-import { ReactNode, useEffect, useState, useMemo } from 'react'
+import { ReactNode, useEffect, useMemo } from 'react'
 import { I18nextProvider } from 'react-i18next'
-import i18next, { i18n } from 'i18next'
+import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next/initReactI18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import { getOptions, languages } from '@/i18n/settings'
@@ -18,12 +18,14 @@ export default function TranslationsProvider({
 }: TranslationsProviderProps) {
   const instance = useMemo(() => {
     const i18nInstance = i18next.createInstance()
+    const storedLang = localStorage.getItem('lang') || locale
+
     i18nInstance
       .use(initReactI18next)
       .use(LanguageDetector)
       .init({
-        ...getOptions(locale),
-        lng: locale,
+        ...getOptions(storedLang),
+        lng: storedLang, // Use stored language or fallback to locale
         detection: {
           order: ['localStorage', 'htmlTag'],
           caches: ['localStorage'],
@@ -44,7 +46,9 @@ export default function TranslationsProvider({
 
   useEffect(() => {
     const storedLang = localStorage.getItem('lang') || locale
-    instance.changeLanguage(storedLang)
+    if (storedLang !== instance.language) {
+      instance.changeLanguage(storedLang)
+    }
   }, [instance, locale])
 
   return <I18nextProvider i18n={instance}>{children}</I18nextProvider>
