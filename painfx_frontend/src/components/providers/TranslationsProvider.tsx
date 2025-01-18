@@ -28,6 +28,7 @@ export default function TranslationsProvider({
         detection: {
           order: ['localStorage', 'htmlTag'],
           caches: ['localStorage'],
+          lookupLocalStorage: 'lang',
         },
         resources: languages.reduce((acc: { [x: string]: { translation: any } }, lang: string | number) => {
           acc[lang] = {
