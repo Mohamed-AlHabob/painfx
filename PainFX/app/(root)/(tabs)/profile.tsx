@@ -11,7 +11,7 @@ export default function Profile() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <CustomHeader title={t("profile")} onSettingsPress={() => {}} onNotificationPress={() => {}} />
+      {/* <CustomHeader title={t("profile")} onSettingsPress={() => {}} onNotificationPress={() => {}} /> */}
       <View style={styles.content}>
         <Text style={[styles.text, { color: theme.colors.text }]}>Profile Screen</Text>
       </View>
