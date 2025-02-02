@@ -1,10 +1,9 @@
-import { useEffect } from "react";
-import { Stack } from "expo-router";
-import { useFonts } from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
+import React from "react"
+import { Stack } from "expo-router"
+import { SafeAreaProvider } from "react-native-safe-area-context"
+import { ThemeProvider } from "@/providers/theme-provider"
+import { LanguageProvider } from "@/providers/language-provider"
 
-import "./global.css";
-import GlobalProvider from "@/providers/global-provider";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -27,8 +26,12 @@ export default function RootLayout() {
   }
 
   return (
-    <GlobalProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </GlobalProvider>
-  );
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </LanguageProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
+  )
 }
