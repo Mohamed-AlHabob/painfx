@@ -1,11 +1,12 @@
-import axios from 'axios';
-import { getAuthTokens, refreshAccessToken } from './auth';
+import axios from "axios";
+import { getAuthTokens, refreshAccessToken } from "./auth";
 
-const API_URL = 'https://painfx.onrender.com/api';
+
+const API_URL = "https://painfx.onrender.com/api";
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -13,7 +14,7 @@ api.interceptors.request.use(
   async (config) => {
     const { access } = await getAuthTokens();
     if (access) {
-      config.headers['Authorization'] = `Bearer ${access}`;
+      config.headers["Authorization"] = `Bearer ${access}`;
     }
     return config;
   },
@@ -30,10 +31,9 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const newAccessToken = await refreshAccessToken();
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Handle refresh token error (e.g., logout user)
         return Promise.reject(refreshError);
       }
     }
@@ -42,4 +42,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-
