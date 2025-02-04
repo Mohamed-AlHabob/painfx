@@ -42,7 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         validators=[EmailValidator()],
         verbose_name=_("Email Address")
     )
-    username = models.CharField(max_length=30, unique=True,blank=True, verbose_name=_("Username"))
+    username = models.CharField(max_length=30, blank=True, verbose_name=_("Username"))
     first_name = models.CharField(max_length=30, blank=True, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last Name"))
     language = models.CharField(max_length=10, default="en")
