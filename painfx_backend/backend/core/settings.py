@@ -64,6 +64,7 @@ CHANNEL_LAYERS = {
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -79,7 +80,6 @@ INSTALLED_APPS = [
     'django_filters',
     "django_celery_beat",
     "django_celery_results",
-    "daphne",
     "apps.chat",
     "apps.authentication",
     "apps.booking_app",
