@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.chat.models import Connection, Message
-from apps.authenticated.models import User
-from apps.authenticated.serializers import UserSerializer
+from apps.authentication.models import User
+from apps.authentication.serializers import UserSerializer
 
 class SearchSerializer(UserSerializer):
 	status = serializers.SerializerMethodField()

@@ -1,5 +1,5 @@
 from apps.core.general import BaseModel
-from apps.authenticated.models import User
+from apps.authentication.models import User
 
 class Connection(BaseModel):
 	sender = models.ForeignKey(

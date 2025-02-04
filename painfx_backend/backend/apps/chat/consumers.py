@@ -7,9 +7,9 @@ from django.core.files.base import  ContentFile
 from django.db.models import Q, Exists, OuterRef
 from django.db.models.functions import Coalesce
 
-from apps.authenticated.models import User
+from apps.authentication.models import User
 from apps.chat.models import Connection, Message
-from apps.authenticated.serializers import UserSerializer
+from apps.authentication.serializers import UserSerializer
 from apps.chat.serializers import (
 	SearchSerializer, 
 	RequestSerializer, 
