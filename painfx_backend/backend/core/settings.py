@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'django_filters',
     "django_celery_beat",
     "django_celery_results",
+    "channels",
     "apps.chat",
     "apps.authentication",
     "apps.booking_app",
