@@ -85,7 +85,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     date_of_birth = models.DateField(null=True, blank=True)
-    avatar = models.ImageField(upload_to=upload_avatar, null=True, blank=True, default="avatars/default.png")
+    avatar = models.ImageField(upload_to=upload_avatar, null=True, blank=True)
     bio = models.TextField(blank=True)
     address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(blank=True, null=True)
