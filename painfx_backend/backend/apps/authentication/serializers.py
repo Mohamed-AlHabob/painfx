@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(source='userprofile', read_only=True)
     class Meta:
         model = User
-        fields = ['id', 'email', 'role', 'first_name', 'last_name', 'is_active','last_login', 'profile']
+        fields = ['id', 'email', 'role', 'first_name', 'last_name','username', 'is_active','last_login', 'profile']
         read_only_fields = ['id', 'is_active', 'last_login']
 
 class SpecializationSerializer(serializers.ModelSerializer):

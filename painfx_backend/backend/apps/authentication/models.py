@@ -5,6 +5,13 @@ from django.core.validators import RegexValidator
 from apps.core.general import BaseModel
 from django.utils.translation import gettext_lazy as _
 
+def upload_avatar(instance, filename):
+	path = f'avatar/{instance.username}'
+	extension = filename.split('.')[-1]
+	if extension:
+		path = path + '.' + extension
+	return path
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -26,6 +33,8 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+
+
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     email = models.EmailField(
         unique=True, 
@@ -33,6 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
         validators=[EmailValidator()],
         verbose_name=_("Email Address")
     )
+    username = models.CharField(max_length=30, unique=True,blank=True, verbose_name=_("Username"))
     first_name = models.CharField(max_length=30, blank=True, verbose_name=_("First Name"))
     last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last Name"))
     language = models.CharField(max_length=10, default="en")
@@ -75,7 +85,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 class UserProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     date_of_birth = models.DateField(null=True, blank=True)
-    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True, default="avatars/default.png")
+    avatar = models.ImageField(upload_to=upload_avatar, null=True, blank=True, default="avatars/default.png")
     bio = models.TextField(blank=True)
     address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(blank=True, null=True)

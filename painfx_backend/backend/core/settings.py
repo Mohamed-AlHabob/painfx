@@ -51,6 +51,17 @@ if DEVELOPMENTMODE:
 else:
     CORS_ALLOW_ALL_ORIGINS = False
 
+
+
+CHANNEL_LAYERS = {
+	'default': {
+		'BACKEND': 'channels_redis.core.RedisChannelLayer',
+		'CONFIG': {
+			'hosts': [('127.0.0.1', 6379)]
+		}
+	}
+}
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -68,6 +79,8 @@ INSTALLED_APPS = [
     'django_filters',
     "django_celery_beat",
     "django_celery_results",
+    "daphne",
+    "apps.chat",
     "apps.authentication",
     "apps.booking_app",
 ]
@@ -110,10 +123,10 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='painfx_datebase_hp40'),
-        'USER': env('POSTGRES_USER', default='painfx_datebase_hp40_user'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='PQRHkvLbq75G1wTmKt9lSWrRaAiv7rPX'),
-        "HOST": env("POSTGRES_HOST", default="dpg-ctumu023esus739ef38g-a"),
+        'NAME': env('POSTGRES_DB', default='painfx_database'),
+        'USER': env('POSTGRES_USER', default='painfx_database_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='Dz2rJBykoUTm1XhNsUQsD4VTTB76vcWX'),
+        "HOST": env("POSTGRES_HOST", default="dpg-cuh1mvbv2p9s73cpo3s0-a"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
@@ -225,7 +238,6 @@ CACHES = {
         },
     }
 }
-
 
 # Djoser settings
 DJOSER = {
