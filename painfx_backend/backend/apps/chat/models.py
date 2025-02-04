@@ -1,4 +1,5 @@
 from apps.core.general import BaseModel
+from django.db import models
 from apps.authentication.models import User
 
 class Connection(BaseModel):
