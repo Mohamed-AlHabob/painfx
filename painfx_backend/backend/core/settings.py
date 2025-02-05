@@ -210,7 +210,7 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env('EMAIL_HOST_USER',default="supernovasoftwareco@gmail.com")
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD',default="aodc mqwb nibd clbz")
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD',default="clza azel tsbs khlx")
 DEFAULT_FROM_EMAIL = f"{SITE_NAME} <{EMAIL_HOST_USER}>"
 
 # Default auto field
