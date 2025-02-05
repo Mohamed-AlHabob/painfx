@@ -1,7 +1,7 @@
 from django.urls import path
 
 def get_consumers():
-    from apps.chat.consumers import consumers
+    from apps.chat import consumers
     return consumers
 
 websocket_urlpatterns = [
