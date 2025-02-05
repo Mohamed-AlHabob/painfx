@@ -54,13 +54,16 @@ else:
 
 
 CHANNEL_LAYERS = {
-	'default': {
-		'BACKEND': 'channels_redis.core.RedisChannelLayer',
-		'CONFIG': {
-			'hosts': [('127.0.0.1', 6379)]
-		}
-	}
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": ["redis://red-ctk0mhbtq21c73e5i4gg:6379/0"],
+        },
+    },
 }
+
+
+
 
 # Application definition
 INSTALLED_APPS = [
