@@ -38,5 +38,5 @@ CMD sh -c "\
 from apps.authentication.models import User; \
 User.objects.filter(email='admin@painfx.in').exists() or \
 User.objects.create_superuser(email='admin@painfx.in',password='admin')\" && \
-    echo 'Starting supervisord...' && \
-    supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+    echo 'Starting Daphne...' && \
+    daphne -b 0.0.0.0 -p 8000 core.asgi:application"
