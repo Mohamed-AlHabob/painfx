@@ -5,5 +5,5 @@ def get_consumers():
     return consumers
 
 websocket_urlpatterns = [
-    path("ws/chat/", get_consumers().ChatConsumer.as_asgi()),
+    path("chat/", get_consumers().ChatConsumer.as_asgi()),
 ]
