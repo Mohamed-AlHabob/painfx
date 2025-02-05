@@ -10,6 +10,7 @@ class SearchSerializer(UserSerializer):
 		model = User
 		fields = [
 			'email',
+			'username',
 			'first_name',
 			'last_name',
 			'status'
@@ -35,14 +36,14 @@ class RequestSerializer(serializers.ModelSerializer):
 			'id',
 			'sender',
 			'receiver',
-			'created'
+			'created_at'
 		]
 
 
 class FriendSerializer(serializers.ModelSerializer):
 	friend = serializers.SerializerMethodField()
 	preview = serializers.SerializerMethodField()
-	updated = serializers.SerializerMethodField()
+	updated_at = serializers.SerializerMethodField()
 	
 	class Meta:
 		model = Connection
@@ -50,7 +51,7 @@ class FriendSerializer(serializers.ModelSerializer):
 			'id',
 			'friend',
 			'preview',
-			'updated'
+			'updated_at'
 		]
 
 	def get_friend(self, obj):
@@ -71,9 +72,9 @@ class FriendSerializer(serializers.ModelSerializer):
 
 	def get_updated(self, obj):
 		if not hasattr(obj, 'latest_created'):
-			date = obj.updated
+			date = obj.updated_at
 		else:
-			date = obj.latest_created or obj.updated
+			date = obj.latest_created or obj.updated_at
 		return date.isoformat()
 
 
@@ -88,7 +89,7 @@ class MessageSerializer(serializers.ModelSerializer):
 			'id',
 			'is_me',
 			'text',
-			'created'
+			'created_at'
 		]
 
 	def get_is_me(self, obj):
