@@ -73,15 +73,15 @@ class ChatConsumer(WebsocketConsumer):
 
         latest_message = Message.objects.filter(
             connection=OuterRef('id')
-        ).order_by('-created')[:1]
+        ).order_by('-created_at')[:1]
 
         connections = Connection.objects.filter(
             Q(sender=user) | Q(receiver=user),
             accepted=True
         ).annotate(
             latest_text=latest_message.values('text'),
-            latest_created=latest_message.values('created')
-        ).order_by(Coalesce('latest_created', 'updated').desc())
+            latest_created=latest_message.values('created_at')
+        ).order_by(Coalesce('latest_created', 'updated_at').desc())
 
         serialized = FriendSerializer(connections, context={'user': user}, many=True)
         self.send_group(user.username, 'friend.list', serialized.data)
@@ -104,7 +104,7 @@ class ChatConsumer(WebsocketConsumer):
 
         messages = Message.objects.filter(
             connection=connection
-        ).order_by('-created')[page * page_size:(page + 1) * page_size]
+        ).order_by('-created_at')[page * page_size:(page + 1) * page_size]
 
         serialized_messages = MessageSerializer(messages, context={'user': user}, many=True)
 
