@@ -15,7 +15,7 @@ class JWTAuthMiddleware:
     def __init__(self, inner):
         self.inner = inner
 
-    def __call__(self, scope):
+    async def __call__(self, scope, receive, send):
         # Extract token from query params (e.g., ws://localhost:8000/ws/chat/?token=xxx)
         query_string = parse_qs(scope["query_string"].decode())
         token = query_string.get("token", [None])[0]  # Extract token if exists
@@ -31,7 +31,9 @@ class JWTAuthMiddleware:
 
         close_old_connections()  # Close old DB connections
         scope["user"] = user  # Attach user to WebSocket scope
-        return self.inner(scope)
+
+        # Pass control to the next middleware/application layer
+        await self.inner(scope, receive, send)
 
 # Wrap with AuthMiddlewareStack
 def JWTAuthMiddlewareStack(inner):

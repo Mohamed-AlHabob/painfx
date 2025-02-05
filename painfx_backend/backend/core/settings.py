@@ -45,6 +45,7 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     "https://api.painfx.in",
     "wss://painfx.onrender.com"
 ])
+
 CORS_ALLOW_CREDENTIALS = True
 
 if DEVELOPMENTMODE:
@@ -339,6 +340,8 @@ LOGGING = {
     },
 }
 
+CSRF_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Security settings for production
 if not DEVELOPMENTMODE:
     SECURE_SSL_REDIRECT = True
@@ -357,6 +360,7 @@ if not DEVELOPMENTMODE:
     CSRF_TRUSTED_ORIGINS = [
     'https://painfx.in',
     'https://www.painfx.in',
+    'https://painfx.onrender.com',
     'https://painfx.onrender.com',
     'wss://painfx.onrender.com'
 ]
