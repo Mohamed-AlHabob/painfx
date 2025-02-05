@@ -6,11 +6,9 @@ from apps.core.general import BaseModel
 from django.utils.translation import gettext_lazy as _
 
 def upload_avatar(instance, filename):
-	path = f'avatar/{instance.username}'
-	extension = filename.split('.')[-1]
-	if extension:
-		path = path + '.' + extension
-	return path
+    path = f'avatar/{instance.username}'
+    extension = filename.split('.')[-1] if '.' in filename else 'jpg'
+    return f'{path}.{extension}'
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -25,6 +23,7 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
         if not extra_fields.get("is_staff"):
             raise ValueError(_("Superuser must have is_staff=True."))
@@ -47,8 +46,9 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     last_name = models.CharField(max_length=30, blank=True, verbose_name=_("Last Name"))
     language = models.CharField(max_length=10, default="en")
     timezone = models.CharField(max_length=50, default="UTC")
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    is_staff = models.BooleanField(default=False, verbose_name=_("Staff Status"))
+
     role = models.CharField(
         max_length=10,
         choices=[("patient", _("Patient")), ("doctor", _("Doctor")), ("clinic", _("Clinic"))],
@@ -96,9 +96,11 @@ class UserProfile(BaseModel):
         validators=[RegexValidator(regex=r"^\+?1?\d{9,15}$", message=_("Phone number must be in the format: '+999999999'."))],
     )
     expo_push_token = models.CharField(max_length=255, null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=[("he", _("He")), ("she", _("She")), ("other", _("Other"))], blank=True)
+    gender = models.CharField(max_length=10, choices=[("he", _("He")), ("she", _("She")), ("other", _("Other"))], default="other", blank=True)
 
     class Meta:
+        verbose_name = _("User Profile")
+        verbose_name_plural = _("User Profiles")
         indexes = [
             models.Index(fields=['user']),
             models.Index(fields=['phone_number']),
@@ -136,8 +138,8 @@ class Patient(models.Model):
     
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor')
-    specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True)
-    license_number = models.CharField(max_length=255, blank=True)
+    specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctors')
+    license_number = models.CharField(max_length=255, blank=True, null=True)
     license_expiry_date = models.DateField(null=True, blank=True)
     license_image = models.ImageField(upload_to="license_images/", blank=True, null=True)
     active = models.BooleanField(default=False)

@@ -14,11 +14,9 @@ class Connection(BaseModel):
 		on_delete=models.CASCADE
 	)
 	accepted = models.BooleanField(default=False)
-	updated = models.DateTimeField(auto_now=True)
-	created = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
-		return self.sender.username + ' -> ' + self.receiver.username
+		return self.sender.get_full_name() + ' -> ' + self.receiver.get_full_name()
 
 class Message(BaseModel):
 	connection = models.ForeignKey(
@@ -32,7 +30,6 @@ class Message(BaseModel):
 		on_delete=models.CASCADE
 	)
 	text = models.TextField()
-	created = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
-		return self.user.username + ': ' + self.text
+		return self.user.get_full_name() + ': ' + self.text
