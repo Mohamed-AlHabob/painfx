@@ -6,6 +6,7 @@ from apps.authentication.models import User
 from django.db import close_old_connections
 import jwt
 from django.conf import settings
+from channels.db import database_sync_to_async
 
 class JWTAuthMiddleware:
     """
@@ -25,7 +26,7 @@ class JWTAuthMiddleware:
         if token:
             try:
                 decoded_data = AccessToken(token)  # Validate JWT
-                user = User.objects.get(id=decoded_data["user_id"])  # Get user from DB
+                user = await self.get_user(decoded_data["user_id"])  # Get user from DB asynchronously
             except (jwt.ExpiredSignatureError, jwt.DecodeError, User.DoesNotExist):
                 user = AnonymousUser()  # Fallback if token is invalid
 
@@ -34,6 +35,11 @@ class JWTAuthMiddleware:
 
         # Pass control to the next middleware/application layer
         await self.inner(scope, receive, send)
+
+    @database_sync_to_async
+    def get_user(self, user_id):
+        # Query the user in a synchronous way
+        return User.objects.get(id=user_id)
 
 # Wrap with AuthMiddlewareStack
 def JWTAuthMiddlewareStack(inner):
