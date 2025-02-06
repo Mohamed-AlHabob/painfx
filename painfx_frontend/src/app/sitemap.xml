@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sitemap for PainFX - Connecting Doctors & Patients -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://painfx.in/</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- About Page -->
+  <url>
+    <loc>https://painfx.in/about</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Contact Page -->
+  <url>
+    <loc>https://painfx.in/contact</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Doctors Directory (listing all doctors) -->
+  <url>
+    <loc>https://painfx.in/X/doctors</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Example: Individual Doctor Profile -->
+  <url>
+    <loc>https://painfx.in/X/doctors</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Patients Dashboard or Information Page -->
+  <url>
+    <loc>https://painfx.in/patients</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Blog/Posts Listing -->
+  <url>
+    <loc>https://painfx.in/X/post</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Reservations Page -->
+  <url>
+    <loc>https://painfx.in/X/reservations</loc>
+    <lastmod>2025-02-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+</urlset>
