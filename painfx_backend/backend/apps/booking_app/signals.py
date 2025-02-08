@@ -22,14 +22,14 @@ def send_reservation_notification(sender, instance, created, **kwargs):
         return
     
     if instance.status == 'accepted':
-        status_message = 'Your booking has been accepted.'
+        status = 'Your booking has been accepted.'
     elif instance.status == 'cancelled':
-        status_message = 'Your booking has been cancelled.'
+        status = 'Your booking has been cancelled.'
     elif instance.status == 'declined':
-        status_message = 'Your booking has been declined.'
+        status = 'Your booking has been declined.'
 
     Notification.objects.create(
         user=instance.patient.user,  # Access the user through the patient
-        message=status_message,
+        message=status,
         notification_type='booking'
     )
