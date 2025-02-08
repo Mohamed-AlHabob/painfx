@@ -6,12 +6,10 @@ from apps.booking_app.models import Post, Reservation, Notification
 def send_like_notification(sender, instance, created, **kwargs):
     if created:
         return
-    
-    if instance.likes.count() > 0:  # Assuming you have a `likes` ManyToMany relationship
+    if instance.likes.count() > 0: 
         for like in instance.likes.all():
-            # Create a like notification
             Notification.objects.create(
-                user=like.user,  # Access the user through the like
+                user=like.user,
                 message=f"Your post has been liked by {like.user.first_name}",
                 notification_type='like'
             )
@@ -21,11 +19,13 @@ def send_reservation_notification(sender, instance, created, **kwargs):
     if created:
         return
     
-    if instance.status == 'accepted':
+    status = 'Your booking status has been updated.'  # Default value
+
+    if instance.status == 'approved':
         status = 'Your booking has been accepted.'
     elif instance.status == 'cancelled':
         status = 'Your booking has been cancelled.'
-    elif instance.status == 'declined':
+    elif instance.status == 'rejected':
         status = 'Your booking has been declined.'
 
     Notification.objects.create(
