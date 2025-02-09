@@ -338,35 +338,31 @@ class MediaAttachment(BaseModel):
 
 class Comment(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_comments')
     text = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
 
     class Meta:
         indexes = [
-            models.Index(fields=['content_type', 'object_id']),  # Faster lookups
+            models.Index(fields=['post']),  # Faster lookups for comments on a post
         ]
 
     def __str__(self):
-        return f"Comment by {self.user} on {self.content_object}"
+        return f"Comment by {self.user} on {self.post}"
 
 
 class Like(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.UUIDField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')
 
     class Meta:
-        unique_together = ('user', 'content_type', 'object_id')  # Prevent duplicate likes
+        unique_together = ('user', 'post')  # Prevent duplicate likes
         indexes = [
-            models.Index(fields=['content_type', 'object_id']),  # Faster lookups
+            models.Index(fields=['post']),  # Faster lookups for likes on a post
         ]
 
     def __str__(self):
-        return f"{self.user} likes {self.content_object}"
+        return f"{self.user} likes {self.post}"
     
 
 class Category(BaseModel):

@@ -129,7 +129,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'content_type', 'object_id', 'parent', 'replies', 'created_at']
+        fields = ['id', 'user', 'text', 'post', 'parent', 'replies', 'created_at']
         read_only_fields = ['id', 'user', 'created_at']
 
     def get_replies(self, obj):
@@ -137,12 +137,9 @@ class CommentSerializer(serializers.ModelSerializer):
         return CommentSerializer(replies, many=True).data
 
     def validate(self, attrs):
-        content_type = attrs.get('content_type')
-        object_id = attrs.get('object_id')
-        model_class = content_type.model_class()
-
-        if not model_class.objects.filter(id=object_id).exists():
-            raise serializers.ValidationError("The object does not exist.")
+        post = attrs.get('post')
+        if not Post.objects.filter(id=post.id).exists():
+            raise serializers.ValidationError("The post does not exist.")
         return attrs
 
 
@@ -151,25 +148,22 @@ class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
-        fields = ['id', 'user', 'content_type', 'object_id', 'created_at']
+        fields = ['id', 'user', 'post', 'created_at']
         read_only_fields = ['id', 'user', 'created_at']
 
     def validate(self, attrs):
-        content_type = attrs.get('content_type')
-        object_id = attrs.get('object_id')
-        model_class = content_type.model_class()
-
-        if not model_class.objects.filter(id=object_id).exists():
-            raise serializers.ValidationError("The object does not exist.")
+        post = attrs.get('post')
+        if not Post.objects.filter(id=post.id).exists():
+            raise serializers.ValidationError("The post does not exist.")
         return attrs
     
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
     tags = TagSerializer(many=True, required=False)
     media_attachments = MediaAttachmentSerializer(many=True, required=False)
-    likes_count = serializers.IntegerField(read_only=True)
-    comments = serializers.SerializerMethodField(read_only=True)
-    comments_count = serializers.IntegerField(read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True, read_only=True)
+    comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -180,9 +174,11 @@ class PostSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'doctor', 'likes_count', 'comments_count', 'created_at', 'updated_at']
 
-    def get_comments(self, obj):
-        comments = obj.comments.filter(parent=None)
-        return CommentSerializer(comments, many=True).data
+    def get_likes_count(self, obj):
+        return obj.post_likes.count()
+
+    def get_comments_count(self, obj):
+        return obj.post_comments.count()
 
     def create(self, validated_data):
         user = self.context['request'].user

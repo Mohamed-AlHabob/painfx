@@ -140,11 +140,11 @@ class ReservationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner | IsDoctor])
     def approve(self, request, pk=None):
         reservation = self.get_object()
-        if reservation.status == ReservationStatus.APPROVED:
-            return Response({'error': 'Reservation already approved'}, status=status.HTTP_400_BAD_REQUEST)
+        if reservation.status != ReservationStatus.PENDING:
+            return Response({'error': 'Reservation is not in a pending state'}, status=status.HTTP_400_BAD_REQUEST)    
 
         reservation.status = ReservationStatus.APPROVED
-        reservation.save()
+        reservation.save()    
 
         # Assign a doctor if not already assigned
         if not reservation.doctor and reservation.clinic:
@@ -152,6 +152,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
             if assigned_doctor:
                 reservation.doctor = assigned_doctor
                 reservation.save()
+            else:
+                return Response({'error': 'No available doctors for this clinic'}, status=status.HTTP_400_BAD_REQUEST)    
 
         # Send notifications
         send_sms_notification.delay(reservation.patient.user.id, 'Your reservation has been approved.')
@@ -199,20 +201,22 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         if not hasattr(user, 'doctor'):
-            raise serializers.ValidationError("Only doctors can create posts.")
+            raise serializers.ValidationError("Only doctors can create posts.")    
 
-        # Handle tags if provided
         tags_data = self.request.data.get('tags', [])
-        post = serializer.save(doctor=user.doctor)
+        media_attachments_data = self.request.FILES.getlist('media_attachments')    
+
+        post = serializer.save(doctor=user.doctor)    
 
         # Add tags to the post
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(name=tag_data['name'])
-            post.tags.add(tag)
+            post.tags.add(tag)    
 
-        # Handle media attachments if provided
-        media_attachments_data = self.request.FILES.getlist('media_attachments')
+        # Add media attachments to the post
         for media_file in media_attachments_data:
+            if media_file.size > 10 * 1024 * 1024:  # 10 MB limit
+                raise serializers.ValidationError("File size cannot exceed 10 MB.")
             MediaAttachment.objects.create(
                 post=post,
                 media_type='image' if media_file.content_type.startswith('image') else 'video',
@@ -241,7 +245,16 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        post_id = self.request.data.get('post_id')
+        if not post_id:
+            raise serializers.ValidationError("post_id is required.")    
+
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            raise serializers.ValidationError("Post not found.")    
+
+        serializer.save(user=self.request.user, post=post)
 
     @action(detail=True, methods=['post'])
     def reply(self, request, pk=None):
@@ -262,23 +275,16 @@ class LikeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def toggle_like(self, request):
-        content_type = request.data.get('content_type')
-        object_id = request.data.get('object_id')
+        post_id = request.data.get('post_id')
+        if not post_id:
+            return Response({"error": "post_id is required"}, status=status.HTTP_400_BAD_REQUEST)    
 
-        # Get the content type and object
         try:
-            content_type = ContentType.objects.get(model=content_type)
-            model_class = content_type.model_class()
-            obj = model_class.objects.get(id=object_id)
-        except (ContentType.DoesNotExist, model_class.DoesNotExist):
-            return Response({"error": "Invalid content type or object ID"}, status=status.HTTP_400_BAD_REQUEST)
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)    
 
-        # Toggle like
-        like, created = Like.objects.get_or_create(
-            user=request.user,
-            content_type=content_type,
-            object_id=object_id
-        )
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
         if not created:
             like.delete()
             return Response({"status": "unliked"}, status=status.HTTP_200_OK)
@@ -350,13 +356,13 @@ def stripe_webhook(request):
             process_payment_webhook.delay(event['data']['object'])
         elif event['type'] == 'payment_intent.payment_failed':
             process_payment_webhook.delay(event['data']['object'])
+        else:
+            logger.warning(f"Unhandled Stripe event type: {event['type']}")
 
         return JsonResponse({'status': 'success'})
     except stripe.error.SignatureVerificationError:
         return JsonResponse({'error': 'Invalid signature'}, status=400)
     except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
         logger.error(f"Stripe webhook error: {str(e)}")
         return JsonResponse({'error': str(e)}, status=400)
 
