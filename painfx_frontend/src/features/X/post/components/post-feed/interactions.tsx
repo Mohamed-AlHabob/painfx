@@ -59,15 +59,13 @@ const InteractionButton = React.memo<InteractionButtonProps>(({
 InteractionButton.displayName = 'InteractionButton'
 
 interface InteractionsProps {
-  content_type: string // e.g., "post", "comment", "event"
-  object_id: string // ID of the object being interacted with
+  post_id: string // ID of the object being interacted with
   initialLikeCount: number
   commentsCount: number
 }
 
 export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } = ({ 
-  content_type,
-  object_id, 
+  post_id, 
   initialLikeCount,
   commentsCount 
 }) => {
@@ -76,7 +74,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
   // Fetch likes for the specific content type and object ID
   const { data: likes, isLoading: isFetchingLikes } = useGetLikesQuery(
-    { content_type, object_id },
+    { content_type, post_id },
     {
       skip: !userId,
       selectFromResult: (result) => ({
@@ -116,7 +114,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
     try {
       if (newIsLiked) {
-        await createLike({ content_type, object_id }).unwrap()
+        await createLike({ content_type, post_id }).unwrap()
         toast.success('Liked!')
       } else {
         const userLike = likes?.find((like) => like.user?.id === userId)
@@ -131,10 +129,10 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
       setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1)
       toast.error(extractErrorMessage(error))
     }
-  }, [isLiked, createLike, deleteLike, content_type, object_id, userId, likes, likeCount])
+  }, [isLiked, createLike, deleteLike, content_type, post_id, userId, likes, likeCount])
 
   const handleShare = useCallback(() => {
-    const shareUrl = `${window.location.origin}/${content_type}/${object_id}`
+    const shareUrl = `${window.location.origin}/${content_type}/${post_id}`
     if (navigator.share) {
       navigator.share({
         title: `Check out this ${content_type}!`,
@@ -150,7 +148,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
         .then(() => toast.success('Link copied to clipboard!'))
         .catch(() => toast.error('Failed to copy link.'))
     }
-  }, [content_type, object_id])
+  }, [content_type, post_id])
 
   return (
     <div className="flex items-center justify-between py-2 px-6">

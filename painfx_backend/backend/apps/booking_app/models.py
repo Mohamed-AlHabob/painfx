@@ -271,8 +271,6 @@ class Post(BaseModel):
     content = models.TextField(blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
     view_count = models.PositiveIntegerField(default=0)
-    likes = GenericRelation('Like', related_query_name='post')
-    comments = GenericRelation('Comment', related_query_name='post')
 
     class Meta:
         indexes = [
