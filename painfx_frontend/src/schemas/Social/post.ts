@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { doctorSchema } from '../Doctor';
 import { media_attachmentsSchema } from './media-attachments';
 import { TagSchema } from './tag';
+import {commentSchema} from "./index"
 
 export const postSchema = z.object({
   id: z.string().uuid().optional(),
@@ -9,11 +10,12 @@ export const postSchema = z.object({
   doctor: doctorSchema.optional(),
   content: z.string().nullable().optional(),
   media_attachments: z.array(media_attachmentsSchema).nullable().optional(),
+  comments: z.array(commentSchema).nullable().optional(),
   tags: z.array(TagSchema).nullable().optional(),
-  likes_count: z.number().nullable().optional(), // Total likes on the post
-  comments_count: z.number().nullable().optional(), // Total comments on the post
-  created_at: z.string().datetime().nullable().optional(), // Updated field name
-  updated_at: z.string().datetime().nullable().optional(), // Updated field name
+  likes_count: z.number().nullable().optional(),
+  comments_count: z.number().nullable().optional(),
+  created_at: z.string().datetime().nullable().optional(),
+  updated_at: z.string().datetime().nullable().optional(),
 });
 
 export const postListSchema = z.array(postSchema);
