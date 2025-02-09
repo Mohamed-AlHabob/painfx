@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.core.validators import EmailValidator
@@ -15,6 +16,12 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError(_("The Email field must be set"))
         email = self.normalize_email(email)
+        username = f"FX_U{uuid.uuid4().hex[:10]}"
+        
+        while User.objects.filter(username=username).exists():
+            username = f"FX_U{uuid.uuid4().hex[:10]}"
+        extra_fields.setdefault("username", username)
+        
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
