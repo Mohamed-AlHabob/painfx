@@ -354,9 +354,9 @@ class Like(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')
 
     class Meta:
-        unique_together = ('user', 'post')  # Prevent duplicate likes
+        unique_together = ('user', 'post')
         indexes = [
-            models.Index(fields=['post']),  # Faster lookups for likes on a post
+            models.Index(fields=['post']),
         ]
 
     def __str__(self):

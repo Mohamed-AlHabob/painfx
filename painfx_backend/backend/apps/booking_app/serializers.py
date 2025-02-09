@@ -162,7 +162,7 @@ class PostSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
     media_attachments = MediaAttachmentSerializer(many=True, required=False)
     likes_count = serializers.SerializerMethodField()
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = CommentSerializer(source='post_comments', many=True, read_only=True)
     comments_count = serializers.SerializerMethodField()
 
     class Meta:

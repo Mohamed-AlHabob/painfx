@@ -190,7 +190,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().annotate(
+    queryset = Post.objects.all().prefetch_related('post_comments').annotate(
         likes_count=Count('post_likes'),
         comments_count=Count('post_comments')
     )
