@@ -3,15 +3,15 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { useGetLikesQuery, useCreateLikeMutation, useDeleteLikeMutation, useToggleLikeMutation } from '@/redux/services/booking/likeApiSlice'
+import { useGetLikesQuery, useCreateLikeMutation, useDeleteLikeMutation } from '@/redux/services/booking/likeApiSlice'
 import { extractErrorMessage } from '@/hooks/error-handling'
 import { MessageCircle, Share2 } from 'lucide-react'
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice'
 import { cn } from '@/lib'
-import { Like as LikeIcon , Unlike } from '@/components/icons'
+import { Like as LikeIcon, Unlike } from '@/components/icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Like } from "@/schemas/Social";
+import { Like } from "@/schemas/Social"
 
 // Improved type definition for better type safety
 interface InteractionButtonProps {
@@ -59,7 +59,7 @@ const InteractionButton = React.memo<InteractionButtonProps>(({
 InteractionButton.displayName = 'InteractionButton'
 
 interface InteractionsProps {
-  post_id: string // ID of the object being interacted with
+  post_id: string // ID of the post being interacted with
   initialLikeCount: number
   commentsCount: number
 }
@@ -72,9 +72,9 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
   const { data: user } = useRetrieveUserQuery()
   const userId = user?.id
 
-  // Fetch likes for the specific content type and object ID
+  // Fetch likes for the specific post
   const { data: likes, isLoading: isFetchingLikes } = useGetLikesQuery(
-    { content_type, post_id },
+    { post_id },
     {
       skip: !userId,
       selectFromResult: (result) => ({
@@ -86,7 +86,6 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
   const [createLike, { isLoading: isLiking }] = useCreateLikeMutation()
   const [deleteLike, { isLoading: isUnliking }] = useDeleteLikeMutation()
-  const [toggleLike, { isLoading: isToggling }] = useToggleLikeMutation()
 
   const [isLiked, setIsLiked] = useState<boolean>(false)
   const [likeCount, setLikeCount] = useState<number>(initialLikeCount)
@@ -94,7 +93,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
   // Update the like state when the likes data changes
   useEffect(() => {
     if (likes && userId) {
-      const userLike = likes.find((like) => like.user?.id  === userId)
+      const userLike = likes.find((like) => like.user?.id === userId)
       setIsLiked(!!userLike)
     }
   }, [likes, userId])
@@ -114,7 +113,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
     try {
       if (newIsLiked) {
-        await createLike({ content_type, post_id }).unwrap()
+        await createLike({ post_id }).unwrap()
         toast.success('Liked!')
       } else {
         const userLike = likes?.find((like) => like.user?.id === userId)
@@ -129,13 +128,13 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
       setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1)
       toast.error(extractErrorMessage(error))
     }
-  }, [isLiked, createLike, deleteLike, content_type, post_id, userId, likes, likeCount])
+  }, [isLiked, createLike, deleteLike, post_id, userId, likes, likeCount])
 
   const handleShare = useCallback(() => {
-    const shareUrl = `${window.location.origin}/${content_type}/${post_id}`
+    const shareUrl = `${window.location.origin}/posts/${post_id}`
     if (navigator.share) {
       navigator.share({
-        title: `Check out this ${content_type}!`,
+        title: 'Check out this post!',
         url: shareUrl,
       }).then(() => {
         toast.success('Shared successfully!')
@@ -148,7 +147,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
         .then(() => toast.success('Link copied to clipboard!'))
         .catch(() => toast.error('Failed to copy link.'))
     }
-  }, [content_type, post_id])
+  }, [post_id])
 
   return (
     <div className="flex items-center justify-between py-2 px-6">
@@ -159,19 +158,19 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
           onClick={handleLikeToggle}
           isActive={isLiked}
           isLoading={isLiking || isUnliking || isFetchingLikes}
-          label={isLiked ? `Unlike ${content_type}` : `Like ${content_type}`}
+          label={isLiked ? 'Unlike post' : 'Like post'}
           activeColor="text-red-500"
         />
         <InteractionButton
           icon={<MessageCircle size={16} />}
           count={commentsCount}
-          label={`Comment on ${content_type}`}
+          label="Comment on post"
         />
         <InteractionButton
           icon={<Share2 size={16} />}
           count={0}
           onClick={handleShare}
-          label={`Share ${content_type}`}
+          label="Share post"
         />
       </div>
     </div>
