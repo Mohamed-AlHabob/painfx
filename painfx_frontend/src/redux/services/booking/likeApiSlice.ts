@@ -3,29 +3,26 @@ import { likeSchema, createUpdateLikeSchema } from "@/schemas/Social"; // Assumi
 
 export const likeApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // Fetch likes for a specific content type and object ID
     getLikes: builder.query({
-      query: ({ content_type, object_id }) => `likes/?content_type=${content_type}&object_id=${object_id}`,
+      query: ({ post }) => `likes/?post_id=${post}`,
       transformResponse: (response) => {
-        likeSchema.parse(response); // Validate the response
+        likeSchema.parse(response); 
         return response;
       },
     }),
 
-    // Create a like for a specific content type and object ID
     createLike: builder.mutation({
-      query: ({ content_type, object_id }) => ({
+      query: ({ post }) => ({
         url: 'likes/',
         method: 'POST',
-        body: { content_type, object_id },
+        body: { post },
       }),
       async onQueryStarted(data, { queryFulfilled }) {
-        createUpdateLikeSchema.parse(data); // Validate the input data
+        createUpdateLikeSchema.parse(data);
         await queryFulfilled;
       },
     }),
 
-    // Delete a like by ID
     deleteLike: builder.mutation({
       query: (id) => ({
         url: `likes/${id}/`,
@@ -33,15 +30,14 @@ export const likeApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
-    // Toggle a like (create or delete based on existence)
     toggleLike: builder.mutation({
-      query: ({ content_type, object_id }) => ({
+      query: ({ post }) => ({
         url: 'likes/toggle/',
         method: 'POST',
-        body: { content_type, object_id },
+        body: { post },
       }),
       async onQueryStarted(data, { queryFulfilled }) {
-        createUpdateLikeSchema.parse(data); // Validate the input data
+        createUpdateLikeSchema.parse(data);
         await queryFulfilled;
       },
     }),
