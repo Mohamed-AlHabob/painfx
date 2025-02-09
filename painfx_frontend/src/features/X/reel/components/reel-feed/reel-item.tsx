@@ -81,7 +81,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
                 </div>
                 <div className="flex space-x-2">
                 <Interactions 
-                   post_id={reel?.id || ""} 
+                   post={reel?.id || ""} 
                    initialLikeCount={reel?.likes_count || 0} 
                    commentsCount={reel?.comments_count || 0} 
                  />

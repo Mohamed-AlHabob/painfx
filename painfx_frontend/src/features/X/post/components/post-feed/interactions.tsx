@@ -59,13 +59,13 @@ const InteractionButton = React.memo<InteractionButtonProps>(({
 InteractionButton.displayName = 'InteractionButton'
 
 interface InteractionsProps {
-  post_id: string // ID of the post being interacted with
+  post: string // ID of the post being interacted with
   initialLikeCount: number
   commentsCount: number
 }
 
 export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } = ({ 
-  post_id, 
+  post, 
   initialLikeCount,
   commentsCount 
 }) => {
@@ -74,7 +74,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
   // Fetch likes for the specific post
   const { data: likes, isLoading: isFetchingLikes } = useGetLikesQuery(
-    { post_id },
+    { post },
     {
       skip: !userId,
       selectFromResult: (result) => ({
@@ -113,7 +113,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
 
     try {
       if (newIsLiked) {
-        await createLike({ post_id }).unwrap()
+        await createLike({ post }).unwrap()
         toast.success('Liked!')
       } else {
         const userLike = likes?.find((like) => like.user?.id === userId)
@@ -128,10 +128,10 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
       setLikeCount(newIsLiked ? newLikeCount - 1 : newLikeCount + 1)
       toast.error(extractErrorMessage(error))
     }
-  }, [isLiked, createLike, deleteLike, post_id, userId, likes, likeCount])
+  }, [isLiked, createLike, deleteLike, post, userId, likes, likeCount])
 
   const handleShare = useCallback(() => {
-    const shareUrl = `${window.location.origin}/posts/${post_id}`
+    const shareUrl = `${window.location.origin}/posts/${post}`
     if (navigator.share) {
       navigator.share({
         title: 'Check out this post!',
@@ -147,7 +147,7 @@ export const Interactions: React.FC<InteractionsProps> & { Skeleton: React.FC } 
         .then(() => toast.success('Link copied to clipboard!'))
         .catch(() => toast.error('Failed to copy link.'))
     }
-  }, [post_id])
+  }, [post])
 
   return (
     <div className="flex items-center justify-between py-2 px-6">
