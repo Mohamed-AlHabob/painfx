@@ -7,7 +7,8 @@ from apps.core.general import BaseModel
 from django.utils.translation import gettext_lazy as _
 
 def upload_avatar(instance, filename):
-    path = f'avatar/{instance.username}'
+    user_uuid = instance.id if instance.id else uuid.uuid4().hex
+    path = f'avatar/{user_uuid}'
     extension = filename.split('.')[-1] if '.' in filename else 'jpg'
     return f'{path}.{extension}'
 
