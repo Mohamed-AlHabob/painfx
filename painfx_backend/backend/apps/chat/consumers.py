@@ -58,6 +58,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'error': 'Invalid JSON format'
             }))
 
+    @staticmethod
     @database_sync_to_async
     def get_connections(user):
         return list(Connection.objects.filter(Q(sender=user) | Q(receiver=user)))
