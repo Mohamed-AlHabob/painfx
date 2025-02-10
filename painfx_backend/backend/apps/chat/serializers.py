@@ -11,6 +11,7 @@ class SearchSerializer(UserSerializer):
         fields = [
             'id',
             'email',
+            'username',
             'first_name',
             'last_name',
             'status'
@@ -25,40 +26,19 @@ class SearchSerializer(UserSerializer):
             return 'connected'
         return 'no-connection'
 
-
 class RequestSerializer(serializers.ModelSerializer):
-	sender = UserSerializer(read_only=True)
-	receiver = UserSerializer(read_only=True)
-
-	class Meta:
-		model = Connection
-		fields = [
-			'id',
-			'sender',
-			'receiver',
-			'created_at'
-		]
-
-class ConnectionSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
-    receiver = UserSerializer(read_only=True)
-    last_message = serializers.SerializerMethodField()
+    sender = UserSerializer()
+    receiver = UserSerializer()
 
     class Meta:
         model = Connection
-        fields = ['id', 'sender', 'receiver', 'accepted', 'created_at', 'updated_at', 'last_message']
+        fields = [
+            'id',
+            'sender',
+            'receiver',
+            'created_at'
+        ]
 
-    def get_last_message(self, obj):
-        last_message = obj.messages.order_by('-created_at').first()
-        if last_message:
-            return {
-                'id': last_message.id,
-                'text': last_message.text,
-                'created_at': last_message.created_at,
-                'sender_id': last_message.sender.id
-            }
-        return None
-        
 class FriendSerializer(serializers.ModelSerializer):
     friend = serializers.SerializerMethodField()
     preview = serializers.SerializerMethodField()
@@ -96,21 +76,17 @@ class FriendSerializer(serializers.ModelSerializer):
             date = obj.latest_created or obj.updated_at
         return date.isoformat()
 
-
-
-
-
 class MessageSerializer(serializers.ModelSerializer):
-	is_me = serializers.SerializerMethodField()
+    is_me = serializers.SerializerMethodField()
 
-	class Meta:
-		model = Message
-		fields = [
-			'id',
-			'is_me',
-			'text',
-			'created_at'
-		]
+    class Meta:
+        model = Message
+        fields = [
+            'id',
+            'is_me',
+            'text',
+            'created_at'
+        ]
 
-	def get_is_me(self, obj):
-		return self.context['user'] == obj.user
+    def get_is_me(self, obj):
+        return self.context['user'] == obj.user

@@ -33,4 +33,3 @@ class Message(BaseModel):
 
     def __str__(self):
         return f"{self.user.get_full_name()}: {self.text}"
-
