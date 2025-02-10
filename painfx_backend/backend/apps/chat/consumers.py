@@ -2,6 +2,7 @@ import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
+from django.db.models import Q
 from apps.chat.models import Connection, Message
 from apps.authentication.models import User
 from apps.chat.serializers import ConnectionSerializer, MessageSerializer
@@ -58,7 +59,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def get_connections(self, user):
-        return Connection.objects.filter(users=user)
+        return Connection.objects.filter(Q(sender=user) | Q(receiver=user))
 
     @sync_to_async
     def get_messages(self, connection_id, page=0):
