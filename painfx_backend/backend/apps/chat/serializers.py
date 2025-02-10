@@ -4,26 +4,26 @@ from apps.authentication.models import User
 from apps.authentication.serializers import UserSerializer
 
 class SearchSerializer(UserSerializer):
-	status = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
-	class Meta:
-		model = User
-		fields = [
-			'email',
-			'username',
-			'first_name',
-			'last_name',
-			'status'
-		]
-	
-	def get_status(self, obj):
-		if obj.pending_them:
-			return 'pending-them'
-		elif obj.pending_me:
-			return 'pending-me'
-		elif obj.connected:
-			return 'connected'
-		return 'no-connection'
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'status'
+        ]
+    
+    def get_status(self, obj):
+        if obj.pending_them:
+            return 'pending-them'
+        elif obj.pending_me:
+            return 'pending-me'
+        elif obj.connected:
+            return 'connected'
+        return 'no-connection'
 
 
 class RequestSerializer(serializers.ModelSerializer):
