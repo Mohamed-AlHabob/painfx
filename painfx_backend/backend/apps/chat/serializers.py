@@ -27,8 +27,8 @@ class SearchSerializer(UserSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
-	sender = UserSerializer()
-	receiver = UserSerializer()
+	sender = UserSerializer(read_only=True)
+	receiver = UserSerializer(read_only=True)
 
 	class Meta:
 		model = Connection
@@ -39,7 +39,26 @@ class RequestSerializer(serializers.ModelSerializer):
 			'created_at'
 		]
 
+class ConnectionSerializer(serializers.ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    receiver = UserSerializer(read_only=True)
+    last_message = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Connection
+        fields = ['id', 'sender', 'receiver', 'accepted', 'created_at', 'updated_at', 'last_message']
+
+    def get_last_message(self, obj):
+        last_message = obj.messages.order_by('-created_at').first()
+        if last_message:
+            return {
+                'id': last_message.id,
+                'text': last_message.text,
+                'created_at': last_message.created_at,
+                'sender_id': last_message.sender.id
+            }
+        return None
+        
 class FriendSerializer(serializers.ModelSerializer):
     friend = serializers.SerializerMethodField()
     preview = serializers.SerializerMethodField()

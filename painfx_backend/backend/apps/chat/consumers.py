@@ -1,17 +1,16 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.contrib.auth import get_user_model
-from asgiref.sync import async_to_sync
-
-User = get_user_model()
+from asgiref.sync import sync_to_async
+from apps.chat.models import Connection, Message
+from apps.authentication.models import User
+from apps.authentication.serializers import ConnectionSerializer, MessageSerializer
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        user = self.scope['user']
-        if user.is_anonymous:
+        self.user = self.scope['user']
+        if self.user.is_anonymous:
             await self.close()
         else:
-            self.user_id = str(user.id)
             await self.accept()
 
     async def disconnect(self, close_code):
@@ -19,86 +18,131 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message_type = text_data_json['type']
-        if message_type == 'search':
-            await self.receive_search(text_data_json)
-        elif message_type == 'request_accept':
-            await self.receive_request_accept(text_data_json)
-        elif message_type == 'request_connect':
-            await self.receive_request_connect(text_data_json)
-        elif message_type == 'message':
-            await self.receive_message(text_data_json)
-        elif message_type == 'message_type':
-            await self.receive_message_type(text_data_json)
+        source = text_data_json.get('source')
 
+        handlers = {
+            'search': self.handle_search,
+            'request.accept': self.handle_request_accept,
+            'request.connect': self.handle_request_connect,
+            'message.send': self.handle_message_send,
+            'message.type': self.handle_message_type,
+            'request.list': self.handle_request_list,
+            'friend.list': self.handle_friend_list,
+            'message.list': self.handle_message_list,
+        }
 
-    async def receive_search(self, data):
-        search_term = data.get('search')
-        users = User.objects.filter(username__icontains=search_term) \
-            .exclude(id=self.scope['user'].id).annotate()
-        user_list = [{'id': str(user.id), 'username': user.username} for user in users]
-        await self.send(text_data=json.dumps({'type': 'search_results', 'users': user_list}))
+        handler = handlers.get(source)
+        if handler:
+            await handler(text_data_json)
+        else:
+            print(f"Unhandled message source: {source}")
 
-    async def receive_request_accept(self, data):
-        request = await self.get_request(sender__id=data.get('user_id'), receiver__id=self.user_id, status='pending')
-        request.status = 'accepted'
-        request.save()
-        await self.send_group(self.user_id, 'request_accepted', {'user_id': data.get('user_id')})
-        await self.send_group(data.get('user_id'), 'request_accepted', {'user_id': self.user_id})
+    @sync_to_async
+    def get_connections(self, user):
+        return Connection.objects.filter(users=user)
 
-    async def receive_request_connect(self, data):
-        receiver = User.objects.get(id=data.get('user_id'))
-        request, created = await self.create_request(sender_id=self.user_id, receiver_id=receiver.id)
-        if created:
-            await self.send_group(receiver.id, 'request_received', {'user_id': self.user_id})
+    @sync_to_async
+    def get_messages(self, connection_id, page=0):
+        connection = Connection.objects.get(id=connection_id)
+        messages = Message.objects.filter(connection=connection).order_by('-created_at')
+        page_size = 15
+        start = page * page_size
+        end = start + page_size
+        return messages[start:end], messages.count() > end
 
-    async def receive_message(self, data):
-        recipient_id = data.get('user_id')
-        message = data.get('message')
-        await self.send_group(recipient_id, 'message', {'user_id': self.user_id, 'message': message})
+    async def handle_search(self, data):
+        query = data.get('query', '')
+        users = await sync_to_async(list)(User.objects.filter(username__icontains=query).exclude(id=self.user.id))
+        serialized_users = [{'id': user.id, 'username': user.username} for user in users]
+        await self.send(text_data=json.dumps({
+            'source': 'search',
+            'data': serialized_users
+        }))
 
-    async def receive_message_type(self, data):
-        recipient_id = data.get('user_id')
-        await self.send_group(str(recipient_id), 'message.type', {'user_id': str(self.scope['user'].id)})
+    async def handle_request_accept(self, data):
+        sender_id = data.get('userId')
+        connection = await sync_to_async(Connection.objects.get)(sender__id=sender_id, receiver=self.user)
+        connection.accepted = True
+        await sync_to_async(connection.save)()
+        serializer = ConnectionSerializer(connection)
+        await self.send(text_data=json.dumps({
+            'source': 'request.accept',
+            'data': serializer.data
+        }))
 
-    async def send_group(self, group_name, message_type, data):
-        await self.channel_layer.send(
-            'chat_group_' + group_name,
-            {
-                'type': message_type,
-                'data': data
-            }
+    async def handle_request_connect(self, data):
+        receiver_id = data.get('userId')
+        receiver = await sync_to_async(User.objects.get)(id=receiver_id)
+        connection, created = await sync_to_async(Connection.objects.get_or_create)(
+            sender=self.user,
+            receiver=receiver
         )
+        serializer = ConnectionSerializer(connection)
+        await self.send(text_data=json.dumps({
+            'source': 'request.connect',
+            'data': serializer.data
+        }))
 
-    async def get_request(self, **kwargs):
-        from apps.chat.models import ChatRequest
-        try:
-            return await async_to_sync(ChatRequest.objects.get)(**kwargs)
-        except ChatRequest.DoesNotExist:
-            return None
+    async def handle_message_send(self, data):
+        connection_id = data.get('connectionId')
+        message_text = data.get('message')
+        connection = await sync_to_async(Connection.objects.get)(id=connection_id)
+        message = await sync_to_async(Message.objects.create)(
+            connection=connection,
+            sender=self.user,
+            text=message_text
+        )
+        serializer = MessageSerializer(message)
+        await self.send(text_data=json.dumps({
+            'source': 'message.send',
+            'data': {
+                'message': serializer.data,
+                'friend': {
+                    'id': connection.receiver.id if connection.sender == self.user else connection.sender.id,
+                    'username': connection.receiver.username if connection.sender == self.user else connection.sender.username
+                }
+            }
+        }))
 
-    async def create_request(self, sender_id, receiver_id):
-        from apps.chat.models import ChatRequest
-        from django.db import transaction
-        try:
-            with transaction.atomic():
-                request = await async_to_sync(ChatRequest.objects.create)(sender_id=sender_id, receiver_id=receiver_id, status='pending')
-                return request, True
-        except Exception as e:
-            return None, False
+    async def handle_message_type(self, data):
+        user_id = data.get('userId')
+        await self.send(text_data=json.dumps({
+            'source': 'message.type',
+            'data': {'userId': user_id}
+        }))
 
-    async def request_received(self, event):
-        await self.send(text_data=json.dumps({'type': 'request_received', 'user_id': event['data']['user_id']}))
+    async def handle_request_list(self, data):
+        connections = await self.get_connections(self.user)
+        serializer = ConnectionSerializer(connections, many=True)
+        await self.send(text_data=json.dumps({
+            'source': 'request.list',
+            'data': serializer.data
+        }))
 
-    async def request_accepted(self, event):
-        await self.send(text_data=json.dumps({'type': 'request_accepted', 'user_id': event['data']['user_id']}))
+    async def handle_friend_list(self, data):
+        connections = await self.get_connections(self.user)
+        serializer = ConnectionSerializer(connections, many=True)
+        await self.send(text_data=json.dumps({
+            'source': 'friend.list',
+            'data': serializer.data
+        }))
 
-    async def message(self, event):
-        await self.send(text_data=json.dumps({'type': 'message', 'user_id': event['data']['user_id'], 'message': event['data']['message']}))
-
-    async def message_type(self, event):
-        await self.send(text_data=json.dumps({'type': 'message_type', 'user_id': event['data']['user_id']}))
-
-    async def search_results(self, event):
-        await self.send(text_data=json.dumps({'type': 'search_results', 'users': event['data']['users']}))
+    async def handle_message_list(self, data):
+        connection_id = data.get('connectionId')
+        page = data.get('page', 0)
+        messages, has_more = await self.get_messages(connection_id, page)
+        serializer = MessageSerializer(messages, many=True)
+        connection = await sync_to_async(Connection.objects.get)(id=connection_id)
+        friend = connection.receiver if connection.sender == self.user else connection.sender
+        await self.send(text_data=json.dumps({
+            'source': 'message.list',
+            'data': {
+                'messages': serializer.data,
+                'next': page + 1 if has_more else None,
+                'friend': {
+                    'id': friend.id,
+                    'username': friend.username
+                }
+            }
+        }))
 
