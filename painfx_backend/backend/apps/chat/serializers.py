@@ -78,6 +78,7 @@ class FriendSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     is_me = serializers.SerializerMethodField()
+    user = UserSerializer()
 
     class Meta:
         model = Message
@@ -85,6 +86,8 @@ class MessageSerializer(serializers.ModelSerializer):
             'id',
             'is_me',
             'text',
+            'unread',
+            'user',
             'created_at'
         ]
 
