@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from apps.chat.models import Connection, Message
 from apps.authentication.models import User
-from apps.authentication.serializers import ConnectionSerializer, MessageSerializer
+from apps.chat.serializers import ConnectionSerializer, MessageSerializer
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
