@@ -171,7 +171,7 @@ class PostSerializer(serializers.ModelSerializer):
             'id', 'doctor', 'title', 'content','likes_count','comments_count', 'tags', 'media_attachments', 'view_count', 
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['view_count', 'created_at', 'updated_at']
+        read_only_fields = ['view_count', 'created_at','likes_count','comments_count', 'updated_at']
 
     def get_likes_count(self, obj):
         return obj.post_likes.count()
