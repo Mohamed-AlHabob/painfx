@@ -121,58 +121,57 @@ class ReviewSerializer(serializers.ModelSerializer):
 class MediaAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaAttachment
-        fields = ['id', 'media_type', 'file', 'url', 'order']
+        fields = ['id', 'post', 'media_type', 'file', 'thumbnail', 'url', 'order']
+
+    def validate(self, data):
+        if not data.get('file') and not data.get('url'):
+            raise serializers.ValidationError("Either a file or a URL must be provided.")
+        if data.get('file') and data.get('url'):
+            raise serializers.ValidationError("Only one of file or URL should be provided, not both.")
+        return data
+
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
+    user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'post', 'parent', 'replies', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        fields = ['id', 'user', 'post', 'text', 'parent','replies', 'created_at']
+        read_only_fields = ['created_at']
 
-    def get_replies(self, obj):
-        replies = obj.replies.all()
-        return CommentSerializer(replies, many=True).data
-
-    def validate(self, attrs):
-        post = attrs.get('post')
-        if not Post.objects.filter(id=post.id).exists():
-            raise serializers.ValidationError("The post does not exist.")
-        return attrs
-
+    def validate(self, data):
+        if data.get('parent') and data['parent'].post != data['post']:
+            raise serializers.ValidationError("Parent comment must belong to the same post.")
+        return data
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
     class Meta:
         model = Like
         fields = ['id', 'user', 'post', 'created_at']
-        read_only_fields = ['id', 'user', 'created_at']
+        read_only_fields = ['created_at']
 
-    def validate(self, attrs):
-        post = attrs.get('post')
-        if not Post.objects.filter(id=post.id).exists():
-            raise serializers.ValidationError("The post does not exist.")
-        return attrs
+    def validate(self, data):
+        user = data['user']
+        post = data['post']
+        if Like.objects.filter(user=user, post=post).exists():
+            raise serializers.ValidationError("You have already liked this post.")
+        return data
     
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
-    tags = TagSerializer(many=True, required=False)
-    media_attachments = MediaAttachmentSerializer(many=True, required=False)
+    tags = TagSerializer(many=True, read_only=True)
+    media_attachments = MediaAttachmentSerializer(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
-    comments = CommentSerializer(source='post_comments', many=True, read_only=True)
     comments_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'content', 'tags', 'media_attachments', 'comments',
-            'doctor', 'likes_count', 'comments_count', 'view_count',
+            'id', 'doctor', 'title', 'content', 'tags', 'media_attachments', 'view_count', 
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'doctor', 'likes_count', 'comments_count', 'created_at', 'updated_at']
+        read_only_fields = ['view_count', 'created_at', 'updated_at']
 
     def get_likes_count(self, obj):
         return obj.post_likes.count()
@@ -181,25 +180,12 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.post_comments.count()
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        if not hasattr(user, 'doctor'):
-            raise serializers.ValidationError("Only doctors can create posts.")
-        
-        validated_data.pop('doctor', None)
-        
-        tags_data = validated_data.pop('tags', [])
-        media_attachments_data = validated_data.pop('media_attachments', [])
-        
-        post = Post.objects.create(doctor=user.doctor, **validated_data)    
-        for tag_data in tags_data:
-            tag, created = Tag.objects.get_or_create(name=tag_data['name'])
-            post.tags.add(tag)    
-
-        for media_data in media_attachments_data:
-            MediaAttachment.objects.create(post=post, **media_data)    
-
+        tags_data = self.context.get('tags', [])
+        post = Post.objects.create(**validated_data)
+        for tag_name in tags_data:
+            tag, created = Tag.objects.get_or_create(name=tag_name)
+            post.tags.add(tag)
         return post
-
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

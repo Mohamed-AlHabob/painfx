@@ -342,7 +342,7 @@ class Comment(BaseModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['post']),  # Faster lookups for comments on a post
+            models.Index(fields=['post']),
         ]
 
     def __str__(self):

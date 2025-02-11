@@ -120,6 +120,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
     serializer_class = ReservationSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = GlPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['status', 'reservation_date', 'doctor']
+    search_fields = ['patient__user__username', 'clinic__name']
+    ordering_fields = ['reservation_date', 'reservation_time']
 
     def get_queryset(self):
         user = self.request.user
@@ -187,7 +191,8 @@ class ReservationViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().prefetch_related('post_comments').annotate(
@@ -197,82 +202,89 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['doctor']
+    search_fields = ['title', 'content']
+    ordering_fields = ['created_at', 'view_count']
 
     def perform_create(self, serializer):
-        user = self.request.user
-        if not hasattr(user, 'doctor'):
+        if not hasattr(self.request.user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
-        
-        # Save the post with the doctor explicitly set
-        serializer.save(doctor=user.doctor)
+        serializer.save(doctor=self.request.user.doctor)
+
+    @action(detail=True, methods=['post'])
+    def increment_view_count(self, request, pk=None):
+        post = self.get_object()
+        post.increment_view_count()
+        return Response({'status': 'View count incremented', 'view_count': post.view_count})
+
+    @action(detail=True, methods=['post'])
+    def add_tags(self, request, pk=None):
+        post = self.get_object()
+        tag_names = request.data.get('tags', [])
+        if not isinstance(tag_names, list):
+            return Response({'error': 'Tags must be provided as a list.'}, status=status.HTTP_400_BAD_REQUEST)
+        post.add_tags(tag_names)
+        return Response({'status': 'Tags added', 'tags': [tag.name for tag in post.tags.all()]})
 
     @action(detail=True, methods=['get'])
     def likes(self, request, pk=None):
         post = self.get_object()
-        likes = post.likes.all()
+        likes = Like.objects.filter(post=post)
         serializer = LikeSerializer(likes, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):
         post = self.get_object()
-        comments = post.comments.filter(parent=None)  # Only top-level comments
+        comments = Comment.objects.filter(post=post)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
-
-# Comment ViewSet
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = GlPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['post', 'user']
+    search_fields = ['text']
+    ordering_fields = ['created_at']
 
     def perform_create(self, serializer):
-        post_id = self.request.data.get('post_id')
-        if not post_id:
-            raise serializers.ValidationError("post_id is required.")    
-
-        try:
-            post = Post.objects.get(id=post_id)
-        except Post.DoesNotExist:
-            raise serializers.ValidationError("Post not found.")    
-
-        serializer.save(user=self.request.user, post=post)
+        serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['post'])
     def reply(self, request, pk=None):
         parent_comment = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user, parent=parent_comment)
+        serializer.save(user=self.request.user, post=parent_comment.post, parent=parent_comment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Like ViewSet
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = GlPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['post', 'user']
+    ordering_fields = ['created_at']
 
     def perform_create(self, serializer):
+        post = serializer.validated_data['post']
+        if Like.objects.filter(user=self.request.user, post=post).exists():
+            raise serializers.ValidationError("You have already liked this post.")
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post'])
-    def toggle_like(self, request):
-        post_id = request.data.get('post_id')
-        if not post_id:
-            return Response({"error": "post_id is required"}, status=status.HTTP_400_BAD_REQUEST)    
-
-        try:
-            post = Post.objects.get(id=post_id)
-        except Post.DoesNotExist:
-            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)    
-
-        like, created = Like.objects.get_or_create(user=request.user, post=post)
-        if not created:
-            like.delete()
-            return Response({"status": "unliked"}, status=status.HTTP_200_OK)
-        return Response({"status": "liked"}, status=status.HTTP_201_CREATED)
-    
+    @action(detail=True, methods=['post'])
+    def unlike(self, request, pk=None):
+        like = self.get_object()
+        if like.user != request.user:
+            return Response({'error': 'You can only unlike your own likes.'}, status=status.HTTP_403_FORBIDDEN)
+        like.delete()
+        return Response({'status': 'Like removed'})
     
 # Category ViewSet
 class CategoryViewSet(viewsets.ModelViewSet):
