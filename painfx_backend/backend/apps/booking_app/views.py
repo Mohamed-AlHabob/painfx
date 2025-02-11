@@ -201,27 +201,10 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         if not hasattr(user, 'doctor'):
-            raise serializers.ValidationError("Only doctors can create posts.")    
-
-        tags_data = self.request.data.get('tags', [])
-        media_attachments_data = self.request.FILES.getlist('media_attachments')    
-
-        post = serializer.save(doctor=user.doctor)    
-
-        # Add tags to the post
-        for tag_data in tags_data:
-            tag, created = Tag.objects.get_or_create(name=tag_data['name'])
-            post.tags.add(tag)    
-
-        # Add media attachments to the post
-        for media_file in media_attachments_data:
-            if media_file.size > 10 * 1024 * 1024:  # 10 MB limit
-                raise serializers.ValidationError("File size cannot exceed 10 MB.")
-            MediaAttachment.objects.create(
-                post=post,
-                media_type='image' if media_file.content_type.startswith('image') else 'video',
-                file=media_file
-            )
+            raise serializers.ValidationError("Only doctors can create posts.")
+        
+        # Save the post with the doctor explicitly set
+        serializer.save(doctor=user.doctor)
 
     @action(detail=True, methods=['get'])
     def likes(self, request, pk=None):

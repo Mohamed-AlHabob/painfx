@@ -184,16 +184,19 @@ class PostSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if not hasattr(user, 'doctor'):
             raise serializers.ValidationError("Only doctors can create posts.")
+        
+        validated_data.pop('doctor', None)
+        
         tags_data = validated_data.pop('tags', [])
         media_attachments_data = validated_data.pop('media_attachments', [])
-        post = Post.objects.create(doctor=user.doctor, **validated_data)
-
+        
+        post = Post.objects.create(doctor=user.doctor, **validated_data)    
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(name=tag_data['name'])
-            post.tags.add(tag)
+            post.tags.add(tag)    
 
         for media_data in media_attachments_data:
-            MediaAttachment.objects.create(post=post, **media_data)
+            MediaAttachment.objects.create(post=post, **media_data)    
 
         return post
 
