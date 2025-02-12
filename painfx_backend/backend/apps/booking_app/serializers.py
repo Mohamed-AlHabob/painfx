@@ -177,7 +177,6 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.post_comments.count()
 
     def get_is_liked(self, obj):
-        # Check if the current user has liked the post
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.post_likes.filter(user=request.user).exists()

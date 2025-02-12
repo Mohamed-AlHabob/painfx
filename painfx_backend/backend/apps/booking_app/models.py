@@ -234,36 +234,69 @@ class Reservation(BaseModel):
         self.full_clean()  # Ensure validation is always called
         super().save(*args, **kwargs)
         
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
+from apps.authentication.models import Patient
+from apps.clinics.models import Clinic
+from apps.authentication.models import Doctor
+from apps.core.general import BaseModel
+
 class Review(BaseModel):
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews')
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews', null=True, blank=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reviews', null=True, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reviews')
+
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     review_text = models.TextField(blank=True)
 
     class Meta:
-        unique_together = ('clinic', 'patient')
         indexes = [
-            models.Index(fields=['clinic', 'rating']),
+            models.Index(fields=['clinic']),
+            models.Index(fields=['doctor']),
+            models.Index(fields=['rating']),
         ]
 
     def clean(self):
-        if not Reservation.objects.filter(
-            patient=self.patient,
-            clinic=self.clinic,
-            status=ReservationStatus.APPROVED
-        ).exists():
-            raise ValidationError('Patient must have an approved reservation to leave a review.')
+        """Ensure a review is linked to either a Clinic or a Doctor, but not both."""
+        if self.clinic and self.doctor:
+            raise ValidationError("A review cannot be associated with both a Clinic and a Doctor at the same time.")
+        if not self.clinic and not self.doctor:
+            raise ValidationError("A review must be associated with either a Clinic or a Doctor.")
+
+        from apps.core.models import Reservation, ReservationStatus
+        if self.clinic:
+            reservation_exists = Reservation.objects.filter(
+                patient=self.patient, clinic=self.clinic, status=ReservationStatus.APPROVED
+            ).exists()
+        else:
+            reservation_exists = Reservation.objects.filter(
+                patient=self.patient, doctor=self.doctor, status=ReservationStatus.APPROVED
+            ).exists()
+
+        if not reservation_exists:
+            raise ValidationError("Patient must have an approved reservation to leave a review.")
 
     def save(self, *args, **kwargs):
+        """Validate data before saving."""
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Review by {self.patient} for {self.clinic} - {self.rating} Stars"
+        target = self.clinic if self.clinic else self.doctor
+        return f"Review by {self.patient} for {target} - {self.rating} Stars"
 
     @classmethod
-    def get_clinic_average_rating(cls, clinic):
-        return cls.objects.filter(clinic=clinic).aggregate(models.Avg('rating'))['rating__avg']
+    def get_average_rating(cls, entity):
+        """Get the average rating for a given clinic or doctor."""
+        if isinstance(entity, Clinic):
+            return cls.objects.filter(clinic=entity).aggregate(models.Avg('rating'))['rating__avg']
+        elif isinstance(entity, Doctor):
+            return cls.objects.filter(doctor=entity).aggregate(models.Avg('rating'))['rating__avg']
+        return None
+
 
 class Post(BaseModel):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='posts')
