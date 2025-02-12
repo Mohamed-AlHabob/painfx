@@ -153,7 +153,8 @@ class ChatConsumer(WebsocketConsumer):
     def receive_message_type(self, data):
         user = self.scope['user']
         recipient_id = data.get('userId')
-        self.send_group(str(recipient_id), 'message.type', {'userId': user.id})
+        self.send_group(str(recipient_id), 'message.type', {'userId': str(user.id)})
+
 
     def receive_request_accept(self, data):
         Connection = apps.get_model('chat', 'Connection')
