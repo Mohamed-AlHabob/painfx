@@ -313,6 +313,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
 # Notification ViewSet
 class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.none()
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
