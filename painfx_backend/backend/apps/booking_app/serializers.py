@@ -154,13 +154,6 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = ['id', 'user', 'post', 'created_at']
         read_only_fields = ['created_at']
-
-    def validate(self, data):
-        user = data['user']
-        post = data['post']
-        if Like.objects.filter(user=user, post=post).exists():
-            raise serializers.ValidationError("You have already liked this post.")
-        return data
     
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
@@ -168,20 +161,28 @@ class PostSerializer(serializers.ModelSerializer):
     media_attachments = MediaAttachmentSerializer(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = [
-            'id', 'doctor', 'title', 'content','likes_count','comments_count', 'tags', 'media_attachments', 'view_count', 
+            'id', 'doctor', 'title', 'content','likes_count','comments_count', 'tags','is_liked', 'media_attachments', 'view_count', 
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['view_count', 'created_at','likes_count','comments_count', 'updated_at']
+        read_only_fields = ['view_count', 'created_at', 'likes_count', 'comments_count', 'updated_at']
 
     def get_likes_count(self, obj):
         return obj.post_likes.count()
 
     def get_comments_count(self, obj):
         return obj.post_comments.count()
+
+    def get_is_liked(self, obj):
+        # Check if the current user has liked the post
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.post_likes.filter(user=request.user).exists()
+        return False
 
     def create(self, validated_data):
         tags_data = self.context.get('tags', [])
