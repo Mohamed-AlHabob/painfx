@@ -313,9 +313,16 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
 # Notification ViewSet
 class NotificationViewSet(viewsets.ModelViewSet):
-    queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = GlPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['read', 'created_at']
+    search_fields = ['message']
+    ordering_fields = ['created_at']
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
 
 # EventSchedule ViewSet
 class EventScheduleViewSet(viewsets.ModelViewSet):
