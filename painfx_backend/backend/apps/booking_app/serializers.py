@@ -140,6 +140,10 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'post', 'text', 'parent','replies', 'created_at']
         read_only_fields = ['created_at']
 
+    def get_replies(self, obj):
+        replies = obj.replies.all()
+        return CommentSerializer(replies, many=True).data
+        
     def validate(self, data):
         if data.get('parent') and data['parent'].post != data['post']:
             raise serializers.ValidationError("Parent comment must belong to the same post.")
