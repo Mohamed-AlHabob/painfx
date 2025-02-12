@@ -234,15 +234,6 @@ class Reservation(BaseModel):
         self.full_clean()  # Ensure validation is always called
         super().save(*args, **kwargs)
         
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-
-from apps.authentication.models import Patient
-from apps.clinics.models import Clinic
-from apps.authentication.models import Doctor
-from apps.core.general import BaseModel
 
 class Review(BaseModel):
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reviews', null=True, blank=True)
