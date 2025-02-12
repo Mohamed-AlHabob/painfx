@@ -62,7 +62,7 @@ class IsPatient(BasePermission):
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.none()
     serializer_class = PatientSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['medical_history']
     ordering_fields = ['created_at']
@@ -89,7 +89,7 @@ class PatientViewSet(viewsets.ModelViewSet):
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
 
     def perform_create(self, serializer):
@@ -101,7 +101,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
 class ClinicViewSet(viewsets.ModelViewSet):
     queryset = Clinic.objects.all()
     serializer_class = ClinicSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['owner']
@@ -118,7 +118,7 @@ class ClinicViewSet(viewsets.ModelViewSet):
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['status', 'reservation_date', 'doctor']
@@ -141,7 +141,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError("Only patients can create reservations.")
         serializer.save(patient=user.patient)
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner | IsDoctor])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsClinicOwner | IsDoctor])
     def approve(self, request, pk=None):
         reservation = self.get_object()
         if reservation.status != ReservationStatus.PENDING:
@@ -168,7 +168,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
         )
         return Response({'status': 'Reservation approved', 'doctor': DoctorSerializer(reservation.doctor).data})
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClinicOwner | IsDoctor])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsClinicOwner | IsDoctor])
     def reject(self, request, pk=None):
         reservation = self.get_object()
         if reservation.status == ReservationStatus.REJECTED:
@@ -266,7 +266,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class LikeViewSet(viewsets.ModelViewSet):
     queryset = Like.objects.all()
     serializer_class = LikeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['post', 'user']
@@ -276,7 +276,8 @@ class LikeViewSet(viewsets.ModelViewSet):
         post = serializer.validated_data['post']
         if Like.objects.filter(user=self.request.user, post=post).exists():
             raise serializers.ValidationError("You have already liked this post.")
-        serializer.save(user=self.request.user)
+        serializer.save(user=self.request.user)  # Ensure this is setting user
+
 
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
@@ -290,43 +291,43 @@ class LikeViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # Subscription ViewSet
 class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # PaymentMethod ViewSet
 class PaymentMethodViewSet(viewsets.ModelViewSet):
     queryset = PaymentMethod.objects.all()
     serializer_class = PaymentMethodSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # Payment ViewSet
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # Notification ViewSet
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # EventSchedule ViewSet
 class EventScheduleViewSet(viewsets.ModelViewSet):
     queryset = EventSchedule.objects.all()
     serializer_class = EventScheduleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # AdvertisingCampaign ViewSet
 class AdvertisingCampaignViewSet(viewsets.ModelViewSet):
     queryset = AdvertisingCampaign.objects.all()
     serializer_class = AdvertisingCampaignSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # UsersAudit ViewSet
 class UsersAuditViewSet(viewsets.ReadOnlyModelViewSet):
