@@ -133,7 +133,7 @@ class MediaAttachmentSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
-    user = serializers.StringRelatedField(read_only=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Comment
