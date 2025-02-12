@@ -29,7 +29,7 @@ def send_reservation_notification(sender, instance, created, **kwargs):
         status = 'Your booking has been declined.'
 
     Notification.objects.create(
-        user=instance.patient.user,  # Access the user through the patient
+        user=instance.patient.user,
         message=status,
         notification_type='booking'
     )

@@ -276,7 +276,7 @@ class LikeViewSet(viewsets.ModelViewSet):
         post = serializer.validated_data['post']
         if Like.objects.filter(user=self.request.user, post=post).exists():
             raise serializers.ValidationError("You have already liked this post.")
-        serializer.save(user=self.request.user)  # Ensure this is setting user
+        serializer.save(user=self.request.user)
 
 
     @action(detail=True, methods=['post'])

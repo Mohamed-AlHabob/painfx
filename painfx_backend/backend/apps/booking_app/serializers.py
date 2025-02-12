@@ -93,7 +93,6 @@ class ReservationSerializer(serializers.ModelSerializer):
         instance.reservation_date = validated_data.get('reservation_date', instance.reservation_date)
         instance.reservation_time = validated_data.get('reservation_time', instance.reservation_time)
 
-        # Save and return the updated instance
         instance.save()
         return instance
 
@@ -153,7 +152,7 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = ['id', 'user', 'post', 'created_at']
-        read_only_fields = ['created_at']
+        read_only_fields = ['user', 'created_at']
     
 class PostSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
