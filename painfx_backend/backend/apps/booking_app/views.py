@@ -318,7 +318,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = GlPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['read', 'created_at']
+    filterset_fields = ['is_read', 'created_at']
     search_fields = ['message']
     ordering_fields = ['created_at']
 
