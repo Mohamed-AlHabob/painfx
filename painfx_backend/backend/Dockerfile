@@ -31,8 +31,6 @@ CMD sh -c "\
     echo 'Running migrations...' && \
     python manage.py makemigrations && \
     python manage.py migrate && \
-    echo 'Downloading cities_light data...' && \
-    python manage.py cities_light && \
     echo 'Collecting static files...' && \
     python manage.py collectstatic --noinput && \
     echo 'Creating superuser...' && \
@@ -41,4 +39,6 @@ from apps.authentication.models import User; \
 User.objects.filter(email='admin@painfx.in').exists() or \
 User.objects.create_superuser(email='admin@painfx.in', password='admin')\" && \
     echo 'Starting Daphne...' && \
-    daphne -b 0.0.0.0 -p 8000 core.asgi:application"
+    daphne -b 0.0.0.0 -p 8000 core.asgi:application && \
+    echo 'Downloading cities_light data...' && \
+    python manage.py cities_light"
