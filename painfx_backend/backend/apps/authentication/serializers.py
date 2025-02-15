@@ -4,7 +4,7 @@ from apps.authentication.models import User, Patient, Doctor, UserProfile, Speci
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'phone_number', 'address', 'gender', 'avatar', 'longitude', 'latitude']
+        fields = ['id', 'phone_number', 'gender', 'avatar','expo_push_token' , 'country', 'region', 'city', 'postal_code', 'address']
         read_only_fields = ['id']
 
 class UserSerializer(serializers.ModelSerializer):
@@ -47,7 +47,7 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ['user', 'specialization', 'license_number', 'reservation_open']
+        fields = ['user', 'specialization','active','privacy', 'license_number', 'license_expiry_date','license_image', 'reservation_open']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
