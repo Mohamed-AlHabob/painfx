@@ -30,7 +30,7 @@ class Message(BaseModel):
         on_delete=models.CASCADE
     )
     text = models.TextField()
-    unread = models.BooleanField(default=True)
+    read_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.get_full_name()}: {self.text}"

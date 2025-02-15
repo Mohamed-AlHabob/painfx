@@ -218,7 +218,6 @@ class Reservation(BaseModel):
         ]
 
     def clean(self):
-        # Ensure that the reservation is linked to either a clinic or a doctor, but not both
         if not self.clinic and not self.doctor:
             raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
         if self.clinic and self.doctor:
@@ -442,6 +441,7 @@ class Notification(BaseModel):
         ('like', 'Like'),
         ('booking', 'Booking'),
         ('comment', 'Comment'),
+        ('message', 'Message'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()

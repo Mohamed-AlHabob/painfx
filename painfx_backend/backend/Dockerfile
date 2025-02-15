@@ -31,6 +31,8 @@ CMD sh -c "\
     echo 'Running migrations...' && \
     python manage.py makemigrations && \
     python manage.py migrate && \
+    echo 'Run Migrations and Download cities_light Data' && \
+    python python manage.py cities_light && \
     echo 'Collecting static files...' && \
     python manage.py collectstatic --noinput && \
     echo 'Creating superuser...' && \

@@ -19,9 +19,6 @@ def create_clinic_for_new_doctor(sender, instance, created, **kwargs):
             with transaction.atomic():
                 clinic = Clinic.objects.create(
                     name=f"{instance.user.get_full_name()}'s Clinic",
-                    address=instance.user.profile.address if hasattr(instance.user, 'profile') else "",
-                    latitude=instance.user.profile.latitude if hasattr(instance.user, 'profile') else None,
-                    longitude=instance.user.profile.longitude if hasattr(instance.user, 'profile') else None,
                     specialization=instance.specialization,
                     license_number=instance.license_number,
                     license_expiry_date=instance.license_expiry_date,

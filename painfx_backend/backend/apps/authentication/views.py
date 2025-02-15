@@ -9,7 +9,6 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-
 class CustomProviderAuthView(ProviderAuthView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -38,7 +37,6 @@ class CustomProviderAuthView(ProviderAuthView):
             )
 
         return response
-
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -69,7 +67,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
         return response
 
-
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get('refresh')
@@ -94,7 +91,6 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         return response
 
-
 class CustomTokenVerifyView(TokenVerifyView):
     def post(self, request, *args, **kwargs):
         access_token = request.COOKIES.get('access')
@@ -103,7 +99,6 @@ class CustomTokenVerifyView(TokenVerifyView):
             request.data['token'] = access_token
 
         return super().post(request, *args, **kwargs)
-
 
 class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
