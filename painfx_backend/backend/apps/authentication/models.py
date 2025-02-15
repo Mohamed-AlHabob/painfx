@@ -151,7 +151,7 @@ class Specialization(BaseModel):
     def __str__(self):
         return self.name
 
-class Patient(BaseModel):
+class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='patient')
     medical_history = models.TextField(blank=True)
 
@@ -165,7 +165,7 @@ class Patient(BaseModel):
     def __str__(self):
         return f"Patient: {self.user.get_full_name()}"
     
-class Doctor(BaseModel):
+class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='doctor')
     specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True, related_name='doctors')
     license_number = models.CharField(max_length=255, blank=True, null=True)
