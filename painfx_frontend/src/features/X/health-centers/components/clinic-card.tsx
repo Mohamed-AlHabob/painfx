@@ -120,11 +120,11 @@ export default function KaggleTimelineEnhanced() {
                         {i + 1}
                       </div>
                       <div className="flex-1">
-                        <div className="text-white font-medium">{doctor.user.first_name}</div>
-                        <div className="text-zinc-400 text-sm">{doctor.user.email}</div>
+                        <div className="text-white font-medium">{doctor.user?.first_name || ""}</div>
+                        <div className="text-zinc-400 text-sm">{doctor.user?.email || ""}</div>
                       </div>
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={doctor.user.profile?.avatar || ''} alt={doctor.user.first_name || 'User'} />
+                        <AvatarImage src={doctor.user?.profile?.avatar || ''} alt={doctor.user?.first_name || 'User'} />
                         <AvatarFallback>{doctor?.user?.first_name?.charAt(0) || 'S'}</AvatarFallback>
                       </Avatar>
                     </div>

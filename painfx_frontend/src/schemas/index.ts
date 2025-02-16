@@ -130,6 +130,7 @@ export const SignUpSchema = z.object({
   });
   
   export const DoctorSchema = z.object({
+    id: z.string().uuid().optional(),
     user: UserSchema.nullable().optional(),
     specialization: SpecializationSchema.nullable().optional(),
     active: z.boolean().nullable().optional(),
@@ -157,7 +158,7 @@ export const clinicSchema = z.object({
     name: z.string().nullable().optional(),
     address: z.string().optional(),
     specialization: SpecializationSchema.nullable().optional(),
-    owner: UserProfileSchema.nullable().optional(),
+    owner: UserSchema.nullable().optional(),
     doctors: z.array(DoctorSchema).nullable().optional(),
     icon: z.string().nullable().optional(),
     active: z.boolean().nullable().optional(),
@@ -196,16 +197,15 @@ export const clinicSchema = z.object({
   
   export type CreateUpdateClinic = z.infer<typeof createUpdateClinicSchema>;
 
-  
-export const CommentSchema = z.object({
-  id: z.string().uuid().optional(),
-  user: UserProfileSchema.optional(),
-  content_type: z.string(), // e.g., "post", "comment", "event"
-  object_id: z.string().uuid(), // ID of the object being commented on
-  text: z.string(),
-  parent: z.string().uuid().nullable().optional(), // For nested comments
-  created_at: z.string().datetime().optional(),
-});
+  export const CommentSchema = z.object({
+    id: z.string().uuid(),
+    user: UserSchema.nullable().optional(),
+    post: z.string().uuid().nullable().optional(),
+    text: z.string().nullable().optional(),
+    parent: z.string().uuid().nullable().optional(),
+    replies: z.array(z.lazy(() => CommentSchema as z.ZodType<any>)).nullable().optional(),
+    created_at: z.string().nullable().optional(),
+  }) as z.ZodType<any>;
 
 export const commentListSchema = z.array(CommentSchema);
 
@@ -222,10 +222,9 @@ export type CreateUpdateComment = z.infer<typeof createUpdateCommentSchema>;
 
 
 export const likeSchema = z.object({
-  id: z.string().uuid(),
-  user: UserProfileSchema.optional(),
-  content_type: z.string(), // e.g., "post", "comment", "event"
-  object_id: z.string().uuid(), // ID of the object being liked
+  id: z.string().uuid().optional(),
+  user: UserSchema.optional(),
+  post: z.string().uuid().nullable().optional(),
   created_at: z.string().datetime().optional(),
 });
 
@@ -248,12 +247,13 @@ export const createUpdateLikeSchema = z.object({
 export type CreateUpdateLike = z.infer<typeof createUpdateLikeSchema>;
 
 export const media_attachmentsSchema = z.object({
-  id: z.string().uuid().optional(),
-  media_type: z.enum(['image', 'video']), // Only allow "image" or "video"
-  file: z.any().nullable().optional(), // File object (for uploads)
-  url: z.string().url("Invalid URL").nullable().optional(), // URL for hosted media
-  thumbnail: z.any().nullable().optional(), // Thumbnail for videos
-  order: z.number().nullable().optional(), // Order of media in a post
+  id: z.string().uuid(),
+  post: z.string().uuid().nullable().optional(),
+  media_type: z.enum(['image', 'video']).nullable().optional(),
+  file: z.string().nullable().optional(),
+  thumbnail: z.string().nullable().optional(),
+  url: z.string().url().nullable().optional(),
+  order: z.number().nullable().optional(),
 });
 
 export type MediaAttachments = z.infer<typeof media_attachmentsSchema>;
@@ -304,7 +304,7 @@ export type CreateUpdatePost = z.infer<typeof createUpdatePostSchema>;
 
 export const UsersAuditSchema = z.object({
   id: z.string().uuid(),
-  user: UserProfileSchema,
+  user: UserSchema,
   changedData: z.record(z.string(), z.any()),
   changedAt: z.string().datetime(),
 });
@@ -482,7 +482,7 @@ export const createUpdateSubscriptionSchema = z.object({
 
 export const notificationSchema = z.object({
   id: z.string().uuid(),
-  user: UserProfileSchema,
+  user: UserSchema,
   message: z.string().min(1, 'Message is required'),
   isRead: z.boolean(),
   createdAt: z.string().datetime(),
