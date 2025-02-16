@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdateReviewSchema, reviewSchema } from "@/schemas/Review";
+import { createUpdateReviewSchema, reviewSchema } from "@/schemas";
 
 
 export const reviewApiSlice = apiSlice.injectEndpoints({

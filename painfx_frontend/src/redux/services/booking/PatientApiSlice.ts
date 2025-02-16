@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdatePatientSchema, patientSchema } from "@/schemas/Patient";
+import { createUpdatePatientSchema, PatientSchema } from "@/schemas";
 
 
 export const patientApiSlice = apiSlice.injectEndpoints({
@@ -7,7 +7,7 @@ export const patientApiSlice = apiSlice.injectEndpoints({
     getPatients: builder.query({
       query: () => 'patients/',
       transformResponse: (response) => {
-        patientSchema.parse(response);
+        PatientSchema.parse(response);
         return response;
       },
     }),

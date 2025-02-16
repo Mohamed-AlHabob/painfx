@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdateSubscriptionSchema, subscriptionSchema } from "@/schemas/Payment";
+import { createUpdateSubscriptionSchema, subscriptionSchema } from "@/schemas";
 
 
 export const subscriptionApiSlice = apiSlice.injectEndpoints({

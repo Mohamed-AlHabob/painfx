@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdateDoctorSchema, doctorSchema } from "@/schemas/Doctor";
+import { createUpdateDoctorSchema, DoctorSchema } from "@/schemas";
 
 
 export const doctorApiSlice = apiSlice.injectEndpoints({
@@ -7,14 +7,14 @@ export const doctorApiSlice = apiSlice.injectEndpoints({
     getDoctors: builder.query({
       query: () => 'doctors/',
       transformResponse: (response) => {
-        doctorSchema.parse(response);
+        DoctorSchema.parse(response);
         return response;
       },
     }),
     getDoctorById: builder.query({
       query: (user) => `doctors/${user}/`,
       transformResponse: (response) => {
-        doctorSchema.parse(response);
+        DoctorSchema.parse(response);
         return response;
       },
     }),

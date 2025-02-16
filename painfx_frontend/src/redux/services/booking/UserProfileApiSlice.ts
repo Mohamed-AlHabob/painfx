@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdateUserProfileSchema, userProfileSchema } from "@/schemas/user-profile";
+import { createUpdateUserProfileSchema, UserProfileSchema } from "@/schemas";
 
 
 export const userProfileApiSlice = apiSlice.injectEndpoints({
@@ -7,7 +7,7 @@ export const userProfileApiSlice = apiSlice.injectEndpoints({
     getUserProfiles: builder.query({
       query: () => 'users/',
       transformResponse: (response) => {
-        userProfileSchema.parse(response);
+        UserProfileSchema.parse(response);
         return response;
       },
     }),

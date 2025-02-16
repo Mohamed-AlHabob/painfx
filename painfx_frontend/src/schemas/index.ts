@@ -41,7 +41,7 @@ export const createUpdateUserProfileSchema = z.object({
   address:z.string().optional(),
 });
 
-export type UserProfile = z.infer<typeof UserProfileSchema>;
+export type UserProfile = z.infer<typeof UserSchema>;
 export type CreateUpdateUserProfile = z.infer<typeof createUpdateUserProfileSchema>;
 
 
@@ -197,7 +197,7 @@ export const clinicSchema = z.object({
   export type CreateUpdateClinic = z.infer<typeof createUpdateClinicSchema>;
 
   
-export const commentSchema = z.object({
+export const CommentSchema = z.object({
   id: z.string().uuid().optional(),
   user: UserProfileSchema.optional(),
   content_type: z.string(), // e.g., "post", "comment", "event"
@@ -207,9 +207,9 @@ export const commentSchema = z.object({
   created_at: z.string().datetime().optional(),
 });
 
-export const commentListSchema = z.array(commentSchema);
+export const commentListSchema = z.array(CommentSchema);
 
-export type Comment = z.infer<typeof commentSchema>;
+export type Comment = z.infer<typeof CommentSchema>;
 
 export const createUpdateCommentSchema = z.object({
   content_type: z.string(), // e.g., "post", "comment", "event"
@@ -265,13 +265,13 @@ export const TagSchema = z.object({
   
   export type Tag = z.infer<typeof TagSchema>;
 
-export const postSchema = z.object({
+export const PostSchema = z.object({
   id: z.string().uuid().optional(),
   title: z.string().nullable().optional(),
   doctor: DoctorSchema.optional(),
   content: z.string().nullable().optional(),
   media_attachments: z.array(media_attachmentsSchema).nullable().optional(),
-  comments: z.array(commentSchema).nullable().optional(),
+  comments: z.array(CommentSchema).nullable().optional(),
   tags: z.array(TagSchema).nullable().optional(),
   likes_count: z.number().nullable().optional(),
   comments_count: z.number().nullable().optional(),
@@ -279,12 +279,12 @@ export const postSchema = z.object({
   updated_at: z.string().datetime().nullable().optional(),
 });
 
-export const postListSchema = z.array(postSchema);
+export const postListSchema = z.array(PostSchema);
 
-export type Post = z.infer<typeof postSchema>;
+export type Post = z.infer<typeof PostSchema>;
 
 export const postListResponseSchema = z.object({
-  results: z.array(postSchema),
+  results: z.array(PostSchema),
   pagination: z.object({
     total: z.number(),
     page: z.number(),
@@ -302,16 +302,16 @@ export const createUpdatePostSchema = z.object({
 
 export type CreateUpdatePost = z.infer<typeof createUpdatePostSchema>;
 
-export const usersAuditSchema = z.object({
+export const UsersAuditSchema = z.object({
   id: z.string().uuid(),
   user: UserProfileSchema,
   changedData: z.record(z.string(), z.any()),
   changedAt: z.string().datetime(),
 });
 
-export const usersAuditListSchema = z.array(usersAuditSchema);
+export const usersAuditListSchema = z.array(UsersAuditSchema);
 
-export type UsersAudit = z.infer<typeof usersAuditSchema>;
+export type UsersAudit = z.infer<typeof UsersAuditSchema>;
 
 
 export const PatientSchema = z.object({
@@ -361,7 +361,7 @@ export const ReservationStatusEnum = z.enum([
   'cancelled',
 ]);
 
-export const reservationSchema = z.object({
+export const ReservationSchema = z.object({
   id: z.string().uuid().optional(),
   patient: PatientSchema.nullable().optional(),
   clinic:clinicSchema.nullable().optional(),
@@ -374,9 +374,9 @@ export const reservationSchema = z.object({
   updated_at: z.string().datetime().optional(),
 });
 
-export const reservationListSchema = z.array(reservationSchema);
+export const reservationListSchema = z.array(ReservationSchema);
 
-export type Reservation = z.infer<typeof reservationSchema>;
+export type Reservation = z.infer<typeof ReservationSchema>;
 
 
 // src/schemas/reservationDoctor.ts
@@ -384,7 +384,7 @@ export type Reservation = z.infer<typeof reservationSchema>;
 
 export const reservationDoctorSchema = z.object({
   id: z.string().uuid(),
-  reservation: reservationSchema,
+  reservation: ReservationSchema,
   doctor: DoctorSchema,
   assignedAt: z.string().datetime(),
 });

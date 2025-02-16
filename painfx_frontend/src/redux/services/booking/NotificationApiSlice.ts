@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { notificationSchema } from "@/schemas/Notification";
+import { notificationSchema } from "@/schemas";
 
 
 export const notificationApiSlice = apiSlice.injectEndpoints({

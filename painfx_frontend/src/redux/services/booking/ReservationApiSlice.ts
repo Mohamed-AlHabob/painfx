@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdateReservationSchema, reservationSchema } from "@/schemas/Reservation";
+import { createUpdateReservationSchema, ReservationSchema } from "@/schemas";
 
 
 export const reservationApiSlice = apiSlice.injectEndpoints({
@@ -7,13 +7,13 @@ export const reservationApiSlice = apiSlice.injectEndpoints({
     getReservations: builder.query({
       query: () => 'reservations/',
       transformResponse: (response: unknown) => {
-        reservationSchema.parse(response);
+        ReservationSchema.parse(response);
         return (response as { results: unknown }).results;
       },    }),
     getReservation: builder.query({
       query: (id) => `reservations/${id}/`,
       transformResponse: (response) => {
-        reservationSchema.parse(response);
+        ReservationSchema.parse(response);
         return response;
       },
     }),

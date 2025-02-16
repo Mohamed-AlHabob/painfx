@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { createUpdateEventScheduleSchema, eventScheduleSchema } from "@/schemas/EventSchedule";
+import { createUpdateEventScheduleSchema, eventScheduleSchema } from "@/schemas";
 
 export const eventScheduleApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

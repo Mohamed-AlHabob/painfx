@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { likeSchema, createUpdateLikeSchema } from "@/schemas/Social"; // Assuming you have schemas for validation
+import { likeSchema, createUpdateLikeSchema } from "@/schemas"; // Assuming you have schemas for validation
 
 export const likeApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({

@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { Clinic, clinicSchema, createUpdateClinicSchema } from "@/schemas/Clinic";
+import { Clinic, clinicSchema, createUpdateClinicSchema } from "@/schemas";
 
 export interface ClinicListResponse {
   length: number;

@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { clinicDoctorSchema } from "@/schemas/Clinic";
+import { clinicDoctorSchema } from "@/schemas";
 
 
 export const clinicDoctorApiSlice = apiSlice.injectEndpoints({

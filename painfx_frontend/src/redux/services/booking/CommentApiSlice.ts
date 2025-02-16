@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { commentSchema, Comment, createUpdateCommentSchema } from "@/schemas/Social";
+import { CommentSchema, Comment } from "@/schemas";
 
 export interface CommentListResponse {
   count: number;
@@ -24,10 +24,7 @@ export const commentApiSlice = apiSlice.injectEndpoints({
     getComments: builder.query<CommentListResponse, { content_type: string; object_id: string; page?: number }>({
       query: ({ content_type, object_id, page = 1 }) => `comments/?content_type=${content_type}&object_id=${object_id}&page=${page}`,
       transformResponse: (response: CommentListResponse) => {
-        // Parse the results array using the commentSchema
-        const parsedResults = commentSchema.array().parse(response.results);
-
-        // Return the full CommentListResponse object with parsed results
+        const parsedResults = CommentSchema.array().parse(response.results);
         return {
           ...response,
           results: parsedResults,
@@ -48,7 +45,7 @@ export const commentApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
       transformResponse: (response: Comment) => {
-        commentSchema.parse(response);
+        CommentSchema.parse(response);
         return response;
       },
       invalidatesTags: [{ type: 'Comment', id: 'LIST' }],

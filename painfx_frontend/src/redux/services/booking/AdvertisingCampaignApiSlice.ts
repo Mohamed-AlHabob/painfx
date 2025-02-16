@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { advertisingCampaignSchema ,advertisingCampaignListSchema} from "@/schemas/AdvertisingCampaign";
+import {advertisingCampaignListSchema} from "@/schemas";
 
 
 

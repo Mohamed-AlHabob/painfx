@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { categorySchema, createUpdateCategorySchema } from "@/schemas/Payment";
+import { categorySchema, createUpdateCategorySchema } from "@/schemas";
 
 
 export const categoryApiSlice = apiSlice.injectEndpoints({

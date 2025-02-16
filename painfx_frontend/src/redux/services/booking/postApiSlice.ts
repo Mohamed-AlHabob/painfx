@@ -1,5 +1,5 @@
 import { apiSlice } from '../../services/apiSlice';
-import { Post, postListResponseSchema, postSchema } from '../../../schemas/Social/post';
+import {PostSchema,postListResponseSchema,Post} from "@/schemas"
 
 export interface PostListResponse {
   count: number;
@@ -32,7 +32,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
     getPosts: builder.query<PostListResponse, { page?: number }>({
       query: ({ page = 1 }) => `posts/?page=${page}`,
       transformResponse: (response: PostListResponse) => {
-        postListResponseSchema.parse(response); // Validate the response
+        postListResponseSchema.parse(response);
         return response;
       },
       providesTags: (result) =>
@@ -46,7 +46,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
     getPost: builder.query<Post, string>({
       query: (id) => `posts/${id}/`,
       transformResponse: (response: Post) => {
-        postSchema.parse(response); // Validate the response
+        PostSchema.parse(response); // Validate the response
         return response;
       },
       providesTags: (result, error, id) => [{ type: 'Post', id }],
@@ -58,7 +58,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
       transformResponse: (response: Post) => {
-        postSchema.parse(response); // Validate the response
+        PostSchema.parse(response); // Validate the response
         return response;
       },
       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
@@ -73,7 +73,7 @@ export const postApiSlice = apiSlice.injectEndpoints({
         },
       }),
       transformResponse: (response: Post) => {
-        postSchema.parse(response); // Validate the response
+        PostSchema.parse(response); // Validate the response
         return response;
       },
       invalidatesTags: (result, error, { id }) => [
