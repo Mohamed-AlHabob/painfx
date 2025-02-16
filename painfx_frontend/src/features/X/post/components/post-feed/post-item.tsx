@@ -6,14 +6,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import UserCard from '@/components/global/user-widget/user-card';
-import { Post } from '@/schemas/Social/post';
+import { Post } from '@/schemas';
 import { Edit, Trash } from 'lucide-react';
 import { ActionTooltip } from '@/components/global/action-tooltip';
 import { ModalType, useModal } from '@/hooks/use-modal-store';
 import { useRetrieveUserQuery } from '@/redux/services/auth/authApiSlice';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PostMedia } from './post-media';
-import { Tag } from '@/schemas/Social/tag'; // Import the Tag schema
+import { Tag } from '@/schemas'; // Import the Tag schema
 
 interface PostItemProps {
   post: Post;
@@ -33,11 +33,11 @@ export const PostItem = ({ post }: PostItemProps) => {
       <CardContent className="p-3 flex flex-col gap-y-6 items-start">
         <div className="flex items-center gap-x-2 justify-between w-full">
           <UserCard 
-            name={`${post.doctor?.user.first_name} ${post.doctor?.user.last_name}`} 
-            avatar={post.doctor?.user.profile?.avatar || ""} 
+            name={`${post.doctor?.user?.first_name || ""} ${post.doctor?.user?.last_name || ""}`} 
+            avatar={post.doctor?.user?.profile?.avatar || ""} 
             id={post.doctor?.user?.id || ""} 
             role={post.doctor?.specialization?.name || ""}
-            email={post.doctor?.user.email}
+            email={post.doctor?.user?.email || ""}
             phone_number={post.doctor?.user?.profile?.phone_number || ""}
             address={post.doctor?.user?.profile?.address || ""}
             joined={post.doctor?.user?.date_joined || ""}
