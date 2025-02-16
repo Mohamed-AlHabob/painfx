@@ -35,11 +35,11 @@ export const PostInfo = ({ id }: PostInfoProps) => {
   return (
     <div className="flex flex-col gap-y-5">
         <UserCard 
-          name={`${post?.doctor?.user?.first_name || ""} ${post?.doctor?.user.last_name || ""}`} 
-          avatar={post?.doctor?.user.profile?.avatar || ""} 
+          name={`${post?.doctor?.user?.first_name || ""} ${post?.doctor?.user?.last_name|| ""}`} 
+          avatar={post?.doctor?.user?.profile?.avatar || ""} 
           id={post?.doctor?.user?.id || ""} 
           role={post?.doctor?.specialization?.name || ""} 
-          email={post?.doctor?.user.email}
+          email={post?.doctor?.user?.email || ""}
           phone_number={post?.doctor?.user?.profile?.phone_number || ""}
           address={post?.doctor?.user?.profile?.address || ""}
           joined={post?.doctor?.user?.date_joined || ""}

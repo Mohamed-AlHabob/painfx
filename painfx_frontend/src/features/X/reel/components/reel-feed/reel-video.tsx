@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Play } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactPlayer from 'react-player';
-import { MediaAttachments } from '@/schemas/Social/media-attachments';
+import { MediaAttachments } from '@/schemas';
 
 interface ReelVideoProps {
   video: MediaAttachments[];

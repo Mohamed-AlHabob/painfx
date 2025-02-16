@@ -1,13 +1,10 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Play } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
-import { Post } from '@/schemas/Social/post';
+import { Post } from '@/schemas';
 import { Interactions } from '@/features/X/post/components/post-feed/interactions';
 import { ReelVideo } from './reel-video';
 
@@ -72,11 +69,11 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Avatar>
-                    <AvatarImage src={reel.doctor?.user?.profile?.avatar || ""} alt={reel.doctor?.user.first_name || ""} />
+                    <AvatarImage src={reel.doctor?.user?.profile?.avatar || ""} alt={reel.doctor?.user?.first_name || ""} />
                     <AvatarFallback>{reel.doctor?.user?.first_name?.charAt(0) || "S"}</AvatarFallback>
                   </Avatar>
                   <span className="font-semibold">
-                    {`${reel.doctor?.user.first_name || ""} ${reel.doctor?.user.last_name || ""}`}
+                    {`${reel.doctor?.user?.first_name || ""} ${reel.doctor?.user?.last_name || ""}`}
                   </span>
                 </div>
                 <div className="flex space-x-2">

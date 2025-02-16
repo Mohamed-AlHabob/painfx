@@ -11,7 +11,7 @@ import { cn } from '@/lib'
 import { Like as LikeIcon, Unlike } from '@/components/icons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Like } from "@/schemas/Social"
+import { Like } from "@/schemas"
 
 // Improved type definition for better type safety
 interface InteractionButtonProps {

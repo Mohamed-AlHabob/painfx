@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Reservation } from '@/schemas/Reservation';
+import { Reservation } from '@/schemas';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {

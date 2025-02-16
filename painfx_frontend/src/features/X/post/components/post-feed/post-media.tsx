@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReactPlayer from 'react-player';
-import { MediaAttachments } from '@/schemas/Social/media-attachments';
+import { MediaAttachments } from '@/schemas';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface PostMediaProps {

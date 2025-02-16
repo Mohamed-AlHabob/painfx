@@ -9,7 +9,7 @@ import { Loader } from "@/components/global/loader"
 import { Check, Google } from "@/components/icons"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
-import { Reservation } from "@/schemas/Reservation"
+import { Reservation } from "@/schemas"
 import { NoResult } from "@/components/global/no-results"
 
 interface ReservationDetailsProps {
