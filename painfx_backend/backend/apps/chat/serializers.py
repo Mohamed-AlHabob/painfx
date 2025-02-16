@@ -13,6 +13,7 @@ class SearchSerializer(UserSerializer):
             'email',
             'username',
             'first_name',
+            'is_online',
             'last_name',
             'status'
         ]
@@ -86,7 +87,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'id',
             'is_me',
             'text',
-            'unread',
+            'read_at',
             'user',
             'created_at'
         ]
