@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),
   phone_number: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number').nullable().optional(),
-  gender: z.enum(['male', 'female', 'other']).nullable().optional(),
+  gender: z.enum(['male', 'female','non_binary','prefer_not_to_say', 'other']).nullable().optional(),
   bio: z.string().nullable().optional(),
   avatar: z.string().url().nullable().optional(),
   expo_push_token: z.string().nullable().optional(),
@@ -37,7 +37,7 @@ export const createUpdateUserProfileSchema = z.object({
   phone_number: z
     .string()
     .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number')
-    .optional(),
+    .nullable().optional(),
   geolocation:z.string().optional(),
   avatar: z.string().url().optional(),
   address:z.string().optional(),
@@ -138,7 +138,7 @@ export const SignUpSchema = z.object({
     active: z.boolean().nullable().optional(),
     privacy: z.boolean().nullable().optional(),
     license_number: z.string().nullable().optional(),
-    license_expiry_date: z.string().datetime().nullable().optional(),
+    license_expiry_date: z.string().date().nullable().optional(),
     license_image: z.string().nullable().optional(),
     reservation_open: z.boolean().nullable().optional(),
   });
