@@ -60,7 +60,7 @@ export default function ClinicInfoPage({ clinicId }: ClinicInfoPageProps) {
             </h1>
             <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
               <User className="h-4 w-4" />
-              Gender: {clinicData?.owner?.profile?.gander || "Not specified"}
+              Gender: {clinicData?.owner?.profile?.gender || "Not specified"}
             </div>
             <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
               <Clock className="h-4 w-4" />

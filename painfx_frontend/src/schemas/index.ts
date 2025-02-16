@@ -5,6 +5,7 @@ export const UserProfileSchema = z.object({
   id: z.string().uuid(),
   phone_number: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number').nullable().optional(),
   gender: z.enum(['male', 'female', 'other']).nullable().optional(),
+  bio: z.string().nullable().optional(),
   avatar: z.string().url().nullable().optional(),
   expo_push_token: z.string().nullable().optional(),
   country: z.string().nullable().optional(),
@@ -23,6 +24,7 @@ export const UserSchema = z.object({
   username: z.string().nullable().optional(),
   is_active: z.boolean().nullable().optional(),
   last_login: z.string().datetime().nullable().optional(),
+  date_joined: z.string().datetime().nullable().optional(),
   profile: UserProfileSchema.nullable().optional(),
 });
 
