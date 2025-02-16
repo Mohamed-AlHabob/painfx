@@ -72,10 +72,10 @@ export default function ProflilePage({ userId }: DoctorInfoPageProps) {
             <h1 className="text-2xl font-bold">
               {userData?.first_name || " "} {userData?.last_name || " "}
             </h1>
-            {userData?.profile?.gander && (
+            {userData?.profile?.gender && (
               <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
                 <User className="h-4 w-4" />
-                  Gender: {userData?.profile?.gander || "Not specified"}
+                  Gender: {userData?.profile?.gender || "Not specified"}
               </div>
              )}
             <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">

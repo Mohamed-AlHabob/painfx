@@ -75,10 +75,10 @@ export default function DoctorInfoPage({ userId }: DoctorInfoPageProps) {
             <h1 className="text-2xl font-bold">
               {doctorData?.user?.first_name || " "} {doctorData?.user?.last_name || " "}
             </h1>
-            {doctorData?.user?.profile?.gander && (
+            {doctorData?.user?.profile?.gender && (
               <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
                 <User className="h-4 w-4" />
-                  Gender: {doctorData?.user?.profile?.gander || "Not specified"}
+                  Gender: {doctorData?.user?.profile?.gender || "Not specified"}
               </div>
              )}
             <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
