@@ -14,9 +14,15 @@ interface ReelVideoProps {
 
 export const ReelVideo = ({ video }: ReelVideoProps) => {
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [errorIndex, setErrorIndex] = useState<number | null>(null);
 
   const handlePlayClick = (index: number) => {
     setPlayingIndex(index);
+    setErrorIndex(null); // Reset error state when trying to play again
+  };
+
+  const handleError = (index: number) => {
+    setErrorIndex(index);
   };
 
   const renderMedia = (media: MediaAttachments, index: number) => {
@@ -28,38 +34,44 @@ export const ReelVideo = ({ video }: ReelVideoProps) => {
 
     if (isVideo) {
       return (
-          <div className="relative aspect-video" key={index}>
-            {(!isPlaying && (media.url || media.thumbnail)) && (
-             <div className="relative h-full">
-                <Image
-                  src={media.thumbnail}
-                  alt="Reel thumbnail"
-                  fill
-                  style={{ objectFit: 'cover' }}
-                />
-                <button 
-                  onClick={() => handlePlayClick(index)}
-                  className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hover:bg-opacity-30 transition-opacity"
-                >
-                  <Play className="w-16 h-16 text-white" />
-                </button>
-              </div>
-            )}
-            {(isPlaying || !media.thumbnail) && (
-              <ReactPlayer
-                url={mediaSource}
-                playing={isPlaying}
-                controls
-                width="100%"
-                height="100%"
-                className="rounded"
+        <div className="relative aspect-video" key={index}>
+          {(!isPlaying && (media.url || media.thumbnail)) && (
+            <div className="relative h-full">
+              <Image
+                src={media.thumbnail || ""}
+                alt="Reel thumbnail"
+                fill
+                style={{ objectFit: 'cover' }}
               />
-            )}
-          </div>
-
+              <button 
+                onClick={() => handlePlayClick(index)}
+                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hover:bg-opacity-30 transition-opacity"
+                aria-label="Play video"
+              >
+                <Play className="w-16 h-16 text-white" />
+              </button>
+            </div>
+          )}
+          {(isPlaying || !media.thumbnail) && (
+            <ReactPlayer
+              url={mediaSource}
+              playing={isPlaying}
+              controls
+              width="100%"
+              height="100%"
+              className="rounded"
+              onError={() => handleError(index)}
+            />
+          )}
+          {errorIndex === index && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <p className="text-white">Failed to load video.</p>
+            </div>
+          )}
+        </div>
       );
     } else {
-      return null
+      return null;
     }
   };
 
@@ -87,4 +99,4 @@ ReelVideo.Skeleton = function ItemSkeleton() {
       <Skeleton className="h-[280px] w-full dark:bg-[#202020]" />
     </div>
   );
-}
+};
