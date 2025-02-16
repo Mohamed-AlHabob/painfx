@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { extractErrorMessage } from '../error-handling'
 
-import { createUpdateUserProfileSchema } from '@/schemas/user-profile'
+import { createUpdateUserProfileSchema } from '@/schemas'
 import { useCreateUserProfileMutation } from '@/redux/services/booking/UserProfileApiSlice'
 import { useCreatePatientMutation } from '@/redux/services/booking/PatientApiSlice'
 import { useCreateDoctorMutation } from '@/redux/services/booking/DoctorApiSlice'

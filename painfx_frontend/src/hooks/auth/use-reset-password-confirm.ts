@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { extractErrorMessage } from '../error-handling';
 import { useResetPasswordConfirmMutation } from '@/redux/services/auth/authApiSlice';
-import { RestPassworduseConfirmSchema } from '@/schemas/auth';
+import { RestPassworduseConfirmSchema } from '@/schemas';
 
 export default function useResetPasswordConfirm(uid: string, token: string) {
   const router = useRouter();

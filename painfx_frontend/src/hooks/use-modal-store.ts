@@ -1,7 +1,7 @@
 
 import { Clinic, Doctor } from "@/schemas";
-import { Reservation } from "@/schemas/Reservation";
-import { Post } from "@/schemas/Social/post";
+import { Reservation } from "@/schemas";
+import { Post } from "@/schemas";
 import { create } from "zustand";
 
 export type ModalType = "CreateReservation" |"editPost" | "deletePost" |"ConfirmChangeStatus";

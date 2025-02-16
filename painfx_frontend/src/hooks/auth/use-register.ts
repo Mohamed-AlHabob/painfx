@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { extractErrorMessage } from '../error-handling';
 import { useRegisterMutation } from '@/redux/services/auth/authApiSlice';
-import { SignUpSchema } from '@/schemas/auth';
+import { SignUpSchema } from '@/schemas';
 
 export default function useRegister() {
   const router = useRouter();

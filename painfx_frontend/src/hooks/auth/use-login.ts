@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { extractErrorMessage } from '../error-handling';
 import { setAuth } from '@/redux/services/auth/authSlice';
 import { useLoginMutation } from '@/redux/services/auth/authApiSlice';
-import { SignInSchema } from '@/schemas/auth';
+import { SignInSchema } from '@/schemas';
 
 export default function useLogin() {
   const router = useRouter();

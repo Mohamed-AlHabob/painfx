@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { extractErrorMessage } from '../error-handling';
 import { useResetPasswordMutation } from '@/redux/services/auth/authApiSlice';
-import { RestPasswordSchema } from '@/schemas/auth';
+import { RestPasswordSchema } from '@/schemas';
 export default function useResetPassword() {
   const [resetPassword, { isLoading }] = useResetPasswordMutation();
 

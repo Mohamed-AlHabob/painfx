@@ -9,7 +9,7 @@ import {
   useUpdateReservationMutation,
   useDeleteReservationMutation,
 } from "@/redux/services/booking/ReservationApiSlice";
-import { createUpdateReservationSchema } from "@/schemas/Reservation";
+import { createUpdateReservationSchema } from "@/schemas";
 import { useCallback } from "react";
 import { extractErrorMessage } from "../error-handling";
 

@@ -10,7 +10,7 @@ import {
   useUpdatePostMutation,
   useDeletePostMutation,
 } from "@/redux/services/booking/postApiSlice";
-import { createUpdatePostSchema } from "@/schemas/Social/post";
+import { createUpdatePostSchema } from "@/schemas";
 import { useCallback } from "react";
 import { extractErrorMessage } from "@/hooks/error-handling";
 
