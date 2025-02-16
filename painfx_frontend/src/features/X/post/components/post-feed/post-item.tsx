@@ -40,7 +40,7 @@ export const PostItem = ({ post }: PostItemProps) => {
             email={post.doctor?.user?.email || ""}
             phone_number={post.doctor?.user?.profile?.phone_number || ""}
             address={post.doctor?.user?.profile?.address || ""}
-            joined={post.doctor?.user?.date_joined || ""}
+            joined={post.doctor?.user?.created_at || ""}
           />
           {post.doctor?.user?.id === user?.id && (
             <div className='flex items-center gap-x-2'>

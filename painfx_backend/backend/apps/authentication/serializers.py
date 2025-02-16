@@ -4,7 +4,7 @@ from apps.authentication.models import User, Patient, Doctor, UserProfile, Speci
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'phone_number', 'gender','avatar', 'bio','expo_push_token' , 'country', 'region', 'city', 'postal_code', 'address']
+        fields = ['id', 'phone_number', 'gender','avatar', 'bio','expo_push_token', 'country', 'region', 'city', 'postal_code', 'address']
         read_only_fields = ['id']
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'role', 'first_name', 'last_name','username', 'date_joined', 'is_active', 'last_login', 'profile']
+        fields = ['id', 'email', 'role', 'first_name', 'last_name','username','is_online', 'is_active', 'last_login', 'profile']
         read_only_fields = ['id', 'is_active', 'last_login']
 
 class SpecializationSerializer(serializers.ModelSerializer):

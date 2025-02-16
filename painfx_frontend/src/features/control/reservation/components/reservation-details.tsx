@@ -33,7 +33,7 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
          name={`${reservation?.patient?.user?.first_name || 'Unknown'} ${reservation?.patient?.user?.last_name || ''}`}
          id={reservation?.patient?.user?.id || ''} 
          last_login={reservation?.patient?.user?.last_login || ''} 
-         joined={reservation?.patient?.user?.date_joined || ''} 
+         joined={reservation?.patient?.user?.created_at || ''} 
        />
      </div>
       <div className="space-y-6">

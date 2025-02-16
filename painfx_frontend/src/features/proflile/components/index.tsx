@@ -81,7 +81,7 @@ export default function ProflilePage({ userId }: DoctorInfoPageProps) {
             <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
               <Clock className="h-4 w-4" />
               Joined{" "}
-              {new Date(userData?.date_joined || "").toLocaleDateString("en-US", {
+              {new Date(userData?.created_at || "").toLocaleDateString("en-US", {
                 month: "short",
                 year: "numeric",
               })}{" "}

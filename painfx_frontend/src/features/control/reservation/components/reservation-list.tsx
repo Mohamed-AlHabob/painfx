@@ -134,7 +134,7 @@ export function ReservationList() {
                       email={reservation?.patient?.user?.email || ''}
                       phone_number={reservation?.patient?.user?.profile?.phone_number || ''}
                       avatar={reservation?.patient?.user?.profile?.avatar || ''}
-                      joined={reservation?.patient?.user?.date_joined || ''}
+                      joined={reservation?.patient?.user?.created_at || ''}
                       address={reservation?.patient?.user?.profile?.address || ''}
                       id={reservation?.patient?.user?.id || ''}
                     />

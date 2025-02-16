@@ -24,7 +24,7 @@ export const UserSchema = z.object({
   username: z.string().nullable().optional(),
   is_active: z.boolean().nullable().optional(),
   last_login: z.string().datetime().nullable().optional(),
-  date_joined: z.string().datetime().nullable().optional(),
+  created_at: z.string().datetime().nullable().optional(),
   profile: UserProfileSchema.nullable().optional(),
 });
 

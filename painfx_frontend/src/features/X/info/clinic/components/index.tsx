@@ -64,7 +64,7 @@ export default function ClinicInfoPage({ clinicId }: ClinicInfoPageProps) {
             </div>
             <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
               <Clock className="h-4 w-4" />
-              Joined {new Date(clinicData?.owner?.date_joined || "").toLocaleDateString("en-US", { month: "short", year: "numeric" })} · Last seen {new Date(clinicData?.owner?.last_login || "").toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+              Joined {new Date(clinicData?.owner?.created_at || "").toLocaleDateString("en-US", { month: "short", year: "numeric" })} · Last seen {new Date(clinicData?.owner?.last_login || "").toLocaleDateString("en-US", { month: "short", year: "numeric" })}
             </div>
             {clinicData?.owner?.profile?.bio && (
               <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start text-sm">
