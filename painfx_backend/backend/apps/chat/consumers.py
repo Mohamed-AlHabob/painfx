@@ -163,16 +163,21 @@ class ChatConsumer(WebsocketConsumer):
 
 
     def receive_request_accept(self, data):
-        Connection = apps.get_model('chat', 'Connection')
+        Connection = apps.get_model('chat', 'Connection')    
 
         try:
             connection = Connection.objects.get(
                 sender__id=data.get('userId'),
                 receiver=self.scope['user']
             )
+            # Update the connection status to 'accepted'
+            connection.status = 'accepted'
+            connection.save()
+            return {'status': 'success', 'message': 'Friend request accepted.'}
         except Connection.DoesNotExist:
-            print('Error: Connection does not exist')
-            return
+            return {'status': 'error', 'message': 'Connection does not exist.'}
+        except Exception as e:
+            return {'status': 'error', 'message': str(e)}
 
         connection.accepted = True
         connection.save()
