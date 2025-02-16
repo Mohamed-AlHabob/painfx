@@ -25,8 +25,8 @@ class ChatConsumer(WebsocketConsumer):
         if not user.is_authenticated:
             self.close()
             return
-        user.status.is_online = True
-        user.status.save()
+        user.is_online = True
+        user.save()
 
         self.user_id = user.id
 
@@ -38,8 +38,8 @@ class ChatConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         user = self.scope['user']
-        user.status.is_online = False
-        user.status.save()
+        user.is_online = False
+        user.save()
         
         async_to_sync(self.channel_layer.group_discard)(
             str(self.user_id), self.channel_name
