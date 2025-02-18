@@ -8,8 +8,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields = ['id', 'phone_number', 'gender','avatar', 'bio','expo_push_token', 'country', 'region', 'city', 'postal_code', 'address']
+        fields = ['id', 'phone_number', 'gender', 'avatar', 'bio', 'expo_push_token', 'country', 'region', 'city', 'postal_code', 'address']
         read_only_fields = ['id']
+
+    def get_country(self, obj):
+        return obj.country.name if obj.country else None
+
+    def get_region(self, obj):
+        return obj.region.name if obj.region else None
+
+    def get_city(self, obj):
+        return obj.city.name if obj.city else None
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
@@ -35,7 +44,8 @@ class PatientSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = User.objects.create_user(**user_data)
-        return Patient.objects.create(user=user, **validated_data)
+        medical_history = validated_data.get('medical_history', '')
+        return Patient.objects.create(user=user, medical_history=medical_history)
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)
@@ -43,7 +53,9 @@ class PatientSerializer(serializers.ModelSerializer):
             user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
             user_serializer.is_valid(raise_exception=True)
             user_serializer.save()
-        return super().update(instance, validated_data)
+        instance.medical_history = validated_data.get('medical_history', instance.medical_history)
+        instance.save()
+        return instance
 
 class DoctorSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -51,13 +63,13 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ['user', 'specialization','active','privacy', 'license_number', 'license_expiry_date','license_image', 'reservation_open']
+        fields = ['user', 'specialization', 'active', 'privacy', 'license_number', 'license_expiry_date', 'license_image', 'reservation_open']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         specialization_data = validated_data.pop('specialization', None)
         user = User.objects.create_user(**user_data)
-        specialization = Specialization.objects.get_or_create(**specialization_data)[0]
+        specialization = Specialization.objects.get_or_create(**specialization_data)[0] if specialization_data else None
         return Doctor.objects.create(user=user, specialization=specialization, **validated_data)
 
     def update(self, instance, validated_data):
@@ -70,5 +82,12 @@ class DoctorSerializer(serializers.ModelSerializer):
         if specialization_data:
             specialization = Specialization.objects.get_or_create(**specialization_data)[0]
             instance.specialization = specialization
-        return super().update(instance, validated_data)
+        instance.active = validated_data.get('active', instance.active)
+        instance.privacy = validated_data.get('privacy', instance.privacy)
+        instance.license_number = validated_data.get('license_number', instance.license_number)
+        instance.license_expiry_date = validated_data.get('license_expiry_date', instance.license_expiry_date)
+        instance.license_image = validated_data.get('license_image', instance.license_image)
+        instance.reservation_open = validated_data.get('reservation_open', instance.reservation_open)
+        instance.save()
+        return instance
 
