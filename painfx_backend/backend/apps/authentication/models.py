@@ -26,10 +26,13 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def generate_unique_username(self):
-        username = f"FX_U{uuid.uuid4().hex[:10]}"
+    def generate_unique_username(self, email):
+        base_username = email.split('@')[0].replace('.', '').replace('_', '').replace('-', '')
+        username = f"{base_username}-painfx"
+        counter = 1
         while User.objects.filter(username=username).exists():
-            username = f"FX_U{uuid.uuid4().hex[:10]}"
+            username = f"{base_username}{counter}-painfx"
+            counter += 1
         return username
 
     def create_superuser(self, email, password=None, **extra_fields):

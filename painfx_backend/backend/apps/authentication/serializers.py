@@ -2,6 +2,10 @@ from rest_framework import serializers
 from apps.authentication.models import User, Patient, Doctor, UserProfile, Specialization
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    country = serializers.SerializerMethodField()
+    region = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
+    
     class Meta:
         model = UserProfile
         fields = ['id', 'phone_number', 'gender','avatar', 'bio','expo_push_token', 'country', 'region', 'city', 'postal_code', 'address']
