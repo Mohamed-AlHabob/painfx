@@ -18,7 +18,7 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError(_("The Email field must be set"))
         email = self.normalize_email(email)
-        username = self.generate_unique_username()
+        username = self.generate_unique_username(email)
         extra_fields.setdefault("username", username)
         
         user = self.model(email=email, **extra_fields)
@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
         base_username = email.split('@')[0].replace('.', '').replace('_', '').replace('-', '')
         username = f"{base_username}-painfx"
         counter = 1
-        while User.objects.filter(username=username).exists():
+        while self.model.objects.filter(username=username).exists():
             username = f"{base_username}{counter}-painfx"
             counter += 1
         return username
@@ -46,6 +46,7 @@ class UserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_superuser=True."))
 
         return self.create_user(email, password, **extra_fields)
+
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     email = models.EmailField(
