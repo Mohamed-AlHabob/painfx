@@ -102,7 +102,7 @@ export const PostMedia: React.FC<PostMediaProps> = ({ mediaAttachments }) => {
             />
           ) : (
             <video
-              src={selectedMedia?.url || selectedMedia?.file}
+              src={selectedMedia?.url || selectedMedia?.file || ""}
               controls
               className="max-w-full max-h-full"
               autoPlay
