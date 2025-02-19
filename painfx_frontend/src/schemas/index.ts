@@ -225,7 +225,7 @@ export type CreateUpdateComment = z.infer<typeof createUpdateCommentSchema>;
 
 export const likeSchema = z.object({
   id: z.string().uuid().optional(),
-  user: UserSchema.optional(),
+  user: UserSchema.nullable().optional(),
   post: z.string().uuid().nullable().optional(),
   created_at: z.string().datetime().optional(),
 });
@@ -242,8 +242,7 @@ export const likeListSchema = z.object({
 export type Like = z.infer<typeof likeSchema>;
 
 export const createUpdateLikeSchema = z.object({
-  content_type: z.string(), // e.g., "post", "comment", "event"
-  object_id: z.string().uuid(), // ID of the object being liked
+  post: z.string(),
 });
 
 export type CreateUpdateLike = z.infer<typeof createUpdateLikeSchema>;

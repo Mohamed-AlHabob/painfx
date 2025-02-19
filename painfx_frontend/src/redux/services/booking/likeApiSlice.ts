@@ -1,5 +1,5 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { likeSchema } from "@/schemas";
+import { createUpdateLikeSchema, likeSchema } from "@/schemas";
 
 export const likeApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -20,7 +20,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         body: { post: postId },
       }),
       transformResponse: (response) => {
-        likeSchema.parse(response);
+        createUpdateLikeSchema.parse(response);
         return response;
       },
     }),
@@ -32,7 +32,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
       }),
       transformResponse: (response) => {
-        likeSchema.parse(response);
+        createUpdateLikeSchema.parse(response);
         return response;
       },
     }),
