@@ -1,9 +1,11 @@
 "use client"
-
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { useTranslation } from "react-i18next"
+import { Loader2 } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 import {
   Drawer,
   DrawerClose,
@@ -13,109 +15,114 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
 import { useModal } from "@/hooks/use-modal-store"
 import { useReservations } from "@/hooks/reservations"
-import { useModalTranslation, type ModalProps } from "@/utils/modal-utils"
 
-const reservationSchema = z.object({
+const formSchema = z.object({
   reservation_date: z.string().nonempty("Reservation date is required"),
   reservation_time: z.string().nonempty("Reservation time is required"),
   entityId: z.string().nonempty("Entity ID is required"),
 })
 
-type ReservationFormValues = z.infer<typeof reservationSchema>
+type FormValues = z.infer<typeof formSchema>
 
-export function CreateReservationDrawer({ isOpen, onClose }: ModalProps) {
-  const { t, modalTitles, buttonLabels } = useModalTranslation()
-  const { data } = useModal()
-  const { onCreateReservation } = useReservations()
-  const [isCreating, setIsCreating] = useState(false)
+export function CreateReservationDrawer() {
+  const { t } = useTranslation()
+  const { isOpen, onClose, type, data } = useModal()
+  const { onCreateReservation, isCreating } = useReservations()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ReservationFormValues>({
-    resolver: zodResolver(reservationSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      reservation_date: "",
+      reservation_time: "",
+      entityId: data?.DoctorId || data?.ClinicId || "",
+    },
   })
 
-  const DoctorId = data?.DoctorId || ""
-  const ClinicId = data?.ClinicId || ""
-  const entityType = DoctorId ? "doctor" : "clinic"
-  const entityValue = DoctorId || ClinicId
+  const isModalOpen = isOpen && type === "CreateReservation"
+  const entityType = data?.DoctorId ? "doctor" : "clinic"
 
-  const onSubmit = async (formData: ReservationFormValues) => {
-    setIsCreating(true)
-    try {
-      await onCreateReservation({
-        ...formData,
-        [entityType]: formData.entityId,
-      })
-      onClose()
-    } catch (error) {
-      console.error("Failed to create reservation:", error)
-    } finally {
-      setIsCreating(false)
-    }
+  const handleSubmit = (values: FormValues) => {
+    onCreateReservation(values)
+    onClose()
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
+    <Drawer open={isModalOpen} onOpenChange={onClose}>
       <DrawerContent>
-        <div className="max-w-md mx-auto p-6">
+        <div className="mx-auto w-full max-w-lg px-6">
           <DrawerHeader>
-            <DrawerTitle>{modalTitles.createReservation}</DrawerTitle>
+            <DrawerTitle>{t("create_reservation")}</DrawerTitle>
             <DrawerDescription>{t("fill_details")}</DrawerDescription>
           </DrawerHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="reservation_date">{t("reservation_date")}</Label>
-              <Input
-                id="reservation_date"
-                type="date"
-                {...register("reservation_date")}
-                className={errors.reservation_date ? "border-red-500" : ""}
-              />
-              {errors.reservation_date && <p className="text-red-500 text-sm">{errors.reservation_date.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="reservation_time">{t("reservation_time")}</Label>
-              <Input
-                id="reservation_time"
-                type="time"
-                {...register("reservation_time")}
-                className={errors.reservation_time ? "border-red-500" : ""}
-              />
-              {errors.reservation_time && <p className="text-red-500 text-sm">{errors.reservation_time.message}</p>}
-            </div>
-
-            <Input type="hidden" {...register("entityId")} value={entityValue} />
-
-            <DrawerFooter>
-              <Button type="submit" className="w-full" disabled={isCreating}>
-                {isCreating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {buttonLabels.creating}
-                  </>
-                ) : (
-                  t("create_reservation_button")
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="reservation_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("reservation_date")}</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </Button>
-              <DrawerClose asChild>
-                <Button variant="outline" className="w-full" onClick={onClose}>
-                  {buttonLabels.cancel}
-                </Button>
-              </DrawerClose>
-            </DrawerFooter>
-          </form>
+              />
+              <FormField
+                control={form.control}
+                name="reservation_time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("reservation_time")}</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="entityId"
+                render={({ field }) => (
+                  <FormItem className="hidden">
+                    <FormLabel>{t(entityType === "doctor" ? "doctor_id" : "clinic_id")}</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} readOnly />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DrawerFooter className="px-0">
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <Button type="submit" className="flex-1" disabled={isCreating}>
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("creating")}
+                      </>
+                    ) : (
+                      t("create_reservation_button")
+                    )}
+                  </Button>
+                  <DrawerClose asChild>
+                    <Button variant="outline" className="flex-1" onClick={onClose}>
+                      {t("cancel")}
+                    </Button>
+                  </DrawerClose>
+                </div>
+              </DrawerFooter>
+            </form>
+          </Form>
         </div>
       </DrawerContent>
     </Drawer>
   )
 }
+
