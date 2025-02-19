@@ -119,4 +119,3 @@ export function CreateReservationDrawer({ isOpen, onClose }: ModalProps) {
     </Drawer>
   )
 }
-
