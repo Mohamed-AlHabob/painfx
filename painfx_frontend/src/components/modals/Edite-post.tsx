@@ -136,7 +136,7 @@ export function EditPostModal() {
             <Button type="submit" disabled={isUpdating}>
               {isUpdating ? (
                 <>
-                  <Spinner className="mr-2" />
+                  <Spinner />
                   {t("updating_post")}
                 </>
               ) : (
