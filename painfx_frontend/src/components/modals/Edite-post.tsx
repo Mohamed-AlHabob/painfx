@@ -108,7 +108,7 @@ export function EditPostModal() {
                         {errors.file && <p className="text-sm text-destructive">{errors.file.message}</p>}
                         {fileWatch && (
                           <div className="flex items-center justify-between bg-muted p-2 rounded-md">
-                            <span className="text-sm truncate">{fileWatch[0]?.name}</span>
+                            <span className="text-sm truncate">{fileWatch?.name}</span>
                             <Button type="button" variant="ghost" size="sm" onClick={() => reset({ file: undefined })}>
                               <X className="h-4 w-4" />
                             </Button>
