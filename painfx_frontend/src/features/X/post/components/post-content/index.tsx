@@ -39,10 +39,8 @@ export default function PostContent() {
       setContent("")
       setTags([])
       setMediaFiles([])
-      alert("Post created successfully!")
     } catch (error) {
       console.error("Failed to create post:", error)
-      alert("Failed to create post.")
     }
   }
 

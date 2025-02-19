@@ -1,44 +1,39 @@
 import { apiSlice } from "@/redux/services/apiSlice";
-import { likeSchema, createUpdateLikeSchema } from "@/schemas"; // Assuming you have schemas for validation
+import { likeSchema } from "@/schemas";
 
 export const likeApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getLikes: builder.query({
-      query: ({ post }) => `likes/?post_id=${post}`,
+    // Get all likes for a specific post
+    getLikesByPost: builder.query({
+      query: (postId) => `likes/?post=${postId}`,
       transformResponse: (response) => {
-        likeSchema.parse(response); 
+        likeSchema.parse(response);
         return response;
       },
     }),
 
-    createLike: builder.mutation({
-      query: ({ post }) => ({
-        url: 'likes/',
+    // Like a post
+    likePost: builder.mutation({
+      query: (postId) => ({
+        url: `likes/`,
         method: 'POST',
-        body: { post },
+        body: { post: postId },
       }),
-      async onQueryStarted(data, { queryFulfilled }) {
-        createUpdateLikeSchema.parse(data);
-        await queryFulfilled;
+      transformResponse: (response) => {
+        likeSchema.parse(response);
+        return response;
       },
     }),
 
-    deleteLike: builder.mutation({
-      query: (id) => ({
-        url: `likes/${id}/`,
-        method: 'DELETE',
-      }),
-    }),
-
-    toggleLike: builder.mutation({
-      query: ({ post }) => ({
-        url: 'likes/toggle/',
+    // Unlike a post
+    unlikePost: builder.mutation({
+      query: (likeId) => ({
+        url: `likes/${likeId}/unlike/`,
         method: 'POST',
-        body: { post },
       }),
-      async onQueryStarted(data, { queryFulfilled }) {
-        createUpdateLikeSchema.parse(data);
-        await queryFulfilled;
+      transformResponse: (response) => {
+        likeSchema.parse(response);
+        return response;
       },
     }),
   }),
@@ -46,8 +41,7 @@ export const likeApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
-  useGetLikesQuery,
-  useCreateLikeMutation,
-  useDeleteLikeMutation,
-  useToggleLikeMutation,
+  useGetLikesByPostQuery,
+  useLikePostMutation,
+  useUnlikePostMutation,
 } = likeApiSlice;

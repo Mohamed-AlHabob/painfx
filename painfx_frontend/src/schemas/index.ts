@@ -277,6 +277,7 @@ export const PostSchema = z.object({
   tags: z.array(TagSchema).nullable().optional(),
   likes_count: z.number().nullable().optional(),
   comments_count: z.number().nullable().optional(),
+  is_liked:z.boolean().nullable().optional(),
   created_at: z.string().datetime().nullable().optional(),
   updated_at: z.string().datetime().nullable().optional(),
 });

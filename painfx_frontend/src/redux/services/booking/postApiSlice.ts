@@ -11,7 +11,7 @@ export interface PostListResponse {
 export interface CreatePostRequest {
   title: string;
   content: string;
-  tags?: { name: string }[]; // Array of objects with a `name` field
+  tags?: { name: string }[];
   media_attachments?: { media_type: string; file?: File; url?: string }[];
 }
 
@@ -20,7 +20,7 @@ export interface UpdatePostRequest {
   title?: string;
   content?: string;
   tags?: number[];
-  media_attachments?: { media_type: string; file?: File; url?: string }[]; // Updated field name
+  media_attachments?: { media_type: string; file?: File; url?: string }[];
 }
 
 export interface DeletePostRequest {
