@@ -65,7 +65,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
               config={{
                 file: {
                   attributes: {
-                    controlsList: 'nodownload', // Disable download option
+                    controlsList: 'nodownload',
                   },
                 },
               }}
@@ -81,7 +81,7 @@ export const PostMedia = ({ mediaAttachments }: PostMediaProps) => {
             alt="Post media" 
             fill
             className="rounded object-cover object-center"
-            priority={index === 0} // Prioritize loading the first image
+            priority={index === 0}
           />
         </div>
       );

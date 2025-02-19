@@ -81,11 +81,11 @@ export const PostItem = ({ post }: PostItemProps) => {
       </CardContent>
       <Separator orientation="horizontal" className="mt-3" />
       <PostMedia mediaAttachments={Array.isArray(post?.media_attachments) ? post.media_attachments : []} />
-      <Interactions 
+      {/* <Interactions 
         post={post.id || ""} 
         initialLikeCount={post.likes_count || 0} 
         commentsCount={post.comments_count || 0} 
-      />
+      /> */}
     </Card>
   );
 };
