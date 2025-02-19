@@ -30,11 +30,8 @@ export const Interactions: React.FC<InteractionsProps> & {
         await likePost(postId).unwrap()
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update like status",
-        variant: "destructive",
-      })
+      toast.error("Failed to update like status")
+      console.error("Like error:", error)
     }
   }
 
@@ -42,24 +39,51 @@ export const Interactions: React.FC<InteractionsProps> & {
     router.push(`/X/post/${postId}`)
   }
 
-  const handleShare = () => {
-    toast({
-      title: "Share",
-      description: "Sharing functionality not implemented yet",
-    })
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Check out this post!",
+          url: window.location.href,
+        })
+      } else {
+        toast.info("Sharing is not supported in your browser.")
+      }
+    } catch (error) {
+      toast.error("Failed to share post")
+      console.error("Share error:", error)
+    }
   }
 
   return (
     <div className="flex items-center gap-4">
-      <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleLike}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="flex items-center gap-1" 
+        onClick={handleLike}
+        aria-label={isLiked ? "Unlike post" : "Like post"}
+      >
         <Heart className={`w-5 h-5 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
         <span>{likesCount}</span>
       </Button>
-      <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleComment}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="flex items-center gap-1" 
+        onClick={handleComment}
+        aria-label="Comment on post"
+      >
         <MessageCircle className="w-5 h-5" />
         <span>{commentsCount}</span>
       </Button>
-      <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleShare}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="flex items-center gap-1" 
+        onClick={handleShare}
+        aria-label="Share post"
+      >
         <Share className="w-5 h-5" />
       </Button>
     </div>
@@ -75,4 +99,3 @@ Interactions.Skeleton = function InteractionsSkeleton() {
     </div>
   )
 }
-
