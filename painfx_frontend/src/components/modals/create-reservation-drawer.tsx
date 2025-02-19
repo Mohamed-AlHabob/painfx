@@ -1,11 +1,6 @@
-"use client"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { useTranslation } from "react-i18next"
-import { Loader2 } from "lucide-react"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import React from "react";
 import {
   Drawer,
   DrawerClose,
@@ -14,115 +9,115 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useModal } from "@/hooks/use-modal-store"
-import { useReservations } from "@/hooks/reservations"
-
-const formSchema = z.object({
-  reservation_date: z.string().nonempty("Reservation date is required"),
-  reservation_time: z.string().nonempty("Reservation time is required"),
-  entityId: z.string().nonempty("Entity ID is required"),
-})
-
-type FormValues = z.infer<typeof formSchema>
+} from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import { useModal } from "@/hooks/use-modal-store";
+import { useReservations } from "@/hooks/reservations";
+import { useTranslation } from "react-i18next";
 
 export function CreateReservationDrawer() {
-  const { t } = useTranslation()
-  const { isOpen, onClose, type, data } = useModal()
-  const { onCreateReservation, isCreating } = useReservations()
+  const { t } = useTranslation();
+  const { isOpen, onClose, type, data } = useModal();
+  const { onCreateReservation, isCreating, register, errors } = useReservations();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      reservation_date: "",
-      reservation_time: "",
-      entityId: data?.DoctorId || data?.ClinicId || "",
-    },
-  })
+  const isModalOpen = isOpen && type === "CreateReservation";
+  const DoctorId = data?.DoctorId || "";
+  const ClinicId = data?.ClinicId || "";
+  const entityType = DoctorId ? "doctor" : "clinic";
+  const entityValue = DoctorId || ClinicId;
 
-  const isModalOpen = isOpen && type === "CreateReservation"
-  const entityType = data?.DoctorId ? "doctor" : "clinic"
-
-  const handleSubmit = (values: FormValues) => {
-    onCreateReservation(values)
-    onClose()
-  }
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onCreateReservation();
+    onClose();
+  };
 
   return (
     <Drawer open={isModalOpen} onOpenChange={onClose}>
-      <DrawerContent>
-        <div className="mx-auto w-full max-w-lg px-6">
+      <DrawerContent className="overflow-hidden">
+        {/* Responsive Container */}
+        <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
           <DrawerHeader>
             <DrawerTitle>{t("create_reservation")}</DrawerTitle>
             <DrawerDescription>{t("fill_details")}</DrawerDescription>
           </DrawerHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="reservation_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("reservation_date")}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Reservation Date */}
+            <div className="flex flex-col">
+              <Label htmlFor="reservation_date" className="mb-1">
+                {t("reservation_date")}
+              </Label>
+              <Input
+                id="reservation_date"
+                type="date"
+                {...register("reservation_date", { required: t("reservation_date_required") })}
+                className={`w-full ${errors.reservation_date ? "border-red-500" : ""}`}
               />
-              <FormField
-                control={form.control}
-                name="reservation_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("reservation_time")}</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              {errors.reservation_date && (
+                <p className="text-red-500 text-sm mt-1">{errors.reservation_date.message}</p>
+              )}
+            </div>
+
+            {/* Reservation Time */}
+            <div className="flex flex-col">
+              <Label htmlFor="reservation_time" className="mb-1">
+                {t("reservation_time")}
+              </Label>
+              <Input
+                id="reservation_time"
+                type="time"
+                {...register("reservation_time", { required: t("reservation_time_required") })}
+                className={`w-full ${errors.reservation_time ? "border-red-500" : ""}`}
               />
-              <FormField
-                control={form.control}
-                name="entityId"
-                render={({ field }) => (
-                  <FormItem className="hidden">
-                    <FormLabel>{t(entityType === "doctor" ? "doctor_id" : "clinic_id")}</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} readOnly />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              {errors.reservation_time && (
+                <p className="text-red-500 text-sm mt-1">{errors.reservation_time.message}</p>
+              )}
+            </div>
+
+            {/* Hidden Entity ID Fields */}
+            <div className="hidden">
+              <Label htmlFor={entityType} className="mb-1">
+                {t(DoctorId ? "doctor_id" : "clinic_id")}
+              </Label>
+              <Input
+                id={entityType}
+                defaultValue={entityValue}
+                type="text"
+                {...register(entityType as "id", { required: `${t(entityType)} is required` })}
+                className={`w-full ${errors[entityType as keyof typeof errors] ? "border-red-500" : ""}`}
+                readOnly
               />
-              <DrawerFooter className="px-0">
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <Button type="submit" className="flex-1" disabled={isCreating}>
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("creating")}
-                      </>
-                    ) : (
-                      t("create_reservation_button")
-                    )}
-                  </Button>
-                  <DrawerClose asChild>
-                    <Button variant="outline" className="flex-1" onClick={onClose}>
-                      {t("cancel")}
-                    </Button>
-                  </DrawerClose>
-                </div>
-              </DrawerFooter>
-            </form>
-          </Form>
+              {errors[entityType as keyof typeof errors] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[entityType as keyof typeof errors]?.message}
+                </p>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <DrawerFooter className="flex flex-col sm:flex-row gap-4">
+              <Button type="submit" className="w-full sm:w-auto flex-1" disabled={isCreating}>
+                {isCreating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("creating")}
+                  </>
+                ) : (
+                  t("create_reservation_button")
+                )}
+              </Button>
+              <DrawerClose asChild>
+                <Button variant="outline" className="w-full sm:w-auto flex-1" onClick={onClose}>
+                  {t("cancel")}
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </form>
         </div>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }
-
