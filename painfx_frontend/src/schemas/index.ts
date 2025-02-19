@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),
-  phone_number: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number').nullable().optional(),
+  phone_number: z.string().nullable().optional(),
   gender: z.enum(['male', 'female','non_binary','prefer_not_to_say', 'other']).nullable().optional(),
   bio: z.string().nullable().optional(),
   avatar: z.string().url().nullable().optional(),

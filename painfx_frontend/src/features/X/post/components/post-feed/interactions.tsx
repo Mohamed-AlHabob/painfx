@@ -13,7 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Like } from "@/schemas"
 
-// Improved type definition for better type safety
 interface InteractionButtonProps {
   icon: React.ReactNode
   count: number

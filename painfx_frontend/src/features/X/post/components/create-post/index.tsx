@@ -1,75 +1,64 @@
 "use client"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardDescription } from "@/components/ui/card"
-import { SimpleModal } from "@/components/global/simple-modal"
+import { Card, CardContent } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useRetrieveUserQuery } from "@/redux/services/auth/authApiSlice"
-import { Spinner } from "@/components/spinner"
-import PostContent from "../post-content"
 import { Skeleton } from "@/components/ui/skeleton"
+import PostContent from "../post-content"
+
 
 export const CreateNewPost = () => {
-  const { data: user, isLoading,isFetching } = useRetrieveUserQuery();
-  
-  if (isLoading || isFetching) 
-  return (
-     <CreateNewPost.Skeleton />
-)
+  const { data: user, isLoading, isFetching } = useRetrieveUserQuery()
+
+  if (isLoading || isFetching) {
+    return <CreateNewPost.Skeleton />
+  }
+
+  if (user?.role !== "doctor" && user?.role !== "clinic") {
+    return null
+  }
 
   return (
-    <>
-    {user?.role === "doctor"&&"clinic" ? (
-      <SimpleModal
-        trigger={
-          <span className="">
-            <Card className="dark:border-themeGray cursor-pointer first-letter:rounded-2xl overflow-hidden">
-              <CardContent className="p-3 dark:bg-[#1A1A1D] flex gap-x-6 items-center ">
-                <Avatar className="cursor-pointer">
-                  <AvatarImage src="" alt="user" />
-                  <AvatarFallback>{user?.first_name?.charAt(0) || "S"}</AvatarFallback>
-                </Avatar>
-                <CardDescription className="">
-                  Type / to add elements to your post...
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </span>
-        }
-      >
-        <div className="flex gap-x-3">
-          <Avatar className="cursor-pointer">
-            <AvatarImage src={user?.profile?.avatar || ""} alt="user" />
-            <AvatarFallback>{user?.first_name?.charAt(0) || "S"}</AvatarFallback>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Card className="cursor-pointer hover:bg-accent transition-colors">
+          <CardContent className="p-4 flex items-center space-x-4">
+            <Avatar>
+              <AvatarImage src={user.profile?.avatar || ""} alt={user.first_name || "User"} />
+              <AvatarFallback>{user.first_name?.charAt(0) || "U"}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-muted-foreground">Type / to add elements to your post...</span>
+          </CardContent>
+        </Card>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <div className="flex items-center space-x-4 mb-4">
+          <Avatar>
+            <AvatarImage src={user.profile?.avatar || ""} alt={user.first_name || "User"} />
+            <AvatarFallback>{user.first_name?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
-            <p className=" text-sm capitalize">{user?.first_name || "name"}</p>
-            <p className="text-sm captialize ">
-              Posting in{" "}
-              <span className="font-bold capitalize ">
-                {user.role}
-              </span>
+          <div>
+            <p className="text-sm font-medium">{user.first_name || "User"}</p>
+            <p className="text-xs text-muted-foreground">
+              Posting as <span className="font-semibold capitalize">{user.role}</span>
             </p>
           </div>
         </div>
         <PostContent />
-      </SimpleModal>
-      ):
-      <span></span>
-          // {/* <ReelCarousel /> */}
-      }
-    </>
+      </DialogContent>
+    </Dialog>
   )
 }
 
-
-CreateNewPost.Skeleton = function PostInfoSkeleton({ level }: { level?: number }) {
+CreateNewPost.Skeleton = function CreateNewPostSkeleton() {
   return (
-    <div className=" w-full pt-4 dark:border-themeGray cursor-pointer first-letter:rounded-2xl overflow-hidden">
-    <div className="flex items-center mb-3 px-4">
-      <Skeleton className="w-12 h-12 mr-4 rounded-full dark:bg-[#202020]" />
-      <div>
-        <Skeleton className="h-5 w-24 rounded-md dark:bg-[#202020] mb-1" />
-      </div>
-    </div>
-  </div>
+    <Card>
+      <CardContent className="p-4 flex items-center space-x-4">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <Skeleton className="h-4 w-[200px]" />
+      </CardContent>
+    </Card>
   )
 }
+
