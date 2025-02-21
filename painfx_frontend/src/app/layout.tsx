@@ -124,7 +124,7 @@ export default function RootLayout({
             >
               <Setup />
               <ModalProvider />
-              <Toaster position="center" />
+              <Toaster position="bottom-center" />
               <ReactQueryProvider>
                 {children}
               </ReactQueryProvider>
