@@ -1,260 +1,318 @@
-import base64
 import json
-
-from asgiref.sync import async_to_sync
-from channels.generic.websocket import WebsocketConsumer
-from django.apps import apps
-from django.core.files.base import ContentFile
-from django.db.models import Q, Exists, OuterRef
+import base64
+import logging
+from django.db.models import Q, OuterRef, Exists
 from django.db.models.functions import Coalesce
-
-from apps.authentication.serializers import UserSerializer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from channels.db import database_sync_to_async
+from apps.chat.models import Connection, Message, MessageAttachment
 from apps.chat.serializers import (
-    SearchSerializer,
-    RequestSerializer,
     FriendSerializer,
-    MessageSerializer
+    MessageSerializer,
+    RequestSerializer,
+    SearchSerializer
 )
+from apps.authentication.serializers import UserSerializer
+from apps.authentication.models import User
 
-class ChatConsumer(WebsocketConsumer):
+logger = logging.getLogger(__name__)
 
-    def connect(self):
+class ChatConsumer(AsyncJsonWebsocketConsumer):
+    async def connect(self):
         user = self.scope['user']
-        print(user, user.is_authenticated)
-
         if not user.is_authenticated:
-            self.close()
+            logger.warning("Unauthenticated user attempted to connect.")
+            await self.close()
             return
-        user.is_online = True
-        user.save()
 
-        self.user_id = user.id
+        # Mark user as online (ensure this is nonblocking)
+        await self.mark_user_online(user)
+        # Add user to a personal group for messaging
+        await self.channel_layer.group_add(str(user.id), self.channel_name)
+        await self.accept()
 
-        # Join user to a group
-        async_to_sync(self.channel_layer.group_add)(
-            str(self.user_id), self.channel_name
-        )
-        self.accept()
-
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         user = self.scope['user']
-        user.is_online = False
-        user.save()
-        
-        async_to_sync(self.channel_layer.group_discard)(
-            str(self.user_id), self.channel_name
-        )
+        await self.mark_user_offline(user)
+        await self.channel_layer.group_discard(str(user.id), self.channel_name)
 
-    # -----------------------
-    # Handle Incoming Messages
-    # -----------------------
-
-    def receive(self, text_data):
-        data = json.loads(text_data)
-        data_source = data.get('source')
-
-        print('Received:', json.dumps(data, indent=2))
-
-        # Route message to the correct handler
+    async def receive_json(self, content, **kwargs):
+        data_source = content.get('source')
         handlers = {
-            'friend.list': self.receive_friend_list,
-            'message.list': self.receive_message_list,
-            'message.send': self.receive_message_send,
-            'message.type': self.receive_message_type,
-            'request.accept': self.receive_request_accept,
-            'request.connect': self.receive_request_connect,
-            'request.list': self.receive_request_list,
-            'search': self.receive_search,
-            'thumbnail': self.receive_thumbnail
+            'friend.list': self.handle_friend_list,
+            'message.list': self.handle_message_list,
+            'message.send': self.handle_message_send,
+            'message.type': self.handle_message_type,
+            'request.accept': self.handle_request_accept,
+            'request.reject': self.handle_request_reject,
+            'request.connect': self.handle_request_connect,
+            'request.list': self.handle_request_list,
+            'search': self.handle_search,
+            'thumbnail': self.handle_thumbnail,
+            'typing': self.handle_typing,  # New feature: typing indicator
         }
+        handler = handlers.get(data_source)
+        if handler:
+            try:
+                await handler(content)
+            except Exception as e:
+                logger.exception("Error handling %s: %s", data_source, e)
+                await self.send_json({'source': 'error', 'data': {'message': str(e)}})
+        else:
+            logger.error("No handler found for source: %s", data_source)
 
-        if data_source in handlers:
-            handlers[data_source](data)
-
-    def receive_friend_list(self, data):
+    # --------------------------
+    # Friend and Message Handlers
+    # --------------------------
+    async def handle_friend_list(self, content):
         user = self.scope['user']
-        Connection = apps.get_model('chat', 'Connection')
-        Message = apps.get_model('chat', 'Message')
+        connections = await database_sync_to_async(self.get_friend_list)(user)
+        await self.send_json({'source': 'friend.list', 'data': connections})
 
+    def get_friend_list(self, user):
         latest_message = Message.objects.filter(
             connection=OuterRef('id')
         ).order_by('-created_at')[:1]
 
         connections = Connection.objects.filter(
             Q(sender=user) | Q(receiver=user),
-            accepted=True
+            status=Connection.STATUS_ACCEPTED
         ).annotate(
             latest_text=latest_message.values('text'),
             latest_created=latest_message.values('created_at')
         ).order_by(Coalesce('latest_created', 'updated_at').desc())
+        return FriendSerializer(connections, context={'user': user}, many=True).data
 
-        serialized = FriendSerializer(connections, context={'user': user}, many=True)
-        self.send_group(str(user.id), 'friend.list', serialized.data)
-
-    def receive_message_list(self, data):
+    async def handle_message_list(self, content):
         user = self.scope['user']
-        connection_id = data.get('connectionId')
-        page = data.get('page', 0)
+        connection_id = content.get('connectionId')
+        page = content.get('page', 0)
         page_size = 15
+        data = await database_sync_to_async(self.get_message_list)(user, connection_id, page, page_size)
+        await self.send_json({'source': 'message.list', 'data': data})
 
-        Connection = apps.get_model('chat', 'Connection')
-        Message = apps.get_model('chat', 'Message')
-        User = apps.get_model('authentication', 'User')
-
+    def get_message_list(self, user, connection_id, page, page_size):
         try:
             connection = Connection.objects.get(id=connection_id)
         except Connection.DoesNotExist:
-            print('Error: Connection not found')
-            return
+            return {'error': 'Connection not found'}
 
-        messages = Message.objects.filter(
-            connection=connection
-        ).order_by('-created_at')[page * page_size:(page + 1) * page_size]
-
-        serialized_messages = MessageSerializer(messages, context={'user': user}, many=True)
-
+        messages = Message.objects.filter(connection=connection).order_by('-created_at')[
+            page * page_size:(page + 1) * page_size
+        ]
+        serialized_messages = MessageSerializer(messages, context={'user': user}, many=True).data
         recipient = connection.receiver if connection.sender == user else connection.sender
-        serialized_friend = UserSerializer(recipient)
-
+        serialized_friend = UserSerializer(recipient).data
         messages_count = Message.objects.filter(connection=connection).count()
         next_page = page + 1 if messages_count > (page + 1) * page_size else None
+        return {'messages': serialized_messages, 'next': next_page, 'friend': serialized_friend}
 
-        data = {
-            'messages': serialized_messages.data,
-            'next': next_page,
-            'friend': serialized_friend.data
-        }
-        self.send_group(str(user.id), 'message.list', data)
-
-    def receive_message_send(self, data):
+    async def handle_message_send(self, content):
         user = self.scope['user']
-        connection_id = data.get('connectionId')
-        message_text = data.get('message')
+        connection_id = content.get('connectionId')
+        message_text = content.get('message', '')
+        attachments = content.get('attachments', [])
+        message = await database_sync_to_async(self.create_message_with_attachments)(
+            user, connection_id, message_text, attachments
+        )
+        if message:
+            for recipient in [user, self.get_other_participant(message.connection, user)]:
+                serialized_message = MessageSerializer(message, context={'user': recipient}).data
+                serialized_friend = UserSerializer(
+                    self.get_other_participant(message.connection, recipient)
+                ).data
+                await self.send_to_group(str(recipient.id), 'message.send', {
+                    'message': serialized_message,
+                    'friend': serialized_friend
+                })
+        else:
+            await self.send_json({'source': 'error', 'data': {'message': 'Failed to send message'}})
 
-        Connection = apps.get_model('chat', 'Connection')
-        Message = apps.get_model('chat', 'Message')
-
+    def create_message_with_attachments(self, user, connection_id, message_text, attachments_data):
         try:
             connection = Connection.objects.get(id=connection_id)
         except Connection.DoesNotExist:
-            print('Error: Connection not found')
+            logger.error("Connection %s does not exist.", connection_id)
+            return None
+
+        message = Message.objects.create(connection=connection, user=user, text=message_text)
+        for attachment in attachments_data:
+            # Expect each attachment as a dict: { "base64": "...", "filename": "file.ext", "file_type": "mime/type" }
+            base64_data = attachment.get('base64')
+            filename = attachment.get('filename')
+            file_type = attachment.get('file_type', '')
+            if base64_data and filename:
+                try:
+                    file_data = base64.b64decode(base64_data)
+                    from django.core.files.base import ContentFile
+                    django_file = ContentFile(file_data, name=filename)
+                    MessageAttachment.objects.create(message=message, file=django_file, file_type=file_type)
+                except Exception as e:
+                    logger.exception("Error processing attachment: %s", e)
+        return message
+
+    def get_other_participant(self, connection, user):
+        return connection.receiver if connection.sender == user else connection.sender
+
+    async def handle_message_type(self, content):
+        user = self.scope['user']
+        recipient_id = content.get('userId')
+        await self.send_to_group(str(recipient_id), 'message.type', {'userId': str(user.id)})
+
+    # --------------------------
+    # Request Handlers (Connect, Accept, Reject)
+    # --------------------------
+    async def handle_request_connect(self, content):
+        user = self.scope['user']
+        try:
+            receiver = await database_sync_to_async(User.objects.get)(id=content.get('userId'))
+        except User.DoesNotExist:
+            await self.send_json({'source': 'error', 'data': {'message': 'User not found'}})
             return
 
-        message = Message.objects.create(
-            connection=connection,
-            user=user,
-            text=message_text
+        connection, _ = await database_sync_to_async(Connection.objects.get_or_create)(
+            sender=user,
+            receiver=receiver,
+            defaults={'status': Connection.STATUS_PENDING}
         )
+        serialized = RequestSerializer(connection).data
+        for usr in [connection.sender, connection.receiver]:
+            await self.send_to_group(str(usr.id), 'request.connect', serialized)
 
-        recipient = connection.receiver if connection.sender == user else connection.sender
-
-        for recipient_user in [user, recipient]:
-            serialized_message = MessageSerializer(message, context={'user': recipient_user})
-            serialized_friend = UserSerializer(recipient if recipient_user == user else user)
-            self.send_group(str(recipient_user.id), 'message.send', {
-                'message': serialized_message.data,
-                'friend': serialized_friend.data
-            })
-
-    def receive_message_type(self, data):
+    async def handle_request_accept(self, content):
         user = self.scope['user']
-        recipient_id = data.get('userId')
-        self.send_group(str(recipient_id), 'message.type', {'userId': str(user.id)})
+        sender_id = content.get('userId')
+        connection = await database_sync_to_async(self.accept_request)(sender_id, user)
+        if connection:
+            serialized = RequestSerializer(connection).data
+            for usr in [connection.sender, connection.receiver]:
+                await self.send_to_group(str(usr.id), 'request.accept', serialized)
+                serialized_friend = FriendSerializer(connection, context={'user': usr}).data
+                await self.send_to_group(str(usr.id), 'friend.new', serialized_friend)
+        else:
+            await self.send_json({'source': 'error', 'data': {'message': 'Connection not found or invalid'}})
 
-
-    def receive_request_accept(self, data):
-        Connection = apps.get_model('chat', 'Connection')    
-
+    def accept_request(self, sender_id, receiver):
         try:
             connection = Connection.objects.get(
-                sender__id=data.get('userId'),
-                receiver=self.scope['user']
+                sender__id=sender_id,
+                receiver=receiver,
+                status=Connection.STATUS_PENDING
             )
-            # Update the connection status to 'accepted'
-            connection.status = 'accepted'
+            connection.status = Connection.STATUS_ACCEPTED
             connection.save()
-            return {'status': 'success', 'message': 'Friend request accepted.'}
+            return connection
         except Connection.DoesNotExist:
-            return {'status': 'error', 'message': 'Connection does not exist.'}
-        except Exception as e:
-            return {'status': 'error', 'message': str(e)}
+            return None
 
-        connection.accepted = True
-        connection.save()
-
-        serialized = RequestSerializer(connection)
-
-        for user in [connection.sender, connection.receiver]:
-            self.send_group(str(user.id), 'request.accept', serialized.data)
-
-            serialized_friend = FriendSerializer(connection, context={'user': user})
-            self.send_group(str(user.id), 'friend.new', serialized_friend.data)
-
-    def receive_request_connect(self, data):
-        User = apps.get_model('authentication', 'User')
-        Connection = apps.get_model('chat', 'Connection')
-
-        try:
-            receiver = User.objects.get(id=data.get('userId'))
-        except User.DoesNotExist:
-            print('Error: User not found')
-            return
-
-        connection, _ = Connection.objects.get_or_create(
-            sender=self.scope['user'],
-            receiver=receiver
-        )
-
-        serialized = RequestSerializer(connection)
-
-        for user in [connection.sender, connection.receiver]:
-            self.send_group(str(user.id), 'request.connect', serialized.data)
-
-    def receive_request_list(self, data):
+    async def handle_request_reject(self, content):
         user = self.scope['user']
-        Connection = apps.get_model('chat', 'Connection')
+        sender_id = content.get('userId')
+        connection = await database_sync_to_async(self.reject_request)(sender_id, user)
+        if connection:
+            serialized = RequestSerializer(connection).data
+            await self.send_to_group(str(user.id), 'request.reject', serialized)
+        else:
+            await self.send_json({'source': 'error', 'data': {'message': 'Connection not found or invalid'}})
 
-        connections = Connection.objects.filter(receiver=user, accepted=False)
-        serialized = RequestSerializer(connections, many=True)
+    def reject_request(self, sender_id, receiver):
+        try:
+            connection = Connection.objects.get(
+                sender__id=sender_id,
+                receiver=receiver,
+                status=Connection.STATUS_PENDING
+            )
+            connection.status = Connection.STATUS_REJECTED
+            connection.save()
+            return connection
+        except Connection.DoesNotExist:
+            return None
 
-        self.send_group(str(user.id), 'request.list', serialized.data)
+    async def handle_request_list(self, content):
+        user = self.scope['user']
+        connections = await database_sync_to_async(self.get_request_list)(user)
+        await self.send_json({'source': 'request.list', 'data': connections})
 
-    def receive_search(self, data):
-        User = apps.get_model('authentication', 'User')
-        Connection = apps.get_model('chat', 'Connection')
+    def get_request_list(self, user):
+        requests = Connection.objects.filter(receiver=user, status=Connection.STATUS_PENDING)
+        return RequestSerializer(requests, many=True).data
 
-        query = data.get('query')
+    async def handle_search(self, content):
+        user = self.scope['user']
+        query = content.get('query')
+        results = await database_sync_to_async(self.search_users)(user, query)
+        await self.send_json({'source': 'search', 'data': results})
+
+    def search_users(self, user, query):
         users = User.objects.filter(
             Q(username__istartswith=query) |
             Q(first_name__istartswith=query) |
             Q(last_name__istartswith=query)
-        ).exclude(id=self.user_id).annotate(
-            pending_them=Exists(Connection.objects.filter(sender=self.scope['user'], receiver=OuterRef('id'), accepted=False)),
-            pending_me=Exists(Connection.objects.filter(sender=OuterRef('id'), receiver=self.scope['user'], accepted=False)),
-            connected=Exists(Connection.objects.filter(Q(sender=self.scope['user'], receiver=OuterRef('id')) | Q(receiver=self.scope['user'], sender=OuterRef('id')), accepted=True))
+        ).exclude(id=user.id).annotate(
+            pending_them=Exists(
+                Connection.objects.filter(sender=user, receiver=OuterRef('id'), status=Connection.STATUS_PENDING)
+            ),
+            pending_me=Exists(
+                Connection.objects.filter(sender=OuterRef('id'), receiver=user, status=Connection.STATUS_PENDING)
+            ),
+            connected=Exists(
+                Connection.objects.filter(
+                    Q(sender=user, receiver=OuterRef('id')) |
+                    Q(receiver=user, sender=OuterRef('id')),
+                    status=Connection.STATUS_ACCEPTED
+                )
+            )
         )
+        return SearchSerializer(users, many=True).data
 
-        serialized = SearchSerializer(users, many=True)
-        self.send_group(str(self.user_id), 'search', serialized.data)
-
-    def receive_thumbnail(self, data):
+    async def handle_thumbnail(self, content):
         user = self.scope['user']
-        image = ContentFile(base64.b64decode(data.get('base64')))
-        user.thumbnail.save(data.get('filename'), image, save=True)
+        base64_data = content.get('base64')
+        filename = content.get('filename')
+        if base64_data and filename:
+            try:
+                image = base64.b64decode(base64_data)
+                from django.core.files.base import ContentFile
+                await database_sync_to_async(user.thumbnail.save)(filename, ContentFile(image), save=True)
+                serialized = UserSerializer(user).data
+                await self.send_json({'source': 'thumbnail', 'data': serialized})
+            except Exception as e:
+                logger.exception("Error saving thumbnail: %s", e)
+                await self.send_json({'source': 'error', 'data': {'message': 'Thumbnail upload failed'}})
 
-        serialized = UserSerializer(user)
-        self.send_group(str(user.id), 'thumbnail', serialized.data)
+    # --------------------------
+    # New Feature: Typing Indicator
+    # --------------------------
+    async def handle_typing(self, content):
+        user = self.scope['user']
+        connection_id = content.get('connectionId')
+        typing = content.get('typing', True)
+        try:
+            connection = await database_sync_to_async(Connection.objects.get)(id=connection_id)
+            recipient = self.get_other_participant(connection, user)
+            await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})
+        except Connection.DoesNotExist:
+            await self.send_json({'source': 'error', 'data': {'message': 'Invalid connection'}})
 
-    # -----------------------
+    # --------------------------
     # Helper Functions
-    # -----------------------
-
-    def send_group(self, group, source, data):
-        async_to_sync(self.channel_layer.group_send)(group, {
+    # --------------------------
+    async def send_to_group(self, group, source, data):
+        await self.channel_layer.group_send(group, {
             'type': 'broadcast_group',
             'source': source,
             'data': data
         })
 
-    def broadcast_group(self, data):
-        self.send(text_data=json.dumps({'source': data['source'], 'data': data['data']}))
+    async def broadcast_group(self, event):
+        await self.send_json({'source': event['source'], 'data': event['data']})
+
+    @database_sync_to_async
+    def mark_user_online(self, user):
+        user.is_online = True
+        user.save()
+
+    @database_sync_to_async
+    def mark_user_offline(self, user):
+        user.is_online = False
+        user.save()

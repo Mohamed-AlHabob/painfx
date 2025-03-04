@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.chat.models import Connection, Message
+from apps.chat.models import Connection, Message , MessageAttachment
 from apps.authentication.models import User
 from apps.authentication.serializers import UserSerializer
 
@@ -77,9 +77,16 @@ class FriendSerializer(serializers.ModelSerializer):
             date = obj.latest_created or obj.updated_at
         return date.isoformat()
 
+class MessageAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MessageAttachment
+        fields = ['id', 'file', 'file_type']
+        read_only_fields = ['id']
+
 class MessageSerializer(serializers.ModelSerializer):
     is_me = serializers.SerializerMethodField()
     user = UserSerializer()
+    attachments = MessageAttachmentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Message
@@ -89,8 +96,10 @@ class MessageSerializer(serializers.ModelSerializer):
             'text',
             'read_at',
             'user',
-            'created_at'
+            'created_at',
+            'attachments'
         ]
+        read_only_fields = ['id', 'created_at']
 
     def get_is_me(self, obj):
-        return self.context['user'] == obj.user
+        return self.context.get('user') == obj.user
