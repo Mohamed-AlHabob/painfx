@@ -25,6 +25,7 @@ rest_api_urlpatterns = [
     path('api/', include('djoser.urls')),
     path('api/', include('apps.authentication.urls')),
     path('api/', include('apps.booking_app.urls')),
+    path('api/', include('apps.chat.urls')),
     path('health/', health_check, name='health_check'),
 ]
 
