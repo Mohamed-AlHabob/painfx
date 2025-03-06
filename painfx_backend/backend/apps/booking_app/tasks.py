@@ -55,7 +55,6 @@ def send_sms_notification(self, user_id, message):
         logger.error(f"Error sending SMS to User {user_id}: {str(e)}")
         self.retry(exc=e, countdown=60)
 
-logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, max_retries=3)
 def process_payment_webhook(self, event_data):
