@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator,FileExtensionValidator
@@ -384,6 +385,127 @@ class Like(BaseModel):
 
     def __str__(self):
         return f"{self.user} likes {self.post}"
+    
+
+
+class DiscountCard(BaseModel):
+    DISCOUNT_TYPE_CHOICES = (
+        ('percentage', _('Percentage')),
+        ('fixed', _('Fixed Amount')),
+    )
+
+    # A unique code that identifies the discount card
+    code = models.CharField(
+        max_length=50, 
+        unique=True, 
+        default=uuid.uuid4().hex,
+        help_text=_("Unique code for the discount card")
+    )
+    # The patient to whom this discount card is granted
+    patient = models.ForeignKey(
+        Patient, 
+        on_delete=models.CASCADE, 
+        related_name='discount_cards'
+    )
+    # The clinic where this discount card can be used
+    clinic = models.ForeignKey(
+        Clinic, 
+        on_delete=models.CASCADE, 
+        related_name='discount_cards'
+    )
+    # The discount value, which could represent a percentage (e.g., 10 for 10%) or a fixed amount
+    discount_value = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        help_text=_("Discount value (e.g., 10 for 10% discount or a fixed amount)")
+    )
+    discount_type = models.CharField(
+        max_length=10,
+        choices=DISCOUNT_TYPE_CHOICES,
+        help_text=_("Indicates whether the discount is a percentage or a fixed amount")
+    )
+    # Marks whether the card has been redeemed (each card can be used only once)
+    is_used = models.BooleanField(
+        default=False,
+        help_text=_("Indicates whether the discount card has been redeemed")
+    )
+    awarded_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_("Timestamp when the discount card was granted")
+    )
+    valid_until = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text=_("Optional expiration date for the discount card")
+    )
+    redeemed_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text=_("Timestamp when the discount card was redeemed")
+    )
+
+    class Meta:
+        verbose_name = _("Discount Card")
+        verbose_name_plural = _("Discount Cards")
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['patient']),
+            models.Index(fields=['clinic']),
+        ]
+
+    def redeem(self):
+        """Mark the discount card as used if it hasn't been already."""
+        if not self.is_used:
+            self.is_used = True
+            self.redeemed_at = timezone.now()
+            self.save(update_fields=['is_used', 'redeemed_at'])
+        else:
+            raise ValidationError(_("This discount card has already been used."))
+
+    def __str__(self):
+        return f"DiscountCard {self.code} for {self.patient.user.get_full_name()} at {self.clinic.name}"
+
+
+class DiscountRule(BaseModel):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+    # Optionally, you may want the rule to apply to a specific clinic.
+    clinic = models.ForeignKey(
+        Clinic, 
+        on_delete=models.CASCADE, 
+        related_name='discount_rules', 
+        null=True, 
+        blank=True,
+        help_text=_("If set, this rule applies only to the specified clinic")
+    )
+    discount_value = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        help_text=_("Discount value to be granted")
+    )
+    discount_type = models.CharField(
+        max_length=10,
+        choices=DiscountCard.DISCOUNT_TYPE_CHOICES,
+        help_text=_("Type of discount: percentage or fixed amount")
+    )
+    # A JSON field to hold the conditions for the rule.
+    # For example: {"min_reservations": 5}
+    condition_json = models.JSONField(
+        blank=True, 
+        null=True, 
+        help_text=_("Conditions for awarding this discount card in JSON format")
+    )
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = _("Discount Rule")
+        verbose_name_plural = _("Discount Rules")
+        indexes = [
+            models.Index(fields=['name']),
+        ]
+
+    def __str__(self):
+        return self.name
     
 
 class Category(BaseModel):
