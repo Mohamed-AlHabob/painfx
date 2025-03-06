@@ -21,8 +21,8 @@ try:
 except OSError as e:
     raise ImproperlyConfigured(f"Unable to create log directory: {e}")
 
-DEBUG = env("DJANGO_DEBUG", default=True)
-DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=True)
+DEBUG = env("DJANGO_DEBUG", default=False)
+DEVELOPMENTMODE = env("DEVELOPMENTMODE", default=False)
 
 # Secret key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default=get_random_secret_key())
@@ -131,10 +131,10 @@ ASGI_APPLICATION = "core.asgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='painfx_database_s1um'),
-        'USER': env('POSTGRES_USER', default='painfx_database_s1um_user'),
-        'PASSWORD': env('POSTGRES_PASSWORD', default='9fRZcZRjYzNa0aklwsR8leMw9tfr5DUu'),
-        "HOST": env("POSTGRES_HOST", default="dpg-cv3lsn0fnakc73epv21g-a"),
+        'NAME': env('POSTGRES_DB', default='painfx_database_4fc5'),
+        'USER': env('POSTGRES_USER', default='painfx_database_4fc5_user'),
+        'PASSWORD': env('POSTGRES_PASSWORD', default='lt8zM6Qj7iqr18WJPnqaqvM4m8K5r3x6'),
+        "HOST": env("POSTGRES_HOST", default="dpg-cv51o75ds78s73ctj160-a"),
         "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
