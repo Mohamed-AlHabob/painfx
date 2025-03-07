@@ -9,7 +9,7 @@ from apps.booking_app.views import (
      CommentViewSet, LikeViewSet, CategoryViewSet,
     SubscriptionViewSet, PaymentMethodViewSet, PaymentViewSet,
     NotificationViewSet, EventScheduleViewSet, AdvertisingCampaignViewSet,
-    UsersAuditViewSet, stripe_webhook,TimeSlotSerializer
+    UsersAuditViewSet, stripe_webhook,TimeSlotViewSet
 )
 
 router = routers.DefaultRouter()
