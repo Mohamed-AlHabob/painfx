@@ -1,5 +1,4 @@
 from apps.booking_app.models import WorkingHours
-from apps.booking_app.serializers import WorkingHoursSerializer
 from rest_framework import serializers
 from apps.authentication.models import User, Patient, Doctor, UserProfile, Specialization
 
@@ -67,34 +66,10 @@ class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = ['user', 'specialization', 'active', 'privacy', 'license_number', 'license_expiry_date', 'license_image', 'reservation_open', 'working_hours']
-        
+
     def get_working_hours(self, obj):
+        from apps.booking_app.serializers import WorkingHoursSerializer
         working_hours = WorkingHours.objects.filter(doctor=obj)
         return WorkingHoursSerializer(working_hours, many=True).data
-    
-    def create(self, validated_data):
-        user_data = validated_data.pop('user')
-        specialization_data = validated_data.pop('specialization', None)
-        user = User.objects.create_user(**user_data)
-        specialization = Specialization.objects.get_or_create(**specialization_data)[0] if specialization_data else None
-        return Doctor.objects.create(user=user, specialization=specialization, **validated_data)
 
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop('user', None)
-        specialization_data = validated_data.pop('specialization', None)
-        if user_data:
-            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
-            user_serializer.is_valid(raise_exception=True)
-            user_serializer.save()
-        if specialization_data:
-            specialization = Specialization.objects.get_or_create(**specialization_data)[0]
-            instance.specialization = specialization
-        instance.active = validated_data.get('active', instance.active)
-        instance.privacy = validated_data.get('privacy', instance.privacy)
-        instance.license_number = validated_data.get('license_number', instance.license_number)
-        instance.license_expiry_date = validated_data.get('license_expiry_date', instance.license_expiry_date)
-        instance.license_image = validated_data.get('license_image', instance.license_image)
-        instance.reservation_open = validated_data.get('reservation_open', instance.reservation_open)
-        instance.save()
-        return instance
 

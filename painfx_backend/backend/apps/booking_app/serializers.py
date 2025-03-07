@@ -6,8 +6,6 @@ from apps.booking_app.models import (
     UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment,TimeSlot,WorkingHours
 )
 from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
-from apps.authentication.models import Doctor
-from django.contrib.contenttypes.models import ContentType
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
