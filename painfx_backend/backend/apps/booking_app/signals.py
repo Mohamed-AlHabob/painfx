@@ -6,8 +6,8 @@ from apps.booking_app.models import Post, Reservation, Notification
 def send_like_notification(sender, instance, created, **kwargs):
     if created:
         return
-    if instance.likes.count() > 0: 
-        for like in instance.likes.all():
+    if instance.post_likes.count() > 0:
+        for like in instance.post_likes.all():
             Notification.objects.create(
                 user=like.user,
                 message=f"Your post has been liked by {like.user.first_name}",
