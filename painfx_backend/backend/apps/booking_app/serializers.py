@@ -3,7 +3,7 @@ from apps.booking_app.models import (
     Clinic, Reservation, ReservationStatus, Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
     Payment, Notification, EventSchedule, AdvertisingCampaign,
-    UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment
+    UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment,TimeSlot,WorkingHours
 )
 from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
 from apps.authentication.models import Doctor
@@ -14,17 +14,29 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['id', 'name']
 
+
+
+class WorkingHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkingHours
+        fields = ['day', 'start_time', 'end_time']
+        
 class ClinicSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     doctors = DoctorSerializer(many=True, read_only=True)
     specialization = SpecializationSerializer(read_only=True)
+    working_hours = serializers.SerializerMethodField()
 
     class Meta:
         model = Clinic
         fields = ['id', 'name', 'address', 'doctors', 'icon', 'owner', 'specialization', 'description',
                   'reservation_open', 'privacy', 'active', 'license_number', 'license_expiry_date',
-                  'created_at']
+                  'created_at', 'working_hours']
         read_only_fields = ['id', 'created_at']
+
+    def get_working_hours(self, obj):
+        working_hours = WorkingHours.objects.filter(clinic=obj)
+        return WorkingHoursSerializer(working_hours, many=True).data
         
 class ClinicDoctorSerializer(serializers.ModelSerializer):
     clinic = ClinicSerializer(read_only=True)
@@ -49,52 +61,24 @@ class BannedPatientSerializer(serializers.ModelSerializer):
         model = BannedPatient
         fields = ['id', 'clinic', 'patient', 'reason', 'banned_until']
 
+class TimeSlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TimeSlot
+        fields = ['id', 'clinic', 'doctor', 'start_time', 'end_time', 'is_available']
+
 class ReservationSerializer(serializers.ModelSerializer):
-    patient = PatientSerializer(read_only=True)
-    clinic = ClinicSerializer(read_only=True)
-    doctor = DoctorSerializer(read_only=True)
+    time_slot = TimeSlotSerializer(read_only=True)
 
     class Meta:
         model = Reservation
-        fields = [
-            'id', 'patient', 'clinic', 'doctor', 'status',
-            'reason_for_cancellation', 'reservation_date', 'reservation_time'
-        ]
-        read_only_fields = ['id', 'patient']
+        fields = ['id', 'patient', 'time_slot', 'status', 'reason_for_cancellation', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'patient', 'created_at', 'updated_at']
 
     def validate(self, attrs):
-        # Ensure that the reservation is linked to either a clinic or a doctor, but not both
-        clinic = attrs.get('clinic')
-        doctor = attrs.get('doctor')
-
-        if not clinic and not doctor:
-            raise serializers.ValidationError("A reservation must be linked to either a clinic or a doctor.")
-        if clinic and doctor:
-            raise serializers.ValidationError("A reservation cannot be linked to both a clinic and a doctor.")
-
+        time_slot = attrs.get('time_slot')
+        if not time_slot.is_available:
+            raise serializers.ValidationError("The selected time slot is not available.")
         return attrs
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        if not hasattr(user, 'patient'):
-            raise serializers.ValidationError("Only patients can create reservations.")
-
-        # Ensure the patient is linked to the reservation
-        validated_data['patient'] = user.patient
-
-        # Create the reservation
-        reservation = Reservation.objects.create(**validated_data)
-        return reservation
-
-    def update(self, instance, validated_data):
-        # Update the reservation fields
-        instance.status = validated_data.get('status', instance.status)
-        instance.reason_for_cancellation = validated_data.get('reason_for_cancellation', instance.reason_for_cancellation)
-        instance.reservation_date = validated_data.get('reservation_date', instance.reservation_date)
-        instance.reservation_time = validated_data.get('reservation_time', instance.reservation_time)
-
-        instance.save()
-        return instance
 
 class ReviewSerializer(serializers.ModelSerializer):
     clinic = ClinicSerializer(read_only=True)

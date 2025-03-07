@@ -191,44 +191,81 @@ class BranchDoctor(BaseModel):
     def __str__(self):
         return f"{self.doctor} at {self.branch}" 
 
-class Reservation(BaseModel):
+class WorkingHours(models.Model):
+    DAY_CHOICES = [
+        ('mon', 'Monday'),
+        ('tue', 'Tuesday'),
+        ('wed', 'Wednesday'),
+        ('thu', 'Thursday'),
+        ('fri', 'Friday'),
+        ('sat', 'Saturday'),
+        ('sun', 'Sunday')
+    ]
+
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, null=True, blank=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=True, blank=True)
+    day = models.CharField(max_length=3, choices=DAY_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['clinic', 'day'],
+                name='unique_clinic_working_hours'
+            ),
+            models.UniqueConstraint(
+                fields=['doctor', 'day'],
+                name='unique_doctor_working_hours'
+            )
+        ]
+
+class TimeSlot(models.Model):
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, null=True, blank=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=True, blank=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    is_available = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['clinic', 'start_time', 'end_time'],
+                name='unique_clinic_time_slot'
+            ),
+            models.UniqueConstraint(
+                fields=['doctor', 'start_time', 'end_time'],
+                name='unique_doctor_time_slot'
+            )
+        ]
+
+class Reservation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('cancelled', 'Cancelled')
+    ]
+
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reservations')
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reservations', null=True, blank=True)
-    status = models.CharField(
-        max_length=10,
-        choices=[
-            ('pending', _('Pending')),
-            ('approved', _('Approved')),
-            ('rejected', _('Rejected')),
-            ('cancelled', _('Cancelled'))
-        ],
-        default='pending',
-        db_index=True
-    )
+    time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, related_name='reservations')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     reason_for_cancellation = models.TextField(blank=True)
-    reservation_date = models.DateField(db_index=True)
-    reservation_time = models.TimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         indexes = [
             models.Index(fields=['patient']),
-            models.Index(fields=['clinic']),
-            models.Index(fields=['doctor']),
-            models.Index(fields=['reservation_date', 'reservation_time']),
+            models.Index(fields=['time_slot']),
+            models.Index(fields=['status']),
         ]
 
     def clean(self):
-        if not self.clinic and not self.doctor:
-            raise ValidationError(_('A reservation must be linked to either a clinic or a doctor.'))
-        if self.clinic and self.doctor:
-            raise ValidationError(_('A reservation cannot be linked to both a clinic and a doctor.'))
-
-        # Ensure the clinic or doctor is accepting reservations
-        if self.clinic and not self.clinic.reservation_open:
-            raise ValidationError(_('Reservations are currently closed for the selected clinic.'))
-        if self.doctor and not self.doctor.reservation_open:
-            raise ValidationError(_('Reservations are currently closed for the selected doctor.'))
+        if self.time_slot.doctor and not self.time_slot.doctor.reservation_open:
+            raise ValidationError("Reservations are currently closed for the selected doctor.")
+        if self.time_slot.clinic and not self.time_slot.clinic.reservation_open:
+            raise ValidationError("Reservations are currently closed for the selected clinic.")
 
     def save(self, *args, **kwargs):
         self.full_clean()  # Ensure validation is always called

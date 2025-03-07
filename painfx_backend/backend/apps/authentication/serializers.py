@@ -1,3 +1,5 @@
+from apps.booking_app.models import WorkingHours
+from apps.booking_app.serializers import WorkingHoursSerializer
 from rest_framework import serializers
 from apps.authentication.models import User, Patient, Doctor, UserProfile, Specialization
 
@@ -60,11 +62,16 @@ class PatientSerializer(serializers.ModelSerializer):
 class DoctorSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     specialization = SpecializationSerializer()
+    working_hours = serializers.SerializerMethodField()
 
     class Meta:
         model = Doctor
-        fields = ['user', 'specialization', 'active', 'privacy', 'license_number', 'license_expiry_date', 'license_image', 'reservation_open']
-
+        fields = ['user', 'specialization', 'active', 'privacy', 'license_number', 'license_expiry_date', 'license_image', 'reservation_open', 'working_hours']
+        
+    def get_working_hours(self, obj):
+        working_hours = WorkingHours.objects.filter(doctor=obj)
+        return WorkingHoursSerializer(working_hours, many=True).data
+    
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         specialization_data = validated_data.pop('specialization', None)
