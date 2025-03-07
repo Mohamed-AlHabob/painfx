@@ -1,6 +1,11 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from apps.booking_app.models import Post, Reservation, Notification
+from apps.booking_app.models import Post, Reservation, Notification,WorkingHours
+from apps.booking_app.services import TimeSlotService
+
+@receiver(post_save, sender=WorkingHours)
+def generate_time_slots_on_working_hours_save(sender, instance, **kwargs):
+    TimeSlotService.generate_time_slots(clinic=instance.clinic, doctor=instance.doctor)
 
 @receiver(post_save, sender=Post)
 def send_like_notification(sender, instance, created, **kwargs):
