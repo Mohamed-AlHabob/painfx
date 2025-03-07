@@ -1,4 +1,5 @@
 import logging
+from apps.core.general import GlPagination
 from rest_framework import viewsets, permissions, serializers, status
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -16,7 +17,8 @@ from apps.authentication.serializers import (
 )
 from apps.booking_app.models import (
     Clinic,
-    Reservation, Review, Post,
+    Reservation,
+    ReservationStatus, Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
     Payment, Notification, EventSchedule, AdvertisingCampaign,
     UsersAudit
@@ -33,16 +35,10 @@ from apps.booking_app.tasks import process_payment_webhook
 from apps.booking_app.tasks import send_sms_notification, send_email_notification,process_payment_webhook
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
-
-class GlPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
 class IsOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
