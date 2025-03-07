@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from apps.booking_app.models import WorkingHours,TimeSlot,Reservation
 from apps.booking_app.tasks import send_email_notification, send_sms_notification
+
 
 class TimeSlotService:
     @staticmethod
@@ -18,15 +20,24 @@ class TimeSlotService:
             end_time = datetime.combine(datetime.today(), working_hour.end_time)
 
             while start_time < end_time:
-                time_slots.append(TimeSlot(
-                    clinic=clinic,
-                    doctor=doctor,
+                # Check if the time slot already exists
+                exists = TimeSlot.objects.filter(
+                    Q(clinic=clinic) | Q(doctor=doctor),
                     start_time=start_time,
-                    end_time=start_time + timedelta(minutes=30)  # 30-minute slots
-                ))
+                    end_time=start_time + timedelta(minutes=30)
+                ).exists()
+
+                if not exists:
+                    time_slots.append(TimeSlot(
+                        clinic=clinic,
+                        doctor=doctor,
+                        start_time=start_time,
+                        end_time=start_time + timedelta(minutes=30)  # 30-minute slots
+                    ))
                 start_time += timedelta(minutes=30)
 
-        TimeSlot.objects.bulk_create(time_slots)
+        if time_slots:
+            TimeSlot.objects.bulk_create(time_slots)
 
 class ReservationService:
     @staticmethod
