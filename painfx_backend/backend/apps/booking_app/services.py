@@ -54,8 +54,8 @@ class ReservationService:
         time_slot.save()
 
         # Send notification
-        send_sms_notification.delay(user.id, 'Your reservation has been created.')
         send_email_notification.delay(user.email, 'Reservation Created', 'Your reservation has been created.')
+        send_sms_notification.delay(user.id, 'Your reservation has been created.')
 
         return reservation
 
@@ -69,7 +69,7 @@ class ReservationService:
         reservation.save()
 
         # Send notification
-        send_sms_notification.delay(reservation.patient.user.id, 'Your reservation has been approved.')
         send_email_notification.delay(reservation.patient.user.email, 'Reservation Approved', 'Your reservation has been approved.')
+        send_sms_notification.delay(reservation.patient.user.id, 'Your reservation has been approved.')
 
         return reservation

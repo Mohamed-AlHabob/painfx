@@ -22,14 +22,14 @@ from apps.booking_app.models import (
     Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
     Payment, Notification, EventSchedule, AdvertisingCampaign,
-    UsersAudit
+    UsersAudit,TimeSlot
 )
 from apps.booking_app.serializers import (
     ClinicSerializer, ReservationSerializer, ReviewSerializer, PostSerializer,
      CommentSerializer, LikeSerializer, CategorySerializer,
     SubscriptionSerializer, PaymentMethodSerializer, PaymentSerializer,
     NotificationSerializer, EventScheduleSerializer, AdvertisingCampaignSerializer,
-    UsersAuditSerializer
+    UsersAuditSerializer,TimeSlotSerializer
 )
 
 from apps.booking_app.tasks import process_payment_webhook
@@ -110,6 +110,12 @@ class ClinicViewSet(viewsets.ModelViewSet):
         if Clinic.objects.filter(owner=self.request.user).exists():
             raise serializers.ValidationError({"error": "You already own a clinic."})
         serializer.save(owner=self.request.user)
+
+# TimeSlot ViewSet
+class TimeSlotViewSet(viewsets.ModelViewSet):
+    queryset = TimeSlot.objects.all()
+    serializer_class = TimeSlotSerializer
+    permission_classes = [IsAuthenticated]
 
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()

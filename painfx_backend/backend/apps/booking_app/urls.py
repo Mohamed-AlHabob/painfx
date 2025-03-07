@@ -9,7 +9,7 @@ from apps.booking_app.views import (
      CommentViewSet, LikeViewSet, CategoryViewSet,
     SubscriptionViewSet, PaymentMethodViewSet, PaymentViewSet,
     NotificationViewSet, EventScheduleViewSet, AdvertisingCampaignViewSet,
-    UsersAuditViewSet, stripe_webhook
+    UsersAuditViewSet, stripe_webhook,TimeSlotSerializer
 )
 
 router = routers.DefaultRouter()
@@ -17,6 +17,7 @@ router.register(r'patients', PatientViewSet)
 router.register(r'doctors', DoctorViewSet)
 router.register(r'clinics', ClinicViewSet)
 router.register(r'reservations', ReservationViewSet)
+router.register(r'time-slots', TimeSlotSerializer)
 router.register(r'reviews', ReviewViewSet)
 router.register(r'posts', PostViewSet)
 router.register(r'comments', CommentViewSet)
