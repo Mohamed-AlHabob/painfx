@@ -1,6 +1,6 @@
+import json
 import base64
 import logging
-import asyncio
 from django.db.models import Q, OuterRef, Exists
 from django.db.models.functions import Coalesce
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -32,12 +32,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         except Exception as e:
             logger.error(f"Error during WebSocket connection: {e}")
             await self.close()
-
-        # Mark user as online (ensure this is nonblocking)
-        await self.mark_user_online(user)
-        # Add user to a personal group for messaging
-        await self.channel_layer.group_add(str(user.id), self.channel_name)
-        await self.accept()
 
     async def disconnect(self, close_code):
         user = self.scope['user']
@@ -124,11 +118,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             user, connection_id, message_text, attachments
         )
         if message:
-            other_participant = await self.get_other_participant(message.connection, user)
-            for recipient in [user, other_participant]:
+            for recipient in [user, self.get_other_participant(message.connection, user)]:
                 serialized_message = MessageSerializer(message, context={'user': recipient}).data
                 serialized_friend = UserSerializer(
-                    await self.get_other_participant(message.connection, recipient)
+                    self.get_other_participant(message.connection, recipient)
                 ).data
                 await self.send_to_group(str(recipient.id), 'message.send', {
                     'message': serialized_message,
@@ -136,7 +129,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 })
         else:
             await self.send_json({'source': 'error', 'data': {'message': 'Failed to send message'}})
-
 
     def create_message_with_attachments(self, user, connection_id, message_text, attachments_data):
         try:
@@ -296,17 +288,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def handle_typing(self, content):
         user = self.scope['user']
         connection_id = content.get('connectionId')
-        typing = content.get('typing', True)    
-
+        typing = content.get('typing', True)
         try:
             connection = await database_sync_to_async(Connection.objects.get)(id=connection_id)
-            recipient = await self.get_other_participant(connection, user)
-            await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})    
-
-            if typing:
-                # Automatically stop typing after 5 seconds
-                await asyncio.sleep(5)
-                await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': False})
+            recipient = self.get_other_participant(connection, user)
+            await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})
         except Connection.DoesNotExist:
             await self.send_json({'source': 'error', 'data': {'message': 'Invalid connection'}})
 
