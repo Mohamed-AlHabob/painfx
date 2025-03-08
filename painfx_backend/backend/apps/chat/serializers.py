@@ -55,14 +55,8 @@ class FriendSerializer(serializers.ModelSerializer):
         ]
 
     def get_friend(self, obj):
-        # If I'm the sender
-        if self.context['user'] == obj.sender:
-            return UserSerializer(obj.receiver).data
-        # If I'm the receiver
-        elif self.context['user'] == obj.receiver:
-            return UserSerializer(obj.sender).data
-        else:
-            raise ValueError('Error: No user found in friendserializer')
+        friend = obj.receiver if self.context['user'] == obj.sender else obj.sender
+        return UserSerializer(friend).data
 
     def get_preview(self, obj):
         default = 'New connection'
@@ -101,5 +95,10 @@ class MessageSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at']
 
+    def validate(self, data):
+        if not data.get('text') and not data.get('attachments'):
+            raise serializers.ValidationError("Either text or attachments must be provided.")
+        return data
+    
     def get_is_me(self, obj):
         return self.context.get('user') == obj.user
