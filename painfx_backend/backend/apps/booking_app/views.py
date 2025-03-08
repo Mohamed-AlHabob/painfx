@@ -276,6 +276,13 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
+    
+    @action(detail=True, methods=['patch'])
+    def mark_as_read(self, request, pk=None):
+        notification = self.get_object()
+        notification.is_read = True
+        notification.save()
+        return Response({'status': 'Notification marked as read'}, status=status.HTTP_200_OK)
 
 # EventSchedule ViewSet
 class EventScheduleViewSet(viewsets.ModelViewSet):
