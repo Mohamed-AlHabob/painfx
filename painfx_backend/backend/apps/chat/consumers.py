@@ -116,10 +116,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             user, connection_id, message_text, attachments
         )
         if message:
-            for recipient in [user, self.get_other_participant(message.connection, user)]:
+            other_participant = await self.get_other_participant(message.connection, user)
+            for recipient in [user, other_participant]:
                 serialized_message = MessageSerializer(message, context={'user': recipient}).data
                 serialized_friend = UserSerializer(
-                    self.get_other_participant(message.connection, recipient)
+                    await self.get_other_participant(message.connection, recipient)
                 ).data
                 await self.send_to_group(str(recipient.id), 'message.send', {
                     'message': serialized_message,
@@ -289,7 +290,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         typing = content.get('typing', True)
         try:
             connection = await database_sync_to_async(Connection.objects.get)(id=connection_id)
-            recipient = self.get_other_participant(connection, user)
+            recipient = await self.get_other_participant(connection, user)
             await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})
         except Connection.DoesNotExist:
             await self.send_json({'source': 'error', 'data': {'message': 'Invalid connection'}})
