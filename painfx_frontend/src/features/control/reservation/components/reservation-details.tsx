@@ -97,7 +97,7 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
             </div>
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Medical history</h3>
-              <p className="text-sm text-muted-foreground">{reservation?.doctor?.medical_history || 'no Medical history'} </p>
+              <p className="text-sm text-muted-foreground">{reservation?.patient?.medical_history || 'no Medical history'} </p>
             </div>
           </CardContent>
         </Card>
