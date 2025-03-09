@@ -147,7 +147,7 @@ export function ReservationList() {
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   <div className="font-medium">
-                    {reservation.reservation_date
+                    {reservation?.time_slot?.start_time
                       ? format(new Date(reservation?.time_slot?.start_time), 'MMM d, yyyy')
                       : 'Date not set'}
                   </div>
