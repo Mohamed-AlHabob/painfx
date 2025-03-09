@@ -24,9 +24,9 @@ export function ConfirmChangeStatus() {
   const reservationName =
     data?.reservation?.patient?.user?.first_name || t("this_reservation");
   const reservationDate =
-    data?.reservation?.reservation_date || t("this_reservation_date");
+    data?.reservation?.time_slot?.start_time || t("this_reservation_date");
   const reservationTime =
-    data?.reservation?.reservation_time || t("this_reservation_time");
+    data?.reservation?.time_slot?.end_time || t("this_reservation_time");
 
   const handleConfirm = async () => {
     if (!reservationId) {
