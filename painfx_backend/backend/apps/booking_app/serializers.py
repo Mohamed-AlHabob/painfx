@@ -12,8 +12,6 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['id', 'name']
 
-
-
 class WorkingHoursSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkingHours
@@ -71,12 +69,6 @@ class ReservationSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = ['id', 'patient', 'time_slot', 'status', 'reason_for_cancellation', 'created_at', 'updated_at']
         read_only_fields = ['id', 'patient', 'created_at', 'updated_at']
-
-    def validate(self, attrs):
-        time_slot = attrs.get('time_slot')
-        if not time_slot.is_available:
-            raise serializers.ValidationError("The selected time slot is not available.")
-        return attrs
 
 class ReviewSerializer(serializers.ModelSerializer):
     clinic = ClinicSerializer(read_only=True)
