@@ -355,6 +355,14 @@ export const createUpdateReviewSchema = z.object({
 
 export type createUpdateReview = z.infer<typeof createUpdateReviewSchema>;
 
+export const TimeSlotSchema = z.object({
+  clinic: z.string().uuid(),
+  doctor: z.string().uuid(),
+  start_time: z.number().min(1).max(5),
+  end_time: z.string().optional(),
+  is_available: z.string().optional(),
+});
+
 
 export const ReservationStatusEnum = z.enum([
   'pending',
@@ -370,8 +378,7 @@ export const ReservationSchema = z.object({
   doctor: DoctorSchema.nullable().optional(),
   status: ReservationStatusEnum.optional(),
   reasonForCancellation: z.string().optional(),
-  reservation_date: z.string().date().nullable().optional(),
-  reservation_time: z.string().nullable().optional(),
+  time_slot:TimeSlotSchema.optional(),
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional(),
 });

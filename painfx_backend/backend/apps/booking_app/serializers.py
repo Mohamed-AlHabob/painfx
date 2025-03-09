@@ -67,7 +67,7 @@ class TimeSlotSerializer(serializers.ModelSerializer):
 
 class ReservationSerializer(serializers.ModelSerializer):
     time_slot = TimeSlotSerializer(read_only=True)
-
+    patient = PatientSerializer(read_only=True)
     class Meta:
         model = Reservation
         fields = ['id', 'patient', 'time_slot', 'status', 'reason_for_cancellation', 'created_at', 'updated_at']
