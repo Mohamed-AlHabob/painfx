@@ -182,17 +182,21 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             await self.send_to_group(str(usr.id), 'request.connect', serialized)
 
     async def handle_request_accept(self, content):
-        user = self.scope['user']
-        sender_id = content.get('userId')
-        connection = await database_sync_to_async(self.accept_request)(sender_id, user)
-        if connection:
-            serialized = RequestSerializer(connection).data
-            for usr in [connection.sender, connection.receiver]:
-                await self.send_to_group(str(usr.id), 'request.accept', serialized)
-                serialized_friend = FriendSerializer(connection, context={'user': usr}).data
-                await self.send_to_group(str(usr.id), 'friend.new', serialized_friend)
-        else:
-            await self.send_json({'source': 'error', 'data': {'message': 'Connection not found or invalid'}})
+        try:
+            user = self.scope['user']
+            sender_id = content.get('userId')
+            connection = await database_sync_to_async(self.accept_request)(sender_id, user)
+            if connection:
+                serialized = RequestSerializer(connection).data
+                for usr in [connection.sender, connection.receiver]:
+                    await self.send_to_group(str(usr.id), 'request.accept', serialized)
+                    serialized_friend = FriendSerializer(connection, context={'user': usr}).data
+                    await self.send_to_group(str(usr.id), 'friend.new', serialized_friend)
+            else:
+                await self.send_json({'source': 'error', 'data': {'message': 'Connection not found or invalid'}})
+        except Exception as e:
+            logger.exception("Error handling request.accept: %s", e)
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
 
     def accept_request(self, sender_id, receiver):
         try:
@@ -208,14 +212,19 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             return None
 
     async def handle_request_reject(self, content):
-        user = self.scope['user']
-        sender_id = content.get('userId')
-        connection = await database_sync_to_async(self.reject_request)(sender_id, user)
-        if connection:
-            serialized = RequestSerializer(connection).data
-            await self.send_to_group(str(user.id), 'request.reject', serialized)
-        else:
-            await self.send_json({'source': 'error', 'data': {'message': 'Connection not found or invalid'}})
+        try:
+            user = self.scope['user']
+            sender_id = content.get('userId')
+            print(f"Rejecting request from user {sender_id} for user {user.id}")
+            connection = await database_sync_to_async(self.reject_request)(sender_id, user)
+            if connection:
+                serialized = RequestSerializer(connection).data
+                await self.send_to_group(str(user.id), 'request.reject', serialized)
+            else:
+                await self.send_json({'source': 'error', 'data': {'message': 'Connection not found or invalid'}})
+        except Exception as e:
+            logger.exception("Error handling request.reject: %s", e)
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
 
     def reject_request(self, sender_id, receiver):
         try:
