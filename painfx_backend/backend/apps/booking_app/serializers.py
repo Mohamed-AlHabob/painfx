@@ -58,6 +58,9 @@ class BannedPatientSerializer(serializers.ModelSerializer):
         fields = ['id', 'clinic', 'patient', 'reason', 'banned_until']
 
 class TimeSlotSerializer(serializers.ModelSerializer):
+    clinic = ClinicSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
+
     class Meta:
         model = TimeSlot
         fields = ['id', 'clinic', 'doctor', 'start_time', 'end_time', 'is_available']
