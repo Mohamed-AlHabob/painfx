@@ -118,15 +118,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             user, connection_id, message_text, attachments
         )
         if message:
-            for recipient in [user, self.get_other_participant(message.connection, user)]:
-                serialized_message = MessageSerializer(message, context={'user': recipient}).data
-                serialized_friend = UserSerializer(
-                    self.get_other_participant(message.connection, recipient)
-                ).data
-                await self.send_to_group(str(recipient.id), 'message.send', {
-                    'message': serialized_message,
-                    'friend': serialized_friend
-                })
+            recipient = await database_sync_to_async(self.get_other_participant)(message.connection, user)
+            serialized_message = await database_sync_to_async(MessageSerializer)(message, context={'user': user}).data
+            serialized_friend = await database_sync_to_async(UserSerializer)(recipient).data
+            await self.send_to_group(str(recipient.id), 'message.send', {
+                'message': serialized_message,
+                'friend': serialized_friend
+            })
         else:
             await self.send_json({'source': 'error', 'data': {'message': 'Failed to send message'}})
 
@@ -153,6 +151,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     logger.exception("Error processing attachment: %s", e)
         return message
 
+    @database_sync_to_async
     def get_other_participant(self, connection, user):
         return connection.receiver if connection.sender == user else connection.sender
 
