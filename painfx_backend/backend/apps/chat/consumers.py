@@ -51,7 +51,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             'request.list': self.handle_request_list,
             'search': self.handle_search,
             'thumbnail': self.handle_thumbnail,
-            'typing': self.handle_typing,  # New feature: typing indicator
+            'typing': self.handle_typing,
+            'webrtc.offer': self.handle_webrtc_offer,
+            'webrtc.answer': self.handle_webrtc_answer,
+            'webrtc.ice_candidate': self.handle_webrtc_ice_candidate,
         }
         handler = handlers.get(data_source)
         if handler:
@@ -303,6 +306,36 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})
         except Connection.DoesNotExist:
             await self.send_json({'source': 'error', 'data': {'message': 'Invalid connection'}})
+
+    # --------------------------
+    # voice and video communication
+    # --------------------------
+    async def handle_webrtc_offer(self, content):
+        user = self.scope['user']
+        recipient_id = content.get('recipient_id')
+        offer = content.get('offer')
+        await self.send_to_group(str(recipient_id), 'webrtc.offer', {
+            'sender_id': str(user.id),
+            'offer': offer
+        })
+
+    async def handle_webrtc_answer(self, content):
+        user = self.scope['user']
+        recipient_id = content.get('recipient_id')
+        answer = content.get('answer')
+        await self.send_to_group(str(recipient_id), 'webrtc.answer', {
+            'sender_id': str(user.id),
+            'answer': answer
+        })
+
+    async def handle_webrtc_ice_candidate(self, content):
+        user = self.scope['user']
+        recipient_id = content.get('recipient_id')
+        ice_candidate = content.get('ice_candidate')
+        await self.send_to_group(str(recipient_id), 'webrtc.ice_candidate', {
+            'sender_id': str(user.id),
+            'ice_candidate': ice_candidate
+        })
 
     # --------------------------
     # Helper Functions
