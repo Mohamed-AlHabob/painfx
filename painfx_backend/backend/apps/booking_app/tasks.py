@@ -5,7 +5,6 @@ from celery import shared_task
 from apps.booking_app.models import Clinic, Payment,Reservation
 from apps.authentication.models import Patient
 from django.core.mail import send_mail
-from apps.booking_app.services import DiscountRuleService
 from twilio.rest import Client
 from django.conf import settings
 from django.utils.timezone import now
@@ -94,6 +93,7 @@ def send_email_notification(user_email, subject, message):
 
 @shared_task
 def apply_discount_rules_task(patient_id, clinic_id):
+    from apps.booking_app.services import DiscountRuleService
     patient = Patient.objects.get(id=patient_id)
     clinic = Clinic.objects.get(id=clinic_id)
     DiscountRuleService.apply_discount_rules(patient, clinic)

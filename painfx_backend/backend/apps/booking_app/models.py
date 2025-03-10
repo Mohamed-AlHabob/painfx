@@ -430,27 +430,22 @@ class DiscountCard(BaseModel):
         ('percentage', _('Percentage')),
         ('fixed', _('Fixed Amount')),
     )
-
-    # A unique code that identifies the discount card
     code = models.CharField(
         max_length=50, 
         unique=True, 
         default=uuid.uuid4().hex,
         help_text=_("Unique code for the discount card")
     )
-    # The patient to whom this discount card is granted
     patient = models.ForeignKey(
         Patient, 
         on_delete=models.CASCADE, 
         related_name='discount_cards'
     )
-    # The clinic where this discount card can be used
     clinic = models.ForeignKey(
         Clinic, 
         on_delete=models.CASCADE, 
         related_name='discount_cards'
     )
-    # The discount value, which could represent a percentage (e.g., 10 for 10%) or a fixed amount
     discount_value = models.DecimalField(
         max_digits=6, 
         decimal_places=2, 
@@ -461,7 +456,6 @@ class DiscountCard(BaseModel):
         choices=DISCOUNT_TYPE_CHOICES,
         help_text=_("Indicates whether the discount is a percentage or a fixed amount")
     )
-    # Marks whether the card has been redeemed (each card can be used only once)
     is_used = models.BooleanField(
         default=False,
         help_text=_("Indicates whether the discount card has been redeemed")
