@@ -30,10 +30,10 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
     <>
      <div className="sticky top-16 h-fit">
        <UserProfileSidebar 
-         name={`${reservation?.patient?.user?.first_name || 'Unknown'} ${reservation?.patient?.user?.last_name || ''}`}
-         id={reservation?.patient?.user?.id || ''} 
-         last_login={reservation?.patient?.user?.last_login || ''} 
-         joined={reservation?.patient?.user?.created_at || ''} 
+         name={`${reservation?.time_slot?.doctor?.user?.first_name || 'Unknown'} ${reservation?.time_slot?.doctor?.user?.last_name || ''}`}
+         id={reservation?.time_slot?.doctor?.user?.id || ''} 
+         last_login={reservation?.time_slot?.doctor?.user?.last_login || ''} 
+         joined={reservation?.time_slot?.doctor?.user?.created_at || ''} 
        />
      </div>
       <div className="space-y-6">
@@ -52,18 +52,18 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <h3 className="text-sm font-medium">Reservation Date</h3>
+              <h3 className="text-sm font-medium">Reservation Start</h3>
               <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
                 <div className="flex items-center gap-2">
-                  <span>{format(new Date(reservation.reservation_date || ""), 'ppp')}</span>
+                  <span>{format(new Date(reservation?.time_slot?.start_time || ""), 'ppp')}</span>
                 </div>
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="text-sm font-medium">Reservation Time</h3>
+              <h3 className="text-sm font-medium">Reservation End</h3>
               <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
                 <div className="flex items-center gap-2">
-                  <span>{reservation.reservation_time}</span>
+                  <span>{reservation?.time_slot?.end_time}</span>
                   {/* {reservation.status === 'verified' &&
                   <Badge variant="outline" className="gap-1">
                     <Check className="h-3 w-3" />
@@ -76,7 +76,7 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
 
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Phone numbers</h3>
-              <p className="text-sm text-muted-foreground">{reservation?.patient?.user?.profile?.phone_number || ''} </p>
+              <p className="text-sm text-muted-foreground">{reservation?.time_slot?.doctor?.user?.profile?.phone_number || ''} </p>
             </div>
 
             <div className="space-y-4">
@@ -87,7 +87,7 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
                   <span>Google</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                {reservation?.patient?.user?.email || ''} 
+                {reservation?.time_slot?.doctor?.user?.email || ''} 
                 </span>
               </div>
             </div>
@@ -117,7 +117,7 @@ export function ReservationDetails({ reservationId }: ReservationDetailsProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Patient Location</CardTitle>
+            <CardTitle>doctor Location</CardTitle>
           </CardHeader>
           <CardContent>
             <LeafletMap latitude={48.8584} longitude={2.2945} zoom={15} />
