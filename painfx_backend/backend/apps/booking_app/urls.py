@@ -7,7 +7,7 @@ from apps.booking_app.views import (
     CreateStripePaymentIntentView, PatientViewSet, DoctorViewSet,
     ClinicViewSet, ReservationViewSet, ReviewViewSet, PostViewSet,
      CommentViewSet, LikeViewSet, CategoryViewSet,
-    SubscriptionViewSet, PaymentMethodViewSet, PaymentViewSet,
+    SubscriptionViewSet, PaymentMethodViewSet, PaymentViewSet,DiscountCardViewSet,
     NotificationViewSet, EventScheduleViewSet, AdvertisingCampaignViewSet,
     UsersAuditViewSet, stripe_webhook,TimeSlotViewSet
 )
@@ -28,6 +28,7 @@ router.register(r'payment-methods', PaymentMethodViewSet)
 router.register(r'payments', PaymentViewSet)
 router.register(r'notifications', NotificationViewSet)
 router.register(r'event-schedules', EventScheduleViewSet)
+router.register(r'discount-cards', DiscountCardViewSet)
 router.register(r'advertising-campaigns', AdvertisingCampaignViewSet)
 router.register(r'users-audit', UsersAuditViewSet)
 

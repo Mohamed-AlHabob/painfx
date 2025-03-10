@@ -3,7 +3,7 @@ from apps.booking_app.models import (
     Clinic, Reservation, ReservationStatus, Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
     Payment, Notification, EventSchedule, AdvertisingCampaign,
-    UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment,TimeSlot,WorkingHours
+    UsersAudit, Tag,ClinicDoctor,ClinicSettings,BannedPatient,MediaAttachment,TimeSlot,WorkingHours,DiscountCard
 )
 from apps.authentication.serializers import DoctorSerializer, UserSerializer, PatientSerializer, SpecializationSerializer
 
@@ -167,6 +167,17 @@ class PostSerializer(serializers.ModelSerializer):
             post.tags.add(tag)
         return post
 
+
+
+class DiscountCardSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
+    clinic = ClinicSerializer(read_only=True)
+
+    class Meta:
+        model = DiscountCard
+        fields = ['id', 'code', 'patient', 'clinic', 'discount_value', 'discount_type', 'is_used', 'awarded_at', 'valid_until', 'redeemed_at']
+        read_only_fields = ['id', 'code', 'awarded_at']
+ 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

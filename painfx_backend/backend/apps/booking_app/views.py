@@ -15,9 +15,10 @@ from apps.authentication.models import Doctor, Patient
 from apps.authentication.serializers import (
     DoctorSerializer, PatientSerializer
 )
-from apps.booking_app.services import ReservationService
+from apps.booking_app.services import DiscountService, ReservationService
 from apps.booking_app.models import (
     Clinic,
+    DiscountCard,
     Reservation,
     Review, Post,
     Comment, Like, Category, Subscription, PaymentMethod,
@@ -25,7 +26,7 @@ from apps.booking_app.models import (
     UsersAudit,TimeSlot
 )
 from apps.booking_app.serializers import (
-    ClinicSerializer, ReservationSerializer, ReviewSerializer, PostSerializer,
+    ClinicSerializer, DiscountCardSerializer, ReservationSerializer, ReviewSerializer, PostSerializer,
      CommentSerializer, LikeSerializer, CategorySerializer,
     SubscriptionSerializer, PaymentMethodSerializer, PaymentSerializer,
     NotificationSerializer, EventScheduleSerializer, AdvertisingCampaignSerializer,
@@ -238,7 +239,21 @@ class LikeViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You can only unlike your own likes.'}, status=status.HTTP_403_FORBIDDEN)
         like.delete()
         return Response({'status': 'Like removed'})
-    
+
+
+class DiscountCardViewSet(viewsets.ModelViewSet):
+    queryset = DiscountCard.objects.all()
+    serializer_class = DiscountCardSerializer
+
+    @action(detail=True, methods=['post'])
+    def redeem(self, request, pk=None):
+        discount_card = self.get_object()
+        try:
+            DiscountService.redeem_discount_card(discount_card)
+            return Response({"status": "Discount card redeemed successfully."}, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 # Category ViewSet
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()

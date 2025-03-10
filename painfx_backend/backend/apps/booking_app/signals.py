@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from apps.booking_app.models import Post, Reservation, Notification,WorkingHours
-from apps.booking_app.services import TimeSlotService
+from apps.booking_app.models import Post, Reservation, Notification, ReservationStatus,WorkingHours
+from apps.booking_app.services import DiscountRuleService, TimeSlotService
 
 @receiver(post_save, sender=WorkingHours)
 def generate_time_slots_on_working_hours_save(sender, instance, **kwargs):
@@ -38,3 +38,12 @@ def send_reservation_notification(sender, instance, created, **kwargs):
         message=status,
         notification_type='booking'
     )
+
+
+@receiver(post_save, sender=Reservation)
+def apply_discount_rules_on_reservation(sender, instance, **kwargs):
+    """
+    Automatically apply discount rules when a reservation is approved.
+    """
+    if instance.status == ReservationStatus.APPROVED:
+        DiscountRuleService.apply_discount_rules(instance.patient, instance.clinic)

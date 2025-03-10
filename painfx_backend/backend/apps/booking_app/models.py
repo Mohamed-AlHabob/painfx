@@ -601,6 +601,7 @@ class Notification(BaseModel):
         ('booking', 'Booking'),
         ('comment', 'Comment'),
         ('message', 'Message'),
+        ('discount', 'Discount'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()

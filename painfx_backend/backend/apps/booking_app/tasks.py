@@ -1,9 +1,11 @@
 # backend/booking_app/tasks.py
 
+from datetime import timedelta
 from celery import shared_task
-from apps.booking_app.models import Notification, Payment, DiscountCard, DiscountRule,Reservation
+from apps.booking_app.models import Clinic, Payment,Reservation
 from apps.authentication.models import Patient
 from django.core.mail import send_mail
+from apps.booking_app.services import DiscountRuleService
 from twilio.rest import Client
 from django.conf import settings
 from django.utils.timezone import now
@@ -90,47 +92,8 @@ def send_email_notification(user_email, subject, message):
         fail_silently=False,
     )
 
-
 @shared_task
-def award_discount_card(patient_id, discount_rule_id):
-    """
-    Awards a discount card to a patient based on a discount rule.
-    Also creates a notification for the user indicating that they have
-    received a discount card.
-    """
-    try:
-        # Retrieve the patient and discount rule objects
-        patient = Patient.objects.get(id=patient_id)
-        discount_rule = DiscountRule.objects.get(id=discount_rule_id)
-        
-        # Create the discount card.
-        # If discount_rule.clinic is None, the card is considered global (applicable in all clinics)
-        discount_card = DiscountCard.objects.create(
-            patient=patient,
-            clinic=discount_rule.clinic,  # Can be None if the rule is global
-            discount_value=discount_rule.discount_value,
-            discount_type=discount_rule.discount_type,
-            # For example, make the card valid for 30 days from now; adjust as needed
-            valid_until=timezone.now() + timedelta(days=30)
-        )
-        
-        # Create a notification for the user
-        discount_message = (
-            f"Congratulations! You've been awarded a discount card offering "
-            f"{discount_rule.discount_value}{'%' if discount_rule.discount_type == 'percentage' else ''} discount."
-        )
-        Notification.objects.create(
-            user=patient.user,
-            message=discount_message,
-            notification_type='discount'  # Ensure this type exists in your Notification choices
-        )
-        
-        logger.info(
-            f"Discount card {discount_card.code} awarded to patient {patient_id} using rule {discount_rule_id}."
-        )
-        return discount_card.id
-        
-    except Exception as e:
-        logger.error(f"Error awarding discount card for patient {patient_id}: {str(e)}")
-        # Optionally, re-raise the exception if you want Celery to retry the task
-        raise e
+def apply_discount_rules_task(patient_id, clinic_id):
+    patient = Patient.objects.get(id=patient_id)
+    clinic = Clinic.objects.get(id=clinic_id)
+    DiscountRuleService.apply_discount_rules(patient, clinic)

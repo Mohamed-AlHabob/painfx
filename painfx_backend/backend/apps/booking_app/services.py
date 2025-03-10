@@ -1,10 +1,80 @@
 from datetime import datetime, timedelta
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-
-from apps.booking_app.models import WorkingHours,TimeSlot,Reservation
+from apps.booking_app.models import ReservationStatus, WorkingHours,TimeSlot,Reservation,DiscountCard, DiscountRule,Notification
 from apps.booking_app.tasks import send_email_notification, send_sms_notification
 
+class DiscountService:
+    @staticmethod
+    def create_discount_card(patient, clinic, discount_value, discount_type, valid_until=None):
+        """
+        Create a new discount card for a patient and send a notification.
+        """
+        discount_card = DiscountCard(
+            patient=patient,
+            clinic=clinic,
+            discount_value=discount_value,
+            discount_type=discount_type,
+            valid_until=valid_until
+        )
+        discount_card.save()
+
+        # Send notification to the patient
+        Notification.objects.create(
+            user=patient.user,
+            message=f"You have received a discount card for {clinic.name}. Use code: {discount_card.code}",
+            notification_type='discount'
+        )
+
+        return discount_card
+
+    @staticmethod
+    def redeem_discount_card(discount_card):
+        """
+        Redeem a discount card.
+        """
+        if discount_card.is_used:
+            raise ValidationError("This discount card has already been used.")
+        if discount_card.valid_until and discount_card.valid_until < timezone.now():
+            raise ValidationError("This discount card has expired.")
+        
+        discount_card.is_used = True
+        discount_card.redeemed_at = timezone.now()
+        discount_card.save()
+
+class DiscountRuleService:
+    @staticmethod
+    def evaluate_conditions(patient, clinic, condition_json):
+        """
+        Evaluate conditions for issuing a discount card.
+        """
+        if condition_json.get('min_reservations'):
+            reservation_count = Reservation.objects.filter(
+                patient=patient,
+                clinic=clinic,
+                status=ReservationStatus.APPROVED
+            ).count()
+            return reservation_count >= condition_json['min_reservations']
+        
+        # Add more conditions here (e.g., based on reviews, total spending, etc.)
+        return False
+
+    @staticmethod
+    def apply_discount_rules(patient, clinic):
+        """
+        Apply all active discount rules for a patient and clinic.
+        """
+        discount_rules = DiscountRule.objects.filter(clinic=clinic, active=True)
+        for rule in discount_rules:
+            if rule.condition_json and DiscountRuleService.evaluate_conditions(patient, clinic, rule.condition_json):
+                DiscountService.create_discount_card(
+                    patient=patient,
+                    clinic=clinic,
+                    discount_value=rule.discount_value,
+                    discount_type=rule.discount_type,
+                    valid_until=timezone.now() + timedelta(days=30)  # Example: Valid for 30 days
+                )
 
 class TimeSlotService:
     @staticmethod
