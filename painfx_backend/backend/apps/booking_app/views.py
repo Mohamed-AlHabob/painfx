@@ -244,9 +244,19 @@ class LikeViewSet(viewsets.ModelViewSet):
 class DiscountCardViewSet(viewsets.ModelViewSet):
     queryset = DiscountCard.objects.all()
     serializer_class = DiscountCardSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'patient'):
+            return DiscountCard.objects.filter(patient=user.patient)
+        return DiscountCard.objects.none()
 
     @action(detail=True, methods=['post'])
     def redeem(self, request, pk=None):
+        """
+        Redeem a discount card.
+        """
         discount_card = self.get_object()
         try:
             DiscountService.redeem_discount_card(discount_card)
