@@ -37,3 +37,6 @@ class BaseModel(models.Model):
     def restore(self):
         self.is_deleted = False
         self.save()
+
+def generate_unique_code():
+    return uuid.uuid4().hex[:8].upper()

@@ -2,13 +2,10 @@ import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator,FileExtensionValidator
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from apps.authentication.models import Specialization, User, Doctor, Patient
-from apps.core.general import BaseModel
+from apps.core.general import BaseModel, generate_unique_code
 from django.utils.translation import gettext_lazy as _
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def validate_file_size(value):
     max_size = 10 * 1024 * 1024  # 5 MB
@@ -431,9 +428,9 @@ class DiscountCard(BaseModel):
         ('fixed', _('Fixed Amount')),
     )
     code = models.CharField(
-        max_length=50, 
+        max_length=12, 
         unique=True, 
-        default=uuid.uuid4().hex,
+        default=generate_unique_code,
         help_text=_("Unique code for the discount card")
     )
     patient = models.ForeignKey(
