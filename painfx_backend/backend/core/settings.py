@@ -274,8 +274,8 @@ DJOSER = {
 # JWT settings
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=10),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
 }
@@ -287,7 +287,7 @@ SESSION_COOKIE_SAMESITE = 'None'
 
 # Cookie settings for web
 AUTH_COOKIE = 'access'
-AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7  # 1 week
+AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 # 1 year
 AUTH_COOKIE_SECURE = env('AUTH_COOKIE_SECURE', default="True") == "True"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = '/'
