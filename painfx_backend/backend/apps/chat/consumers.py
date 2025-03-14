@@ -5,6 +5,8 @@ from django.db.models import Q, OuterRef, Exists
 from django.db.models.functions import Coalesce
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.core.files.base import ContentFile
+from django.core.exceptions import ValidationError
 from apps.chat.models import Connection, Message, MessageAttachment
 from apps.chat.serializers import (
     FriendSerializer,
@@ -16,6 +18,7 @@ from apps.authentication.serializers import UserSerializer
 from apps.authentication.models import User
 
 logger = logging.getLogger(__name__)
+
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
@@ -140,14 +143,12 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         message = Message.objects.create(connection=connection, user=user, text=message_text)
         for attachment in attachments_data:
-            # Expect each attachment as a dict: { "base64": "...", "filename": "file.ext", "file_type": "mime/type" }
             base64_data = attachment.get('base64')
             filename = attachment.get('filename')
             file_type = attachment.get('file_type', '')
             if base64_data and filename:
                 try:
                     file_data = base64.b64decode(base64_data)
-                    from django.core.files.base import ContentFile
                     django_file = ContentFile(file_data, name=filename)
                     MessageAttachment.objects.create(message=message, file=django_file, file_type=file_type)
                 except Exception as e:
@@ -217,7 +218,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             user = self.scope['user']
             sender_id = content.get('userId')
-            print(f"Rejecting request from user {sender_id} for user {user.id}")
             connection = await database_sync_to_async(self.reject_request)(sender_id, user)
             if connection:
                 serialized = RequestSerializer(connection).data
@@ -294,48 +294,78 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 await self.send_json({'source': 'error', 'data': {'message': 'Thumbnail upload failed'}})
 
     # --------------------------
-    # New Feature: Typing Indicator
+    # Typing Indicator
     # --------------------------
     async def handle_typing(self, content):
         user = self.scope['user']
         connection_id = content.get('connectionId')
         typing = content.get('typing', True)
         try:
-            connection = await database_sync_to_async(Connection.objects.get)(id=connection_id)
-            recipient = self.get_other_participant(connection, user)
+            connection = await database_sync_to_async(Connection.objects.get)(
+                id=connection_id,
+                Q(sender=user) | Q(receiver=user)
+            )
+            recipient = await database_sync_to_async(self.get_other_participant)(connection, user)
             await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})
         except Connection.DoesNotExist:
             await self.send_json({'source': 'error', 'data': {'message': 'Invalid connection'}})
 
     # --------------------------
-    # voice and video communication
+    # WebRTC Signaling
     # --------------------------
     async def handle_webrtc_offer(self, content):
         user = self.scope['user']
         recipient_id = content.get('recipient_id')
         offer = content.get('offer')
-        await self.send_to_group(str(recipient_id), 'webrtc.offer', {
-            'sender_id': str(user.id),
-            'offer': offer
-        })
+
+        try:
+            recipient = await database_sync_to_async(User.objects.get)(id=recipient_id)
+            if not recipient.is_online:
+                raise Exception("Recipient is offline.")
+            await self.send_to_group(str(recipient_id), 'webrtc.offer', {
+                'sender_id': str(user.id),
+                'offer': offer
+            })
+        except User.DoesNotExist:
+            await self.send_json({'source': 'error', 'data': {'message': 'Recipient not found'}})
+        except Exception as e:
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
 
     async def handle_webrtc_answer(self, content):
         user = self.scope['user']
         recipient_id = content.get('recipient_id')
         answer = content.get('answer')
-        await self.send_to_group(str(recipient_id), 'webrtc.answer', {
-            'sender_id': str(user.id),
-            'answer': answer
-        })
+
+        try:
+            recipient = await database_sync_to_async(User.objects.get)(id=recipient_id)
+            if not recipient.is_online:
+                raise Exception("Recipient is offline.")
+            await self.send_to_group(str(recipient_id), 'webrtc.answer', {
+                'sender_id': str(user.id),
+                'answer': answer
+            })
+        except User.DoesNotExist:
+            await self.send_json({'source': 'error', 'data': {'message': 'Recipient not found'}})
+        except Exception as e:
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
 
     async def handle_webrtc_ice_candidate(self, content):
         user = self.scope['user']
         recipient_id = content.get('recipient_id')
         ice_candidate = content.get('ice_candidate')
-        await self.send_to_group(str(recipient_id), 'webrtc.ice_candidate', {
-            'sender_id': str(user.id),
-            'ice_candidate': ice_candidate
-        })
+
+        try:
+            recipient = await database_sync_to_async(User.objects.get)(id=recipient_id)
+            if not recipient.is_online:
+                raise Exception("Recipient is offline.")
+            await self.send_to_group(str(recipient_id), 'webrtc.ice_candidate', {
+                'sender_id': str(user.id),
+                'ice_candidate': ice_candidate
+            })
+        except User.DoesNotExist:
+            await self.send_json({'source': 'error', 'data': {'message': 'Recipient not found'}})
+        except Exception as e:
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
 
     # --------------------------
     # Helper Functions
