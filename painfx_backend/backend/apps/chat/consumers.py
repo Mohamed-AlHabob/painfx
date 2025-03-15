@@ -316,55 +316,73 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def handle_webrtc_offer(self, content):
         user = self.scope['user']
         recipient_id = content.get('recipient_id')
-        offer = content.get('offer')
+        offer = content.get('offer')    
+
+        print(f"[WebRTC Offer] From: {user.id} To: {recipient_id} | Offer: {offer}")    
 
         try:
             recipient = await database_sync_to_async(User.objects.get)(id=recipient_id)
+            print(f"[WebRTC Offer] Recipient {recipient_id} found. Online status: {recipient.is_online}")
             if not recipient.is_online:
                 raise Exception("Recipient is offline.")
             await self.send_to_group(str(recipient_id), 'webrtc.offer', {
                 'sender_id': str(user.id),
                 'offer': offer
             })
+            print(f"[WebRTC Offer] Offer sent to {recipient_id}")
         except User.DoesNotExist:
+            print(f"[WebRTC Offer] Error: Recipient {recipient_id} not found.")
             await self.send_json({'source': 'error', 'data': {'message': 'Recipient not found'}})
         except Exception as e:
-            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
+            print(f"[WebRTC Offer] Error: {e}")
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})    
 
     async def handle_webrtc_answer(self, content):
         user = self.scope['user']
         recipient_id = content.get('recipient_id')
-        answer = content.get('answer')
+        answer = content.get('answer')    
+
+        print(f"[WebRTC Answer] From: {user.id} To: {recipient_id} | Answer: {answer}")    
 
         try:
             recipient = await database_sync_to_async(User.objects.get)(id=recipient_id)
+            print(f"[WebRTC Answer] Recipient {recipient_id} found. Online status: {recipient.is_online}")
             if not recipient.is_online:
                 raise Exception("Recipient is offline.")
             await self.send_to_group(str(recipient_id), 'webrtc.answer', {
                 'sender_id': str(user.id),
                 'answer': answer
             })
+            print(f"[WebRTC Answer] Answer sent to {recipient_id}")
         except User.DoesNotExist:
+            print(f"[WebRTC Answer] Error: Recipient {recipient_id} not found.")
             await self.send_json({'source': 'error', 'data': {'message': 'Recipient not found'}})
         except Exception as e:
-            await self.send_json({'source': 'error', 'data': {'message': str(e)}})
+            print(f"[WebRTC Answer] Error: {e}")
+            await self.send_json({'source': 'error', 'data': {'message': str(e)}})    
 
     async def handle_webrtc_ice_candidate(self, content):
         user = self.scope['user']
         recipient_id = content.get('recipient_id')
-        ice_candidate = content.get('ice_candidate')
+        ice_candidate = content.get('ice_candidate')    
+
+        print(f"[WebRTC ICE] From: {user.id} To: {recipient_id} | ICE Candidate: {ice_candidate}")    
 
         try:
             recipient = await database_sync_to_async(User.objects.get)(id=recipient_id)
+            print(f"[WebRTC ICE] Recipient {recipient_id} found. Online status: {recipient.is_online}")
             if not recipient.is_online:
                 raise Exception("Recipient is offline.")
             await self.send_to_group(str(recipient_id), 'webrtc.ice_candidate', {
                 'sender_id': str(user.id),
                 'ice_candidate': ice_candidate
             })
+            print(f"[WebRTC ICE] ICE Candidate sent to {recipient_id}")
         except User.DoesNotExist:
+            print(f"[WebRTC ICE] Error: Recipient {recipient_id} not found.")
             await self.send_json({'source': 'error', 'data': {'message': 'Recipient not found'}})
         except Exception as e:
+            print(f"[WebRTC ICE] Error: {e}")
             await self.send_json({'source': 'error', 'data': {'message': str(e)}})
 
     # --------------------------
