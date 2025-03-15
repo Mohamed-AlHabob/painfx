@@ -303,7 +303,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             connection = await database_sync_to_async(Connection.objects.get)(
                 id=connection_id,
-                Q(sender=user) | Q(receiver=user)
+                sender=user
             )
             recipient = await database_sync_to_async(self.get_other_participant)(connection, user)
             await self.send_to_group(str(recipient.id), 'typing', {'userId': user.id, 'typing': typing})
